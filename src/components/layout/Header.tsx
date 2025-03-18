@@ -3,10 +3,13 @@ import { Link, useLocation } from "react-router-dom";
 import { Navbar, Container, Nav, Button, Image } from "react-bootstrap";
 import { motion } from "framer-motion";
 import { FaGlobe, FaBars, FaTimes } from "react-icons/fa";
+import SocialNav from "../social/SocialNav";
+import { LogIn } from "lucide-react";
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [islogin, setIsLogin] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
@@ -117,13 +120,16 @@ const Header = () => {
               </Nav.Item>
             </Nav>
             <div className="d-flex">
-              <Button className="btn-polaris-primary max-lg:w-1/2 mx-auto max-lg:mt-4">Login</Button>
+              <Button className="btn-polaris-primary max-lg:w-1/2 mx-auto max-lg:mt-4" onClick={() => setIsLogin(!islogin)}>
+                {islogin ? "Sign out" : "Login"}
+              </Button>
             </div>
           </Navbar.Collapse>
         </Container>
       </Navbar>
       {/* Add extra padding when the navbar is fixed */}
       <div style={{ paddingTop: "80px" }}></div>
+      {islogin && <SocialNav />}
     </motion.header>
   );
 };
