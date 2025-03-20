@@ -3,51 +3,81 @@ import { useChatStore } from "../../store/useChatStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 import { Users } from "lucide-react";
-import { User } from "../../types";
+import { Message, User } from "../../types";
+import { axiosInstance } from "../../lib/axios";
+
+// Interface for user with last message
+interface UserWithLastMessage extends User {
+  lastMessage?: {
+    text?: string;
+    image?: string;
+    createdAt: string;
+  };
+}
 
 // User item component to keep the main component cleaner
 const UserItem = ({ 
   user, 
   isSelected, 
-  isOnline, 
+  isOnline,
   onClick 
 }: { 
-  user: User; 
+  user: UserWithLastMessage; 
   isSelected: boolean; 
   isOnline: boolean;
   onClick: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className={`
-      w-full p-1 lg:p-2 border-b border-gray-200 flex items-center gap-1
-      hover:bg-gray-100 transition-colors
-      ${isSelected ? "bg-gray-100 border-l-4 border-blue-500" : ""}
-    `}
-  >
-    <div className="relative lg:mx-0">
-      <img
-        src={user.profilePic || "/avatar.png"}
-        alt={user.fullName}
-        className="w-10 h-10 object-contain rounded-full"
-      />
-      {isOnline && (
-        <span
-          className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 
-          rounded-full border-2 border-white"
-        />
-      )}
-    </div>
+}) => {
+  // Format and truncate last message
+  const getLastMessagePreview = () => {
+    if (!user.lastMessage) return "No messages yet";
+    
+    if (user.lastMessage.image && !user.lastMessage.text) {
+      return "📷 Image";
+    }
+    
+    if (user.lastMessage.text) {
+      // Truncate text to 20 characters
+      return user.lastMessage.text.length > 20 
+        ? user.lastMessage.text.substring(0, 20) + "..." 
+        : user.lastMessage.text;
+    }
+    
+    return "No messages yet";
+  };
 
-    {/* User info - only visible on larger screens */}
-    <div className="hidden lg:block text-left min-w-0">
-      <div className="font-medium truncate text-gray-900">{user.fullName}</div>
-      <div className="text-xs text-gray-500">
-        {isOnline ? "Online" : "Offline"}
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        w-full p-1 lg:p-2 border-b border-gray-200 flex items-center gap-1
+        hover:bg-gray-100 transition-colors
+        ${isSelected ? "bg-gray-100 border-l-4 border-blue-500" : ""}
+      `}
+    >
+      <div className="relative lg:mx-0">
+        <img
+          src={user.profilePic || "/avatar.png"}
+          alt={user.fullName}
+          className="w-10 h-10 object-contain rounded-full"
+        />
+        {isOnline && (
+          <span
+            className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 
+            rounded-full border-2 border-white"
+          />
+        )}
       </div>
-    </div>
-  </button>
-);
+
+      {/* User info - only visible on larger screens */}
+      <div className="hidden lg:block text-left min-w-0 ml-2 flex-1">
+        <div className="font-medium truncate text-gray-900">{user.fullName}</div>
+        <div className="text-xs text-gray-500 truncate">
+          {getLastMessagePreview()}
+        </div>
+      </div>
+    </button>
+  );
+};
 
 // Toggle switch component
 const ToggleSwitch = ({
@@ -81,18 +111,67 @@ const ToggleSwitch = ({
 // Main Sidebar component
 const Sidebar = () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } = useChatStore();
-  const { onlineUsers } = useAuthStore();
+  const { authUser, onlineUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
+  const [usersWithLastMessages, setUsersWithLastMessages] = useState<UserWithLastMessage[]>([]);
 
   // Fetch users when component mounts
   useEffect(() => {
     getUsers();
   }, [getUsers]);
 
+  // Fetch last messages for each user
+  useEffect(() => {
+    const fetchLastMessages = async () => {
+      if (!users.length || !authUser) return;
+      
+      try {
+        // Create a copy of users to add last messages
+        const usersWithMessages: UserWithLastMessage[] = [...users];
+        
+        // Fetch last messages in parallel
+        const promises = users.map(async (user) => {
+          try {
+            // Get all messages with this user
+            const response = await axiosInstance.get<Message[]>(`/messages/${user._id}`);
+            const messages = response.data;
+            
+            // Find user in our array
+            const userIndex = usersWithMessages.findIndex(u => u._id === user._id);
+            if (userIndex !== -1 && messages.length > 0) {
+              // Get the most recent message
+              const lastMessage = messages[messages.length - 1];
+              usersWithMessages[userIndex] = {
+                ...usersWithMessages[userIndex],
+                lastMessage: {
+                  text: lastMessage.text,
+                  image: lastMessage.image,
+                  createdAt: lastMessage.createdAt
+                }
+              };
+            }
+          } catch (error) {
+            console.error(`Failed to fetch messages for user ${user._id}:`, error);
+          }
+        });
+        
+        // Wait for all fetches to complete
+        await Promise.all(promises);
+        
+        // Update state with users that have last messages
+        setUsersWithLastMessages(usersWithMessages);
+      } catch (error) {
+        console.error("Failed to fetch last messages:", error);
+      }
+    };
+
+    fetchLastMessages();
+  }, [users, authUser]);
+
   // Filter users based on online status if needed
   const filteredUsers = showOnlineOnly
-    ? users.filter((user) => onlineUsers.includes(user._id))
-    : users;
+    ? usersWithLastMessages.filter((user) => onlineUsers.includes(user._id))
+    : usersWithLastMessages;
 
   // Show loading skeleton when users are being loaded
   if (isUsersLoading) return <SidebarSkeleton />;

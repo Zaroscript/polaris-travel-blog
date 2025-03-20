@@ -4,10 +4,25 @@ import Sidebar from "../components/chat/Sidebar";
 import NoChatSelected from "../components/chat/NoChatSelected";
 import ChatContainer from "../components/chat/ChatContainer";
 import Header from "@/components/layout/Header";
+import { useEffect } from "react";
 
 const ChatPage = () => {
-  const { selectedUser } = useChatStore();
+  const { selectedUser, setSelectedUser, users, getUsers } = useChatStore();
 
+  useEffect(() => {
+    getUsers().then(loadedUsers => {
+      const selectedUserId = localStorage.getItem('selectedChatUser');
+      
+      if (selectedUserId && loadedUsers.length > 0) {
+        const userToSelect = loadedUsers.find(user => user._id === selectedUserId);
+        
+        if (userToSelect) {
+          setSelectedUser(userToSelect);
+        }
+        localStorage.removeItem('selectedChatUser');
+      }
+    });
+  }, [getUsers, setSelectedUser]);
   return (
     <>
     <Header />

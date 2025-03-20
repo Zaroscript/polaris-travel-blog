@@ -73,12 +73,11 @@ export default function SocialNav() {
           ? notification.sender 
           : { _id: notification.sender, fullName: "User" };
           
-        // Navigate to messages and set the selected user
-        navigate("/messages");
+        // Store the user ID to retrieve after navigation
+        localStorage.setItem('selectedChatUser', sender._id);
         
-        // Set the selected user in the chat store
-        const { setSelectedUser } = useChatStore.getState();
-        setSelectedUser(sender as User);
+        // Navigate to messages
+        navigate("/messages");
       }
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
@@ -105,6 +104,19 @@ export default function SocialNav() {
       console.error("Failed to logout:", error);
     }
   };
+
+  // Handle navigation to messages page
+  const navigateToMessages = () => {
+    // Always clear any previously selected user when navigating via the messages icon
+    localStorage.removeItem('selectedChatUser');
+    
+    // Reset the selectedUser in chat store directly
+    const chatStore = useChatStore.getState();
+  chatStore.setSelectedUser(null);
+  
+  // Then navigate to messages page
+  navigate("/messages");
+};
 
   // Get message-related notifications
   const getMessageNotifications = () => {
@@ -196,7 +208,7 @@ export default function SocialNav() {
                 variant="ghost" 
                 size="icon" 
                 className="rounded-md relative"
-                onClick={() => navigate("/messages")}
+                onClick={navigateToMessages}
               >
                 <MessageSquare className="h-6 w-6 text-gray-600" />
                 {getUnreadMessageCount() > 0 && (
@@ -313,6 +325,7 @@ export default function SocialNav() {
                                       size="sm"
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        localStorage.setItem('selectedChatUser', sender._id);
                                         navigate("/messages");
                                       }}
                                     >

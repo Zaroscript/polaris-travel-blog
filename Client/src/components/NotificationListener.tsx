@@ -5,6 +5,7 @@ import { useChatStore } from '@/store/useChatStore';
 import { PopulatedNotification, User } from '@/types';
 import toast from 'react-hot-toast';
 import { X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const NotificationListener = () => {
   const { socket } = useAuthStore();
@@ -13,7 +14,8 @@ const NotificationListener = () => {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('newNotification', (data: { notification: PopulatedNotification }) => {
+    // Handler for new notifications
+    const handleNewNotification = (data: { notification: PopulatedNotification }) => {
       addNotification(data.notification);
       
       const senderName = typeof data.notification.sender === 'object' 
@@ -31,6 +33,7 @@ const NotificationListener = () => {
                         max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto 
                         flex items-center overflow-hidden cursor-pointer`}
             onClick={() => {
+              // Prepare the sender data
               const sender = typeof data.notification.sender === 'object' 
                 ? data.notification.sender 
                 : { 
@@ -39,11 +42,14 @@ const NotificationListener = () => {
                     email: ''
                   };
               
-              const chatStore = useChatStore.getState();
+              // Store the user ID in localStorage to retrieve it after navigation
+              localStorage.setItem('selectedChatUser', sender._id);
               
-              chatStore.setSelectedUser(sender as User);
-              window.location.href = '/messages';
+              // Dismiss toast first before navigation
               toast.dismiss(t.id);
+              
+              // Use direct window location for reliable navigation
+              window.location.href = '/messages';
             }}
           >
             <div className="flex-1 w-0 p-2">
@@ -81,11 +87,16 @@ const NotificationListener = () => {
           </div>
         ), { duration: 3000 });
       }
-    });
+    };
 
+    // Register event listeners
+    socket.on('newNotification', handleNewNotification);
+    
     socket.on('connect', () => {
       getNotifications();
     });
+    
+    // Cleanup event listeners
     return () => {
       socket.off('newNotification');
       socket.off('connect');
