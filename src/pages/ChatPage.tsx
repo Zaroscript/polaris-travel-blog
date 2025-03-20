@@ -1,0 +1,28 @@
+import { useChatStore } from "../store/useChatStore";
+
+import Sidebar from "../components/chat/Sidebar";
+import NoChatSelected from "../components/chat/NoChatSelected";
+import ChatContainer from "../components/chat/ChatContainer";
+import Header from "@/components/layout/Header";
+
+const ChatPage = () => {
+  const { selectedUser } = useChatStore();
+
+  return (
+    <>
+    <Header />
+    <div className="h-screen ">
+      <div className="flex items-center justify-center pt-2 px-4 ">
+        <div className="rounded-lg shadow-cl w-full max-w-6xl h-[calc(100vh-12rem)]">
+          <div className="flex h-full rounded-lg overflow-hidden">
+            <Sidebar />
+
+            {!selectedUser ? <NoChatSelected /> : <ChatContainer />}
+          </div>
+        </div>
+      </div>
+    </div>
+    </>
+  );
+};
+export default ChatPage;
