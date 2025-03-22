@@ -2,9 +2,26 @@ import { X } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useChatStore } from "../../store/useChatStore";
 
-const ChatHeader = () => {
+interface ChatHeaderProps {
+  onBackClick?: () => void;
+  showBackButton?: boolean;
+}
+
+const ChatHeader = ({ onBackClick, showBackButton = false }: ChatHeaderProps) => {
   const { selectedUser, setSelectedUser } = useChatStore();
   const { onlineUsers } = useAuthStore();
+
+  const handleClose = () => {
+    setSelectedUser(null);
+    localStorage.removeItem('selectedChatUser');
+    
+    // Call back function if provided
+    if (onBackClick) {
+      onBackClick();
+    }
+  };
+
+  if (!selectedUser) return <div className="p-2.5 border-b border-gray-200"></div>;
 
   return (
     <div className="p-2.5 border-b border-gray-200">
@@ -35,7 +52,7 @@ const ChatHeader = () => {
 
         {/* Close button */}
         <button 
-          onClick={() => setSelectedUser(null)}
+          onClick={handleClose}
           className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
         >
           <X className="w-5 h-5" />

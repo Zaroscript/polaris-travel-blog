@@ -31,7 +31,6 @@ const ChatPage = () => {
         <div className="rounded-lg shadow-cl w-full max-w-6xl h-[calc(100vh-12rem)]">
           <div className="flex h-full rounded-lg overflow-hidden">
             <Sidebar />
-
             {!selectedUser ? <NoChatSelected /> : <ChatContainer />}
           </div>
         </div>

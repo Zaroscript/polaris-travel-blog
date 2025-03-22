@@ -68,8 +68,7 @@ const UserItem = ({
         )}
       </div>
 
-      {/* User info - only visible on larger screens */}
-      <div className="hidden lg:block text-left min-w-0 ml-2 flex-1">
+      <div className="block text-left min-w-0 ml-2 flex-1">
         <div className="font-medium truncate text-gray-900">{user.fullName}</div>
         <div className="text-xs text-gray-500 truncate">
           {getLastMessagePreview()}
@@ -110,15 +109,64 @@ const ToggleSwitch = ({
 
 // Main Sidebar component
 const Sidebar = () => {
-  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } = useChatStore();
-  const { authUser, onlineUsers } = useAuthStore();
+  const { 
+    getUsers, 
+    users, 
+    selectedUser, 
+    setSelectedUser, 
+    isUsersLoading,
+    messages, // Get current messages from store  
+  } = useChatStore();
+  
+  const { authUser, onlineUsers, socket } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
   const [usersWithLastMessages, setUsersWithLastMessages] = useState<UserWithLastMessage[]>([]);
+  const [messageCounter, setMessageCounter] = useState(0); // Counter to trigger re-fetch
 
   // Fetch users when component mounts
   useEffect(() => {
     getUsers();
   }, [getUsers]);
+
+  // Listen for new messages
+  useEffect(() => {
+    if (!socket) return;
+
+    // When a new message arrives, increment counter to trigger re-fetch
+    const handleNewMessage = () => {
+      setMessageCounter(prev => prev + 1);
+    };
+
+    socket.on('newMessage', handleNewMessage);
+
+    return () => {
+      socket.off('newMessage', handleNewMessage);
+    };
+  }, [socket]);
+
+  // Update when messages array changes (when sending a new message)
+  useEffect(() => {
+    if (messages.length > 0 && selectedUser) {
+      // Update the last message for the selected user
+      setUsersWithLastMessages(prevUsers => {
+        return prevUsers.map(user => {
+          if (user._id === selectedUser._id) {
+            // Find the latest message
+            const latestMessage = messages[messages.length - 1];
+            return {
+              ...user,
+              lastMessage: {
+                text: latestMessage.text,
+                image: latestMessage.image,
+                createdAt: latestMessage.createdAt
+              }
+            };
+          }
+          return user;
+        });
+      });
+    }
+  }, [messages, selectedUser]);
 
   // Fetch last messages for each user
   useEffect(() => {
@@ -166,7 +214,7 @@ const Sidebar = () => {
     };
 
     fetchLastMessages();
-  }, [users, authUser]);
+  }, [users, authUser, messageCounter]); // Re-fetch when messageCounter changes
 
   // Filter users based on online status if needed
   const filteredUsers = showOnlineOnly
@@ -177,7 +225,7 @@ const Sidebar = () => {
   if (isUsersLoading) return <SidebarSkeleton />;
 
   return (
-    <aside className="h-full w-20 lg:w-72 border-r border-b border-t border-l rounded-tl-lg rounded-bl-lg border-gray-200 flex flex-col transition-all duration-200">
+    <aside className="h-full border-r border-b border-t border-l rounded-tl-lg rounded-bl-lg border-gray-200 flex  max-w-72 min-w-40 flex-col transition-all duration-200">
       {/* Header Section */}
       <div className="border-b border-gray-200 w-full p-3">
         <div className="hidden lg:flex items-center gap-2">
