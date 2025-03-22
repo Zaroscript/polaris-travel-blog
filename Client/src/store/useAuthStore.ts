@@ -11,8 +11,7 @@ import {
   ApiResponse,
 } from "../types";
 
-const BASE_URL =
-  import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   authUser: null,
