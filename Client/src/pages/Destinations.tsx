@@ -5,7 +5,7 @@ import { Container, Row, Col, Card, Badge, Button } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import { FaMapMarkerAlt, FaGlobe, FaPlane, FaMountain, FaArrowLeft } from 'react-icons/fa';
 import Layout from '@/components/layout/Layout';
-import { destinations } from '@/data/blogData';
+import { destinations } from '@/data/destinations';
 import DestinationCard from '@/components/destination/DestinationCard';
 
 const Destinations = () => {

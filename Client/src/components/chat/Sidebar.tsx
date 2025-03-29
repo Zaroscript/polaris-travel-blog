@@ -16,32 +16,32 @@ interface UserWithLastMessage extends User {
 }
 
 // User item component to keep the main component cleaner
-const UserItem = ({ 
-  user, 
-  isSelected, 
+const UserItem = ({
+  user,
+  isSelected,
   isOnline,
-  onClick 
-}: { 
-  user: UserWithLastMessage; 
-  isSelected: boolean; 
+  onClick,
+}: {
+  user: UserWithLastMessage;
+  isSelected: boolean;
   isOnline: boolean;
   onClick: () => void;
 }) => {
   // Format and truncate last message
   const getLastMessagePreview = () => {
     if (!user.lastMessage) return "No messages yet";
-    
+
     if (user.lastMessage.image && !user.lastMessage.text) {
       return "📷 Image";
     }
-    
+
     if (user.lastMessage.text) {
       // Truncate text to 20 characters
-      return user.lastMessage.text.length > 20 
-        ? user.lastMessage.text.substring(0, 20) + "..." 
+      return user.lastMessage.text.length > 20
+        ? user.lastMessage.text.substring(0, 20) + "..."
         : user.lastMessage.text;
     }
-    
+
     return "No messages yet";
   };
 
@@ -69,7 +69,9 @@ const UserItem = ({
       </div>
 
       <div className="block text-left min-w-0 ml-2 flex-1">
-        <div className="font-medium truncate text-gray-900">{user.fullName}</div>
+        <div className="font-medium truncate text-gray-900">
+          {user.fullName}
+        </div>
         <div className="text-xs text-gray-500 truncate">
           {getLastMessagePreview()}
         </div>
@@ -82,7 +84,7 @@ const UserItem = ({
 const ToggleSwitch = ({
   checked,
   onChange,
-  label
+  label,
 }: {
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -96,12 +98,13 @@ const ToggleSwitch = ({
         onChange={(e) => onChange(e.target.checked)}
         className="sr-only peer"
       />
-      <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer 
+      <div
+        className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer 
                      peer-checked:after:translate-x-full peer-checked:after:border-white 
                      after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
                      after:bg-white after:border-gray-300 after:border after:rounded-full 
-                     after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600">
-      </div>
+                     after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"
+      ></div>
     </div>
     <span className="text-sm text-gray-700">{label}</span>
   </label>
@@ -109,18 +112,20 @@ const ToggleSwitch = ({
 
 // Main Sidebar component
 const Sidebar = () => {
-  const { 
-    getUsers, 
-    users, 
-    selectedUser, 
-    setSelectedUser, 
+  const {
+    getUsers,
+    users,
+    selectedUser,
+    setSelectedUser,
     isUsersLoading,
-    messages, // Get current messages from store  
+    messages, // Get current messages from store
   } = useChatStore();
-  
+
   const { authUser, onlineUsers, socket } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
-  const [usersWithLastMessages, setUsersWithLastMessages] = useState<UserWithLastMessage[]>([]);
+  const [usersWithLastMessages, setUsersWithLastMessages] = useState<
+    UserWithLastMessage[]
+  >([]);
   const [messageCounter, setMessageCounter] = useState(0); // Counter to trigger re-fetch
 
   // Fetch users when component mounts
@@ -134,13 +139,13 @@ const Sidebar = () => {
 
     // When a new message arrives, increment counter to trigger re-fetch
     const handleNewMessage = () => {
-      setMessageCounter(prev => prev + 1);
+      setMessageCounter((prev) => prev + 1);
     };
 
-    socket.on('newMessage', handleNewMessage);
+    socket.on("newMessage", handleNewMessage);
 
     return () => {
-      socket.off('newMessage', handleNewMessage);
+      socket.off("newMessage", handleNewMessage);
     };
   }, [socket]);
 
@@ -148,8 +153,8 @@ const Sidebar = () => {
   useEffect(() => {
     if (messages.length > 0 && selectedUser) {
       // Update the last message for the selected user
-      setUsersWithLastMessages(prevUsers => {
-        return prevUsers.map(user => {
+      setUsersWithLastMessages((prevUsers) => {
+        return prevUsers.map((user) => {
           if (user._id === selectedUser._id) {
             // Find the latest message
             const latestMessage = messages[messages.length - 1];
@@ -158,8 +163,8 @@ const Sidebar = () => {
               lastMessage: {
                 text: latestMessage.text,
                 image: latestMessage.image,
-                createdAt: latestMessage.createdAt
-              }
+                createdAt: latestMessage.createdAt,
+              },
             };
           }
           return user;
@@ -172,20 +177,24 @@ const Sidebar = () => {
   useEffect(() => {
     const fetchLastMessages = async () => {
       if (!users.length || !authUser) return;
-      
+
       try {
         // Create a copy of users to add last messages
         const usersWithMessages: UserWithLastMessage[] = [...users];
-        
+
         // Fetch last messages in parallel
         const promises = users.map(async (user) => {
           try {
             // Get all messages with this user
-            const response = await axiosInstance.get<Message[]>(`/messages/${user._id}`);
+            const response = await axiosInstance.get<Message[]>(
+              `/messages/${user._id}`
+            );
             const messages = response.data;
-            
+
             // Find user in our array
-            const userIndex = usersWithMessages.findIndex(u => u._id === user._id);
+            const userIndex = usersWithMessages.findIndex(
+              (u) => u._id === user._id
+            );
             if (userIndex !== -1 && messages.length > 0) {
               // Get the most recent message
               const lastMessage = messages[messages.length - 1];
@@ -194,18 +203,21 @@ const Sidebar = () => {
                 lastMessage: {
                   text: lastMessage.text,
                   image: lastMessage.image,
-                  createdAt: lastMessage.createdAt
-                }
+                  createdAt: lastMessage.createdAt,
+                },
               };
             }
           } catch (error) {
-            console.error(`Failed to fetch messages for user ${user._id}:`, error);
+            console.error(
+              `Failed to fetch messages for user ${user._id}:`,
+              error
+            );
           }
         });
-        
+
         // Wait for all fetches to complete
         await Promise.all(promises);
-        
+
         // Update state with users that have last messages
         setUsersWithLastMessages(usersWithMessages);
       } catch (error) {
@@ -228,20 +240,22 @@ const Sidebar = () => {
     <aside className="h-full border-r border-b border-t border-l rounded-tl-lg rounded-bl-lg border-gray-200 flex  max-w-72 min-w-40 flex-col transition-all duration-200">
       {/* Header Section */}
       <div className="border-b border-gray-200 w-full p-3">
-        <div className="hidden lg:flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <Users className="w-6 h-6 text-gray-700" />
-          <span className="font-medium hidden lg:block text-gray-800">Contacts</span>
+          <span className="font-medium text-gray-800">
+            Contacts
+          </span>
           <span className="text-xs text-gray-500">
             ({onlineUsers.length - 1} online)
           </span>
         </div>
-        
+
         {/* Filter Controls - Only visible on larger screens */}
-        <div className="mt-3 hidden lg:flex items-center gap-2">
-          <ToggleSwitch 
-            checked={showOnlineOnly} 
+        <div className="mt-3 flex items-center gap-2">
+          <ToggleSwitch
+            checked={showOnlineOnly}
             onChange={setShowOnlineOnly}
-            label="Show online only" 
+            label="Show online only"
           />
         </div>
       </div>

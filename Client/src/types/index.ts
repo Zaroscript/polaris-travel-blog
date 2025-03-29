@@ -1,4 +1,4 @@
-import { Socket } from 'socket.io-client';
+import { Socket } from "socket.io-client";
 
 export interface User {
   _id: string;
@@ -72,6 +72,7 @@ export interface ChatState {
   isMessagesLoading: boolean;
   isSendingMessage: boolean;
   error: string | null;
+  unreadMessages: number;
   getUsers: () => Promise<User[]>;
   getMessages: (userId: string) => Promise<Message[]>;
   sendMessage: (messageData: SendMessageData) => Promise<Message>;
@@ -79,6 +80,7 @@ export interface ChatState {
   unsubscribeFromMessages: () => void;
   setSelectedUser: (selectedUser: User) => void;
   clearError: () => void;
+  getUnreadMessages: () => Promise<number>;
 }
 
 // Notification state interface
@@ -126,3 +128,48 @@ export interface ApiError {
   status?: number;
 }
 
+export interface Destination {
+  id: number;
+  name: string;
+  location: string;
+  description: string;
+  image: string;
+  rating: number;
+  tags: string[];
+}
+
+export interface Comment {
+  id: number;
+  user: {
+    name: string;
+    avatar: string;
+    role?: string;
+  };
+  text: string;
+  date: string;
+  likes: number;
+}
+
+export interface BlogPost {
+  id: number;
+  title: string;
+  excerpt: string;
+  content: string;
+  image: string;
+  date: string;
+  author: {
+    name: string;
+    avatar: string;
+    role?: string;
+  };
+  category: string;
+  tags: string[];
+  likes: number;
+  comments: Comment[];
+  featured?: boolean;
+  readTime?: string;
+  destination?: Destination; // Added destination property
+  travelTips?: string[]; // Added travel tips property
+  gallery?: string[]; // Added gallery property
+  mentions?: string[]; // Added mentions property
+}

@@ -25,7 +25,7 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
-  
+
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
@@ -43,36 +43,39 @@ const App = () => {
       <BrowserRouter>
         {/* Toast notifications container */}
         <Toaster position="top-right" />
-        
+
         {/* Notification listener for real-time updates */}
         {authUser && <NotificationListener />}
-        <div data-theme='light'>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/destinations" element={<Destinations />} />
-          <Route path="/blogs" element={<Blogs />} />
-          <Route path="/blog/:id" element={<BlogPost />} />
-          <Route path="/social" element={<Social />} />
+        <div data-theme="light">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/destinations" element={<Destinations />} />
+            <Route path="/blogs" element={<Blogs />} />
+            <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/social" element={<Social />} />
 
-          <Route
-            path="/messages"
-            element={authUser ? <ChatPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/signup"
-            element={!authUser ? <SignUpPage /> : <Navigate to="/" />}
-          />
-          <Route
-            path="/login"
-            element={!authUser ? <LoginPage /> : <Navigate to="/" />}
-          />
+            <Route
+              path="/messages"
+              element={authUser ? <ChatPage /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/signup"
+              element={!authUser ? <SignUpPage /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/login"
+              element={!authUser ? <LoginPage /> : <Navigate to="/" />}
+            />
 
-          <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<NotFound />} />
 
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-        </Routes>
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route
+              path="/reset-password/:token"
+              element={<ResetPasswordPage />}
+            />
+          </Routes>
         </div>
       </BrowserRouter>
     </QueryClientProvider>

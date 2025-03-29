@@ -12,6 +12,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isMessagesLoading: false,
   isSendingMessage: false,
   error: null,
+  unreadMessages: 0,
 
   getUsers: async () => {
     set({ isUsersLoading: true, error: null });
@@ -20,9 +21,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({ users: res.data });
       return res.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to fetch users";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "Failed to fetch users";
       set({ error: errorMessage });
       toast.error(errorMessage);
       return [];
@@ -38,9 +41,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({ messages: res.data });
       return res.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to fetch messages";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "Failed to fetch messages";
       set({ error: errorMessage });
       toast.error(errorMessage);
       return [];
@@ -49,10 +54,27 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 
+  getUnreadMessages: async () => {
+    try {
+      const res = await axiosInstance.get<number>("/messages/unread");
+      set({ unreadMessages: res.data });
+      return res.data;
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "Failed to fetch unread messages";
+      set({ error: errorMessage });
+      toast.error(errorMessage);
+      return 0;
+    }
+  },
+
   sendMessage: async (messageData: SendMessageData) => {
     const { selectedUser, messages } = get();
     if (!selectedUser) throw new Error("No user selected");
-    
+
     set({ isSendingMessage: true, error: null });
     try {
       const res = await axiosInstance.post<Message>(
@@ -63,9 +85,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({ messages: updatedMessages });
       return res.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to send message";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "Failed to send message";
       set({ error: errorMessage });
       toast.error(errorMessage);
       throw error;
@@ -100,8 +124,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   setSelectedUser: (selectedUser: User) => set({ selectedUser }),
-  
+
   clearError: () => {
     set({ error: null });
-  }
+  },
 }));

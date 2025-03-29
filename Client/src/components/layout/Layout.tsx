@@ -1,4 +1,3 @@
-
 import { FC, ReactNode, useEffect } from "react";
 import { motion } from "framer-motion";
 import Header from "./Header";
@@ -18,7 +17,7 @@ const Layout: FC<LayoutProps> = ({ children }) => {
     <div className="d-flex flex-column min-vh-100">
       <Header />
       <motion.main
-        className="flex-grow-1"
+        className="flex-grow-1 pt-16"
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 15 }}
