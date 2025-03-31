@@ -27,11 +27,20 @@ const MobileNav = ({
       {/* Mobile Menu */}
       <Sheet>
         <SheetTrigger asChild className="md:hidden">
-          <Button variant="ghost" size="icon" className="hover:bg-muted/50">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hover:bg-muted/50"
+            aria-label="Open navigation menu"
+          >
             <MenuIcon className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="right" className="w-[300px] sm:w-[400px] p-0">
+        <SheetContent
+          side="right"
+          className="w-[300px] sm:w-[400px] p-0"
+          aria-label="Navigation menu"
+        >
           <div className="flex flex-col h-full">
             <div className="p-4 border-b">
               <div className="flex items-center space-x-2">
@@ -41,7 +50,10 @@ const MobileNav = ({
                 </span>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
+            <nav
+              className="flex-1 overflow-y-auto p-4"
+              aria-label="Main navigation"
+            >
               <div className="flex flex-col space-y-4">
                 {/* Navigation Links */}
                 <div className="space-y-1">
@@ -55,6 +67,7 @@ const MobileNav = ({
                           ? "text-primary bg-primary/10"
                           : "text-muted-foreground hover:text-primary hover:bg-muted/50"
                       )}
+                      aria-current={isActive(item.path) ? "page" : undefined}
                     >
                       {item.label}
                     </Link>
@@ -79,14 +92,17 @@ const MobileNav = ({
                       </div>
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="space-y-1" role="menu">
                       <Button
                         variant="ghost"
                         className="w-full justify-start hover:bg-muted/50"
                         asChild
                       >
                         <Link to="/messages" className="flex items-center">
-                          <MessageSquare className="mr-2 h-4 w-4" />
+                          <MessageSquare
+                            className="mr-2 h-4 w-4"
+                            aria-hidden="true"
+                          />
                           Messages
                           {unreadMessages > 0 && (
                             <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
@@ -101,7 +117,7 @@ const MobileNav = ({
                         asChild
                       >
                         <Link to="/notifications" className="flex items-center">
-                          <Bell className="mr-2 h-4 w-4" />
+                          <Bell className="mr-2 h-4 w-4" aria-hidden="true" />
                           Notifications
                           {unreadCount > 0 && (
                             <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
@@ -116,7 +132,7 @@ const MobileNav = ({
                         asChild
                       >
                         <Link to="/profile" className="flex items-center">
-                          <User className="mr-2 h-4 w-4" />
+                          <User className="mr-2 h-4 w-4" aria-hidden="true" />
                           Profile
                         </Link>
                       </Button>
@@ -126,7 +142,10 @@ const MobileNav = ({
                         asChild
                       >
                         <Link to="/settings" className="flex items-center">
-                          <Settings className="mr-2 h-4 w-4" />
+                          <Settings
+                            className="mr-2 h-4 w-4"
+                            aria-hidden="true"
+                          />
                           Settings
                         </Link>
                       </Button>
@@ -135,7 +154,7 @@ const MobileNav = ({
                         className="w-full justify-start text-red-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50"
                         onClick={handleLogout}
                       >
-                        <LogOut className="mr-2 h-4 w-4" />
+                        <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
                         Logout
                       </Button>
                     </div>
@@ -158,7 +177,7 @@ const MobileNav = ({
                   </div>
                 )}
               </div>
-            </div>
+            </nav>
           </div>
         </SheetContent>
       </Sheet>

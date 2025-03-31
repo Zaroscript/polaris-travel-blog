@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import NotificationListener from "./components/NotificationListener";
+import Profile from "@/pages/Profile";
 
 import Index from "./pages/Index";
 import About from "./pages/About";
@@ -67,6 +68,9 @@ const App = () => {
               path="/login"
               element={!authUser ? <LoginPage /> : <Navigate to="/" />}
             />
+
+            
+            <Route path="user/profile/:id" element={<Profile />} />
 
             <Route path="*" element={<NotFound />} />
 

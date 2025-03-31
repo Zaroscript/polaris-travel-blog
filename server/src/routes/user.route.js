@@ -8,7 +8,7 @@ import {
   toggleFollow,
   getUserPosts,
   getSavedPosts,
-} from "../controllers/user.controller.js";
+  } from "../controllers/user.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
 

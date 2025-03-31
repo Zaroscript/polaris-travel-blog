@@ -7,6 +7,7 @@ export interface User {
   profilePic?: string;
   createdAt?: string;
   updatedAt?: string;
+  token?: string;
 }
 
 export interface Message {

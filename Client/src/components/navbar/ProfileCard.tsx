@@ -41,7 +41,7 @@ export default function ProfileCard({ authUser, handleLogout }) {
             </div>
           </div>
           <DropdownMenuItem asChild className="cursor-pointer">
-            <Link to="/profile" className="flex items-center">
+            <Link to={`/user/profile/${authUser._id}`} className="flex items-center">
               <User className="mr-2 h-4 w-4" />
               Profile
             </Link>

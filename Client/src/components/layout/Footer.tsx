@@ -1,54 +1,43 @@
 import { Link } from "react-router-dom";
-import { Container, Row, Col, Form, Button, InputGroup } from "react-bootstrap";
-import {
-  FaGlobe,
-  FaInstagram,
-  FaFacebook,
-  FaTwitter,
-  FaEnvelope,
-  FaMapMarkerAlt,
-} from "react-icons/fa";
+import { Globe, Instagram, Facebook, Twitter } from "lucide-react"; // Using lucide icons
 
 const Footer = () => {
   return (
     <footer className="footer-polaris mt-auto">
-      <Container>
-        <Row className="gap-y-8">
-          <Col md={4} className="mb-4 mb-md-0">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="mb-4">
             <Link
               to="/"
-              className="d-flex align-items-center mb-4 text-white text-decoration-none"
+              className="flex items-center mb-4 text-white no-underline"
             >
-              <FaGlobe className="me-2" size={24} />
-              <span className="fw-bold fs-4">Polaris</span>
+              <Globe className="mr-2" size={24} />
+              <span className="font-bold text-2xl">Polaris</span>
             </Link>
             <p className="text-white-50 mb-4">
               Exploring the world one adventure at a time. Join us on our
               journey of discovery.
             </p>
-            <div className="d-flex gap-3">
+            <div className="flex gap-3">
               <a href="#" className="text-white-50 hover-lift">
-                <FaInstagram size={18} />
+                <Instagram size={18} />
               </a>
               <a href="#" className="text-white-50 hover-lift">
-                <FaFacebook size={18} />
+                <Facebook size={18} />
               </a>
               <a href="#" className="text-white-50 hover-lift">
-                <FaTwitter size={18} />
-              </a>
-              <a href="#" className="text-white-50 hover-lift">
-                <FaEnvelope size={18} />
+                <Twitter size={18} />
               </a>
             </div>
-          </Col>
+          </div>
 
-          <Col md={3} sm={6}>
+          <div>
             <h5 className="text-white mb-3">Quick Links</h5>
-            <ul className="list-unstyled">
+            <ul className="list-none">
               <li className="mb-2">
                 <Link
                   to="/"
-                  className="text-white-50 text-decoration-none hover-lift"
+                  className="text-white-50 no-underline hover-lift"
                 >
                   Home
                 </Link>
@@ -56,7 +45,7 @@ const Footer = () => {
               <li className="mb-2">
                 <Link
                   to="/about"
-                  className="text-white-50 text-decoration-none hover-lift"
+                  className="text-white-50 no-underline hover-lift"
                 >
                   About
                 </Link>
@@ -64,7 +53,7 @@ const Footer = () => {
               <li className="mb-2">
                 <Link
                   to="/destinations"
-                  className="text-white-50 text-decoration-none hover-lift"
+                  className="text-white-50 no-underline hover-lift"
                 >
                   Destinations
                 </Link>
@@ -72,7 +61,7 @@ const Footer = () => {
               <li className="mb-2">
                 <Link
                   to="/blogs"
-                  className="text-white-50 text-decoration-none hover-lift"
+                  className="text-white-50 no-underline hover-lift"
                 >
                   Blog
                 </Link>
@@ -80,21 +69,21 @@ const Footer = () => {
               <li className="mb-2">
                 <Link
                   to="/social"
-                  className="text-white-50 text-decoration-none hover-lift"
+                  className="text-white-50 no-underline hover-lift"
                 >
                   Social Feed
                 </Link>
               </li>
             </ul>
-          </Col>
+          </div>
 
-          <Col md={4} sm={6} lg={2}>
+          <div>
             <h5 className="text-white mb-3">Top Destinations</h5>
-            <ul className="list-unstyled">
+            <ul className="list-none">
               <li className="mb-2">
                 <a
                   href="#"
-                  className="text-white-50 text-decoration-none hover-lift"
+                  className="text-white-50 no-underline hover-lift"
                 >
                   Bali, Indonesia
                 </a>
@@ -102,7 +91,7 @@ const Footer = () => {
               <li className="mb-2">
                 <a
                   href="#"
-                  className="text-white-50 text-decoration-none hover-lift"
+                  className="text-white-50 no-underline hover-lift"
                 >
                   Santorini, Greece
                 </a>
@@ -110,7 +99,7 @@ const Footer = () => {
               <li className="mb-2">
                 <a
                   href="#"
-                  className="text-white-50 text-decoration-none hover-lift"
+                  className="text-white-50 no-underline hover-lift"
                 >
                   Kyoto, Japan
                 </a>
@@ -118,7 +107,7 @@ const Footer = () => {
               <li className="mb-2">
                 <a
                   href="#"
-                  className="text-white-50 text-decoration-none hover-lift"
+                  className="text-white-50 no-underline hover-lift"
                 >
                   Machu Picchu, Peru
                 </a>
@@ -126,33 +115,27 @@ const Footer = () => {
               <li className="mb-2">
                 <a
                   href="#"
-                  className="text-white-50 text-decoration-none hover-lift"
+                  className="text-white-50 no-underline hover-lift"
                 >
                   Marrakech, Morocco
                 </a>
               </li>
             </ul>
-          </Col>
+          </div>
 
-          <Col sm={8} xl={3}>
+          <div>
             <h5 className="text-white mb-3">Newsletter</h5>
             <p className="text-white-50 mb-3">
               Subscribe to our newsletter for travel tips and inspiration.
             </p>
-            <Form>
-              <InputGroup className="mb-3">
-                <Form.Control
-                  placeholder="Your email address"
-                  aria-label="Your email address"
-                  required
-                />
-                <Button variant="primary" type="submit">
-                  Subscribe
-                </Button>
-              </InputGroup>
-            </Form>
-          </Col>
-        </Row>
+            <form>
+              <input className="mb-3 p-2 rounded" placeholder="Your email address" aria-label="Your email address" required />
+              <button className="bg-primary text-white p-2 rounded" type="submit">
+                Subscribe
+              </button>
+            </form>
+          </div>
+        </div>
 
         <hr className="my-4 bg-white-50 opacity-25" />
 
@@ -161,7 +144,7 @@ const Footer = () => {
             &copy; {new Date().getFullYear()} Polaris. All rights reserved.
           </p>
         </div>
-      </Container>
+      </div>
     </footer>
   );
 };

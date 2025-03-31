@@ -30,15 +30,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       get().connectSocket();
       return res.data;
     } catch (error: unknown) {
-      const status = (error as { response?: { status?: number } })?.response?.status;
+      console.error("Auth check error:", error);
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
       if (status === 401) {
         set({ authUser: null, error: null });
         return null;
       }
-      
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Authentication check failed";
+
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "Authentication check failed";
       set({ authUser: null, error: errorMessage });
       return null;
     } finally {
@@ -49,15 +53,50 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signup: async (data: SignupData) => {
     set({ isSigningUp: true, error: null });
     try {
+      console.log("Attempting signup with data:", {
+        ...data,
+        password: "[REDACTED]",
+      });
       const res = await axiosInstance.post<User>("/auth/signup", data);
-      set({ authUser: res.data });
+
+      if (!res.data || !res.data.token) {
+        throw new Error("Invalid response from server: No token received");
+      }
+
+      localStorage.setItem("token", res.data.token);
+      set({ authUser: res.data, error: null });
       toast.success("Account created successfully");
       get().connectSocket();
       return res.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Signup failed";
+      console.error("Signup error:", error);
+
+      let errorMessage = "Failed to create account. Please try again.";
+
+      if (error && typeof error === "object") {
+        const axiosError = error as {
+          response?: {
+            status?: number;
+            data?: { message?: string };
+          };
+          message?: string;
+        };
+
+        if (axiosError.response?.status === 404) {
+          errorMessage =
+            "Server not found. Please check if the server is running.";
+        } else if (axiosError.response?.status === 400) {
+          errorMessage =
+            "Invalid input. Please check your details and try again.";
+        } else if (axiosError.response?.status === 409) {
+          errorMessage = "An account with this email already exists.";
+        } else if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        } else if (axiosError.message) {
+          errorMessage = axiosError.message;
+        }
+      }
+
       set({ error: errorMessage });
       toast.error(errorMessage);
       throw error;
@@ -70,6 +109,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoggingIn: true, error: null });
     try {
       const res = await axiosInstance.post<User>("/auth/login", data);
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
       set({ authUser: res.data });
       toast.success("Logged in successfully");
       get().connectSocket();
@@ -77,23 +119,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error: unknown) {
       // Create a more descriptive error message
       let errorMessage = "Login failed. Please check your credentials.";
-      
-      if (error && typeof error === 'object') {
-        const axiosError = error as any;
-        
-        if (axiosError.status === 400 || axiosError.code === "ERR_BAD_REQUEST") {
+
+      if (error && typeof error === "object") {
+        const axiosError = error as {
+          status?: number;
+          code?: string;
+          response?: {
+            status?: number;
+            data?: { message?: string };
+          };
+        };
+
+        if (
+          axiosError.response?.status === 400 ||
+          axiosError.code === "ERR_BAD_REQUEST"
+        ) {
           errorMessage = "Invalid email or password. Please try again.";
-        } else if (axiosError.status === 401) {
+        } else if (axiosError.response?.status === 401) {
           errorMessage = "Your account is not authorized.";
         } else if (axiosError.status === 404) {
-          errorMessage = "Account not found. Please check your email or sign up.";
+          errorMessage =
+            "Account not found. Please check your email or sign up.";
         }
-        
+
         if (axiosError.response?.data?.message) {
           errorMessage = axiosError.response.data.message;
         }
       }
-      
+
       set({ error: errorMessage });
       toast.error(errorMessage);
       throw error;
@@ -110,9 +163,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       toast.success("Logged out successfully");
       get().disconnectSocket();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Logout failed";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "Logout failed";
       set({ error: errorMessage });
       toast.error(errorMessage);
     }
@@ -127,9 +182,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return res.data;
     } catch (error: unknown) {
       console.log("error in update profile:", error);
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Profile update failed";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "Profile update failed";
       set({ error: errorMessage });
       toast.error(errorMessage);
       throw error;
@@ -142,18 +199,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { authUser } = get();
     if (!authUser || get().socket?.connected) return;
 
-    const socket = io(BASE_URL, {
-      query: {
-        userId: authUser._id,
-      },
-    });
-    socket.connect();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No authentication token found");
+      return;
+    }
 
-    set({ socket });
+    const socket = io(BASE_URL, {
+      auth: { token },
+      withCredentials: true,
+      transports: ["websocket", "polling"],
+    });
+
+    socket.on("connect", () => {
+      console.log("Socket connected successfully");
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+    });
 
     socket.on("getOnlineUsers", (userIds: string[]) => {
       set({ onlineUsers: userIds });
     });
+
+    set({ socket });
   },
 
   disconnectSocket: () => {
@@ -163,5 +233,5 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   clearError: () => {
     set({ error: null });
-  }
+  },
 }));

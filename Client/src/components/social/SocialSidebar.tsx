@@ -7,13 +7,20 @@ const SocialSidebar = () => {
   const { authUser } = useAuthStore();
 
   return (
-    <div className="hidden lg:flex flex-col w-72 p-6 border-r border-border/40 sticky top-[65px] h-[calc(100vh-65px)] overflow-hidden">
-      <div className="flex items-center space-x-3 mb-8 pb-6 border-b border-border/40">
-        <Avatar className="h-12 w-12 ring-2 ring-primary/10">
+    <div className="hidden lg:flex flex-col w-56  border-x rounded-lg border-border/40 sticky top-[85px] h-[calc(100vh-65px)] overflow-hidden">
+      <div className="w-full h-14 object-cover overflow-hidden">
+        <img
+          src="https://images.unsplash.com/photo-1549228167-511375f69159?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxleHBsb3JlLWZlZWR8MXx8fGVufDB8fHx8fA%3D%3D"
+          alt="cover image"
+          className="w-full h-full"
+        />
+      </div>
+      <div className="flex flex-col -mt-6 items-center space-x-3 mb-8 pb-6 border-b border-border/40">
+        <Avatar className="h-14 w-14 ring-2 ring-primary/10">
           <AvatarImage src={authUser?.profilePic} />
           <AvatarFallback>{authUser?.fullName?.charAt(0)}</AvatarFallback>
         </Avatar>
-        <div>
+        <div className="text-center">
           <h3 className="font-semibold">{authUser?.fullName}</h3>
           <p className="text-sm text-muted-foreground hover:text-primary cursor-pointer transition-colors">
             View profile
@@ -37,22 +44,6 @@ const SocialSidebar = () => {
         >
           <Users className="mr-3 h-5 w-5" />
           Connections
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start font-medium"
-          size="lg"
-        >
-          <Bell className="mr-3 h-5 w-5" />
-          Latest News
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start font-medium"
-          size="lg"
-        >
-          <Newspaper className="mr-3 h-5 w-5" />
-          Events
         </Button>
         <Button
           variant="ghost"

@@ -2,19 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserPlus, UserMinus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RightSidebarProps } from "@/types/social";
 
-interface SuggestedConnection {
-  name: string;
-  avatar: string;
-  role: string;
-}
 
-interface RightSidebarProps {
-  suggestedConnections: SuggestedConnection[];
-  following: { [key: string]: boolean };
-  onFollow: (userId: string) => void;
-  newsItems: string[];
-}
 
 const RightSidebar = ({
   suggestedConnections,
@@ -23,7 +13,7 @@ const RightSidebar = ({
   newsItems,
 }: RightSidebarProps) => {
   return (
-    <div className="hidden xl:flex flex-col w-80 p-6 border-l border-border/40 sticky top-[65px] h-[calc(100vh-65px)] overflow-hidden">
+    <div className="hidden xl:flex flex-col w-60 p-6 border-x border-border/40 sticky top-[65px] h-[calc(100vh-65px)] overflow-hidden">
       {/* Suggested Connections */}
       <div className="mb-8 pb-8 border-b border-border/40">
         <h3 className="font-semibold mb-4 text-base">People you may know</h3>
@@ -35,7 +25,7 @@ const RightSidebar = ({
             >
               <div className="flex items-center space-x-3">
                 <Avatar className="h-10 w-10 ring-2 ring-primary/10">
-                  <AvatarImage src={connection.avatar} />
+                  <AvatarImage src={connection.profileImage} />
                   <AvatarFallback>{connection.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -48,24 +38,18 @@ const RightSidebar = ({
                 </div>
               </div>
               <Button
-                variant={following[connection.name] ? "secondary" : "outline"}
+                variant="ghost"
                 size="sm"
                 className={cn(
-                  "hover:bg-primary/10 hover:text-primary transition-colors",
-                  following[connection.name] && "bg-primary/10 text-primary"
+                  "h-8 px-2 text-muted-foreground hover:text-primary hover:bg-primary/10",
+                  following && "text-primary"
                 )}
                 onClick={() => onFollow(connection.name)}
               >
-                {following[connection.name] ? (
-                  <>
-                    <UserMinus className="h-4 w-4 mr-2" />
-                    Following
-                  </>
+                {following ? (
+                  <UserMinus className="h-4 w-4" />
                 ) : (
-                  <>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Follow
-                  </>
+                  <UserPlus className="h-4 w-4" />
                 )}
               </Button>
             </div>

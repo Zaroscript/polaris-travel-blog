@@ -27,25 +27,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import CommentSection from "./CommentSection";
-
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  image?: string;
-  gallery?: string[];
-  date: string;
-  author: {
-    name: string;
-    avatar: string;
-  };
-  travelTips?: string[];
-  tags?: string[];
-  destination?: string;
-  mentions?: string[];
-  likes: number;
-  comments: any[];
-}
+import { Post } from "@/types/social";
+import { usePostsStore } from "@/store/usePostsStore";
+import useProfileStore from "@/store/useProfileStore";
 
 interface PostCardProps {
   post: Post;
@@ -73,6 +57,10 @@ const PostCard = ({
   const [expandedComments, setExpandedComments] = useState(false);
   const { authUser } = useAuthStore();
 
+  // get user profile
+  const { getProfile } = useProfileStore();
+  const user = getProfile(post.authorId);
+
   const toggleComments = () => {
     setExpandedComments(!expandedComments);
   };
@@ -85,40 +73,45 @@ const PostCard = ({
     >
       <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardContent className="p-6">
-          <div className="flex items-start space-x-4">
-            <div className="flex items-center space-x-2">
+          <div className="">
+            <div className="flex items-center space-x-4">
               <Avatar className="h-10 w-10 ring-2 ring-primary/10">
-                <AvatarImage src={post.author.avatar} />
-                <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                <AvatarImage src={user?.profileImage} />
+                <AvatarFallback>
+                  {postAuthorProfile?.name.charAt(0)}
+                </AvatarFallback>
               </Avatar>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "h-8 px-2 text-muted-foreground hover:text-primary hover:bg-primary/10",
-                  isFollowing && "text-primary"
-                )}
-                onClick={() => onFollow(post.author.name)}
-              >
-                {isFollowing ? (
-                  <UserMinus className="h-4 w-4" />
-                ) : (
-                  <UserPlus className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
+
+              <div className="flex-1 flex space-x-2 items-center">
                 <div>
                   <h3 className="font-semibold text-base">
-                    {post.author.name}
+                    {postAuthorProfile?.name}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {formatDistanceToNow(new Date(post.date), {
+                    {formatDistanceToNow(new Date(post.createdAt), {
                       addSuffix: true,
                     })}
                   </p>
                 </div>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "h-8 px-2 text-muted-foreground hover:text-primary hover:bg-primary/10",
+                    isFollowing && "text-primary"
+                  )}
+                  onClick={() => onFollow(postAuthorProfile?._id)}
+                >
+                  {isFollowing ? (
+                    <UserMinus className="h-4 w-4" />
+                  ) : (
+                    <UserPlus className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -129,111 +122,89 @@ const PostCard = ({
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem
-                      className="flex items-center gap-2 cursor-pointer"
-                      onClick={() => onSave(post.id)}
-                    >
-                      <Bookmark
-                        className={cn(
-                          "h-4 w-4",
-                          isSaved && "fill-primary text-primary"
-                        )}
-                      />
-                      {isSaved ? "Saved" : "Save post"}
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onSave(post.id)}>
+                      <Bookmark className="h-4 w-4 mr-2" />
+                      {isSaved ? "Unsave" : "Save"}
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="flex items-center gap-2 cursor-pointer"
-                      onClick={() => onCopyLink(post.id)}
-                    >
+                    <DropdownMenuItem onClick={() => onCopyLink(post.id)}>
+                      <Copy className="h-4 w-4 mr-2" />
                       {isCopied ? (
-                        <CheckCheck className="h-4 w-4 text-green-500" />
+                        <>
+                          <CheckCheck className="h-4 w-4 mr-2" />
+                          Copied!
+                        </>
                       ) : (
-                        <Copy className="h-4 w-4" />
+                        "Copy link"
                       )}
-                      {isCopied ? "Copied!" : "Copy link"}
                     </DropdownMenuItem>
+                    {postAuthorProfile?._id === authUser?._id && (
+                      <DropdownMenuItem className="text-destructive">
+                        Delete
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              <div className="mt-3 space-y-4">
-                <Link
-                  to={`/blog/${post.id}`}
-                  className="block hover:text-primary transition-colors"
-                >
-                  <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
-                </Link>
-                <p className="text-base leading-relaxed line-clamp-3">
-                  {post.content}
-                </p>
-                {post.image && (
-                  <img
-                    src={post.image}
-                    alt="Post content"
-                    className="rounded-lg w-full object-cover max-h-[400px] shadow-sm"
-                  />
-                )}
-                {/* Display tags */}
-                {post.tags && post.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {post.tags.map((tag, index) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="bg-muted-foreground/10 text-muted-foreground"
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-                {/* Display destination if available */}
-                {post.destination && (
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    {post.destination}
-                  </div>
-                )}
-              </div>
+            </div>
+
+            <div className="mt-4">
+              <p className="text-base">{post.content}</p>
+              {post.images && post.images.length > 0 && (
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {post.images.map((image, index) => (
+                    <img
+                      key={index}
+                      src={image}
+                      alt={`Post image ${index + 1}`}
+                      className="w-full aspect-square object-cover rounded-lg"
+                    />
+                  ))}
+                </div>
+              )}
+              {post.destination && (
+                <div className="mt-4 flex items-center text-sm text-muted-foreground">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  <span>{post.destination.name}</span>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col px-6 py-3 border-t border-border/40">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "text-muted-foreground hover:text-red-500 hover:bg-red-50/50",
-                  isLiked && "text-red-500"
-                )}
-                onClick={() => onLike(post.id)}
-              >
-                <Heart
-                  className={cn("h-4 w-4 mr-2", isLiked && "fill-red-500")}
-                />
-                {post.likes + (isLiked ? 1 : 0)} Likes
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                onClick={toggleComments}
-              >
-                <MessageCircle className="h-4 w-4 mr-2" />
-                {post.comments.length} Comments
-              </Button>
-            </div>
-          </div>
 
-          {expandedComments && (
-            <div className="w-full mt-4">
-              <Separator className="mb-4" />
-              <CommentSection postId={post.id} />
-            </div>
-          )}
+        <Separator />
+
+        <CardFooter className="p-4">
+          <div className="flex items-center space-x-4 w-full">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "flex-1 justify-start text-muted-foreground hover:text-primary hover:bg-primary/10",
+                isLiked && "text-primary"
+              )}
+              onClick={() => onLike(post.id)}
+            >
+              <Heart className="h-4 w-4 mr-2" />
+              {post.likes.length} Likes
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-1 justify-start text-muted-foreground hover:text-primary hover:bg-primary/10"
+              onClick={toggleComments}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              {post.comments.length} Comments
+            </Button>
+          </div>
         </CardFooter>
+
+        {expandedComments && (
+          <div className="px-4 pb-4">
+            <CommentSection postId={post.id} comments={post.comments} />
+          </div>
+        )}
       </Card>
     </motion.div>
   );

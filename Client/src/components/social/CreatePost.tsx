@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { usePostsStore } from "@/store/usePostsStore";
+import useDestinationStore from "@/store/useDestinationStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -21,164 +22,84 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Image as ImageIcon, Plus, X, MapPin } from "lucide-react";
-
-interface NewPost {
-  title: string;
-  content: string;
-  travelTips: string[];
-  tags: string[];
-  destination: string;
-  gallery: string[];
-  mentions: string[];
-  coverImage: string;
-}
+import { Post } from "@/types/social";
+import { useToast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react";
 
 interface CreatePostProps {
-  onPostCreate: (post: any) => void;
+  onPostCreate: (post: Post) => void;
 }
 
 const CreatePost = ({ onPostCreate }: CreatePostProps) => {
   const { authUser } = useAuthStore();
+  const { createPost } = usePostsStore();
+  const { destinations, getDestinations } = useDestinationStore();
   const [isCreatingPost, setIsCreatingPost] = useState(false);
-  const [newPostData, setNewPostData] = useState<NewPost>({
-    title: "",
-    content: "",
-    travelTips: [""],
-    tags: [],
-    destination: "",
-    gallery: [],
-    mentions: [],
-    coverImage: "",
-  });
-  const [currentTip, setCurrentTip] = useState("");
-  const [currentTag, setCurrentTag] = useState("");
-  const [currentMention, setCurrentMention] = useState("");
+  const [content, setContent] = useState("");
+  const [selectedDestination, setSelectedDestination] = useState<string>("");
+  const [images, setImages] = useState<string[]>([]);
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCreatePost = () => {
-    if (!newPostData.title.trim() || !newPostData.content.trim()) return;
+  useEffect(() => {
+    getDestinations();
+  }, [getDestinations]);
 
-    // Create new post object
-    const newPost = {
-      id: Math.random().toString(36).substr(2, 9),
-      title: newPostData.title,
-      content: newPostData.content,
-      image: newPostData.coverImage,
-      gallery: newPostData.gallery,
-      date: new Date().toISOString(),
-      author: {
-        name: authUser?.fullName || "Anonymous",
-        avatar: authUser?.profilePic || "",
-      },
-      travelTips: newPostData.travelTips.filter((tip) => tip.trim()),
-      tags: newPostData.tags,
-      destination: newPostData.destination,
-      mentions: newPostData.mentions,
-      likes: 0,
-      comments: [],
-    };
+  const handleCreatePost = async () => {
+    if (!content.trim()) return;
 
-    onPostCreate(newPost);
-
-    // Reset form
-    setNewPostData({
-      title: "",
-      content: "",
-      travelTips: [""],
-      tags: [],
-      destination: "",
-      gallery: [],
-      mentions: [],
-      coverImage: "",
-    });
-    setIsCreatingPost(false);
-  };
-
-  const handleAddTip = () => {
-    if (!currentTip.trim()) return;
-    setNewPostData((prev) => ({
-      ...prev,
-      travelTips: [...prev.travelTips, currentTip],
-    }));
-    setCurrentTip("");
-  };
-
-  const handleRemoveTip = (index: number) => {
-    setNewPostData((prev) => ({
-      ...prev,
-      travelTips: prev.travelTips.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleAddTag = () => {
-    if (!currentTag.trim() || newPostData.tags.length >= 10) return;
-    setNewPostData((prev) => ({
-      ...prev,
-      tags: [...prev.tags, currentTag],
-    }));
-    setCurrentTag("");
-  };
-
-  const handleRemoveTag = (tag: string) => {
-    setNewPostData((prev) => ({
-      ...prev,
-      tags: prev.tags.filter((t) => t !== tag),
-    }));
-  };
-
-  const handleAddMention = () => {
-    if (!currentMention.trim()) return;
-    setNewPostData((prev) => ({
-      ...prev,
-      mentions: [...prev.mentions, currentMention],
-    }));
-    setCurrentMention("");
-  };
-
-  const handleRemoveMention = (mention: string) => {
-    setNewPostData((prev) => ({
-      ...prev,
-      mentions: prev.mentions.filter((m) => m !== mention),
-    }));
-  };
-
-  const handleImageUpload = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    isCover: boolean
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (isCover) {
-          setNewPostData((prev) => ({
-            ...prev,
-            coverImage: reader.result as string,
-          }));
-        } else {
-          setNewPostData((prev) => ({
-            ...prev,
-            gallery: [...prev.gallery, reader.result as string],
-          }));
-        }
-      };
-      reader.readAsDataURL(file);
+    setIsSubmitting(true);
+    try {
+      await createPost({
+        content,
+        images,
+        destinationId: selectedDestination || undefined,
+      });
+      setContent("");
+      setSelectedDestination("");
+      setImages([]);
+      setIsCreatingPost(false);
+      toast({
+        title: "Success",
+        description: "Post created successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create post",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleRemoveImage = (index: number) => {
-    setNewPostData((prev) => ({
-      ...prev,
-      gallery: prev.gallery.filter((_, i) => i !== index),
-    }));
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImages((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
   };
+
+  const handleRemoveImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  if (!authUser) return null;
 
   return (
     <Card className="mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
       <CardContent className="p-6">
         <div className="flex items-start space-x-4">
           <Avatar className="h-10 w-10 ring-2 ring-primary/10">
-            <AvatarImage src={authUser?.profilePic} />
-            <AvatarFallback>{authUser?.fullName?.charAt(0)}</AvatarFallback>
+            <AvatarImage src={authUser.profilePic} />
+            <AvatarFallback>
+              {authUser.fullName?.charAt(0) || "?"}
+            </AvatarFallback>
           </Avatar>
           <Dialog open={isCreatingPost} onOpenChange={setIsCreatingPost}>
             <DialogTrigger asChild>
@@ -186,7 +107,7 @@ const CreatePost = ({ onPostCreate }: CreatePostProps) => {
                 variant="outline"
                 className="w-full justify-start text-muted-foreground h-[42px] px-4"
               >
-                What's on your mind?
+                Tell us about your travel experience
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -194,193 +115,27 @@ const CreatePost = ({ onPostCreate }: CreatePostProps) => {
                 <DialogTitle>Create a New Post</DialogTitle>
               </DialogHeader>
               <div className="space-y-6 py-4">
-                {/* Cover Image Upload */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Cover Image</label>
-                  <div className="relative aspect-video rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors">
-                    {newPostData.coverImage ? (
-                      <div className="relative w-full h-full">
-                        <img
-                          src={newPostData.coverImage}
-                          alt="Cover"
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2"
-                          onClick={() =>
-                            setNewPostData((prev) => ({
-                              ...prev,
-                              coverImage: "",
-                            }))
-                          }
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
-                        <Plus className="h-8 w-8 text-muted-foreground mb-2" />
-                        <span className="text-sm text-muted-foreground">
-                          Upload cover image
-                        </span>
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e, true)}
-                        />
-                      </label>
-                    )}
-                  </div>
-                </div>
-
-                {/* Title */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Title</label>
-                  <Input
-                    value={newPostData.title}
-                    onChange={(e) =>
-                      setNewPostData((prev) => ({
-                        ...prev,
-                        title: e.target.value,
-                      }))
-                    }
-                    placeholder="Enter your post title"
-                  />
-                </div>
-
                 {/* Content */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Content</label>
                   <Textarea
-                    value={newPostData.content}
-                    onChange={(e) =>
-                      setNewPostData((prev) => ({
-                        ...prev,
-                        content: e.target.value,
-                      }))
-                    }
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
                     placeholder="Share your travel experience..."
-                    rows={5}
+                    className="min-h-[150px]"
                   />
                 </div>
 
-                {/* Travel Tips */}
+                {/* Image Upload */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Travel Tips</label>
-                  <div className="space-y-3">
-                    {newPostData.travelTips.map((tip, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Input
-                          value={tip}
-                          onChange={(e) => {
-                            const newTips = [...newPostData.travelTips];
-                            newTips[index] = e.target.value;
-                            setNewPostData((prev) => ({
-                              ...prev,
-                              travelTips: newTips,
-                            }));
-                          }}
-                          placeholder={`Tip ${index + 1}`}
-                        />
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => handleRemoveTip(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        setNewPostData((prev) => ({
-                          ...prev,
-                          travelTips: [...prev.travelTips, ""],
-                        }))
-                      }
-                      disabled={newPostData.travelTips.length >= 5}
-                    >
-                      Add Tip
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Tags */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Tags (max 10)</label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {newPostData.tags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant="secondary"
-                        className="flex items-center gap-1"
-                      >
-                        {tag}
-                        <X
-                          className="h-3 w-3 cursor-pointer"
-                          onClick={() => handleRemoveTag(tag)}
-                        />
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      value={currentTag}
-                      onChange={(e) => setCurrentTag(e.target.value)}
-                      placeholder="Add a tag"
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddTag();
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={handleAddTag}
-                      disabled={newPostData.tags.length >= 10}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Destination */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Destination</label>
-                  <Select
-                    value={newPostData.destination}
-                    onValueChange={(value) =>
-                      setNewPostData((prev) => ({
-                        ...prev,
-                        destination: value,
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a destination" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="paris">Paris, France</SelectItem>
-                      <SelectItem value="tokyo">Tokyo, Japan</SelectItem>
-                      <SelectItem value="nyc">New York City, USA</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Gallery */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Gallery</label>
-                  <div className="grid grid-cols-3 gap-4">
-                    {newPostData.gallery.map((image, index) => (
-                      <div key={index} className="relative aspect-square">
+                  <label className="text-sm font-medium">Images</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {images.map((image, index) => (
+                      <div key={index} className="relative">
                         <img
                           src={image}
-                          alt={`Gallery ${index + 1}`}
-                          className="w-full h-full object-cover rounded-lg"
+                          alt={`Upload ${index + 1}`}
+                          className="w-full aspect-square object-cover rounded-lg"
                         />
                         <Button
                           variant="destructive"
@@ -392,70 +147,63 @@ const CreatePost = ({ onPostCreate }: CreatePostProps) => {
                         </Button>
                       </div>
                     ))}
-                    {newPostData.gallery.length < 5 && (
-                      <label className="aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors cursor-pointer flex items-center justify-center">
-                        <Plus className="h-8 w-8 text-muted-foreground" />
+                    {images.length < 4 && (
+                      <label className="flex flex-col items-center justify-center w-full aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors cursor-pointer">
+                        <Plus className="h-8 w-8 text-muted-foreground mb-2" />
+                        <span className="text-sm text-muted-foreground">
+                          Add image
+                        </span>
                         <input
                           type="file"
                           className="hidden"
                           accept="image/*"
-                          onChange={(e) => handleImageUpload(e, false)}
+                          multiple
+                          onChange={handleImageUpload}
                         />
                       </label>
                     )}
                   </div>
                 </div>
 
-                {/* Mentions */}
+                {/* Destination */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Mention People</label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {newPostData.mentions.map((mention) => (
-                      <Badge
-                        key={mention}
-                        variant="secondary"
-                        className="flex items-center gap-1"
-                      >
-                        @{mention}
-                        <X
-                          className="h-3 w-3 cursor-pointer"
-                          onClick={() => handleRemoveMention(mention)}
-                        />
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      value={currentMention}
-                      onChange={(e) => setCurrentMention(e.target.value)}
-                      placeholder="@username"
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddMention();
-                        }
-                      }}
-                    />
-                    <Button onClick={handleAddMention}>Add</Button>
-                  </div>
+                  <label className="text-sm font-medium">Destination</label>
+                  <Select
+                    value={selectedDestination}
+                    onValueChange={setSelectedDestination}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a destination" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.isArray(destinations) &&
+                        destinations.map((destination) => (
+                          <SelectItem
+                            key={destination.id}
+                            value={destination.id}
+                          >
+                            {destination.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsCreatingPost(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleCreatePost}
-                    disabled={
-                      !newPostData.title.trim() || !newPostData.content.trim()
-                    }
-                  >
-                    Create Post
-                  </Button>
-                </div>
+                {/* Submit Button */}
+                <Button
+                  className="w-full"
+                  onClick={handleCreatePost}
+                  disabled={!content.trim() || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Posting...
+                    </>
+                  ) : (
+                    "Create Post"
+                  )}
+                </Button>
               </div>
             </DialogContent>
           </Dialog>

@@ -1,60 +1,92 @@
 export interface Post {
   id: string;
-  title: string;
   content: string;
-  image?: string;
-  gallery?: string[];
-  date: string;
-  author: {
-    name: string;
-    avatar: string;
-  };
-  travelTips?: string[];
-  tags?: string[];
-  destination?: string;
-  mentions?: string[];
-  likes: number;
+  images: string[];
+  authorId: string;
+  likes: string[];
   comments: Comment[];
+  destination?: {
+    id: string;
+    name: string;
+    image: string;
+  };
+  createdAt: string;
+  gallery: string[];
 }
 
 export interface Comment {
   id: string;
-  text: string;
-  author: {
+  content: string;
+  user: {
+    id: string;
     name: string;
-    avatar: string;
+    profileImage: string;
   };
-  likes: number;
-  isLiked: boolean;
-  createdAt: Date;
+  likes: string[];
+  createdAt: string;
   replies: Reply[];
 }
 
 export interface Reply {
   id: string;
-  text: string;
-  author: {
+  content: string;
+  user: {
+    id: string;
     name: string;
-    avatar: string;
+    profileImage: string;
   };
-  likes: number;
-  isLiked: boolean;
-  createdAt: Date;
+  likes: string[];
+  createdAt: string;
 }
 
 export interface SuggestedConnection {
+  id: string;
   name: string;
-  avatar: string;
+  profileImage: string;
   role: string;
 }
 
-export interface CreatePostData {
-  title: string;
-  content: string;
-  travelTips: string[];
-  tags: string[];
-  destination: string;
-  gallery: string[];
-  mentions: string[];
+export interface PostCardProps {
+  post: Post;
+  onLike: (postId: string) => void;
+  onSave: (postId: string) => void;
+  onCopyLink: (postId: string) => void;
+  onFollow: (userId: string) => void;
+  isLiked: boolean;
+  isSaved: boolean;
+  isCopied: boolean;
+  isFollowing: boolean;
+}
+
+export interface RightSidebarProps {
+  suggestedConnections: SuggestedConnection[];
+  following: string[];
+  onFollow: (userId: string) => void;
+  newsItems: string[];
+}
+
+export interface Profile {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  location: string;
+  about: string;
+  status: string;
+  birthDate: string;
+  profileImage: string;
   coverImage: string;
+  connections: { id: string; name: string; profileImage: string }[];
+  following: { id: string; name: string; profileImage: string }[];
+  followers: { id: string; name: string; profileImage: string }[];
+  skills: string[];
+  experience: {
+    company: string;
+    role: string;
+    duration: string;
+    logo: string;
+    isPresent: boolean;
+  }[];
+  isVerified: boolean;
+  joinedDate: string;
 }
