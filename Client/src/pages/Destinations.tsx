@@ -1,24 +1,34 @@
-
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Container, Row, Col, Card, Badge, Button } from 'react-bootstrap';
-import { motion } from 'framer-motion';
-import { FaMapMarkerAlt, FaGlobe, FaPlane, FaMountain, FaArrowLeft } from 'react-icons/fa';
-import Layout from '@/components/layout/Layout';
-import { destinations } from '@/data/destinations';
-import DestinationCard from '@/components/destination/DestinationCard';
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Container, Row, Col, Card, Badge, Button } from "react-bootstrap";
+import { motion } from "framer-motion";
+import {
+  FaMapMarkerAlt,
+  FaGlobe,
+  FaPlane,
+  FaMountain,
+  FaArrowLeft,
+} from "react-icons/fa";
+import Layout from "@/components/layout/Layout";
+import { destinations } from "@/data/destinations";
+import DestinationCard from "@/components/destination/DestinationCard";
+import DestinationMap from "@/components/destination/DestinationMap";
 
 const Destinations = () => {
   const [searchParams] = useSearchParams();
-  const destinationId = searchParams.get('id');
+  const destinationId = searchParams.get("id");
   const [selectedDestination, setSelectedDestination] = useState(
-    destinationId ? destinations.find(d => d.id === Number(destinationId)) : null
+    destinationId
+      ? destinations.find((d) => d.id === Number(destinationId))
+      : null
   );
 
   useEffect(() => {
     // Set selected destination based on URL param
     if (destinationId) {
-      const destination = destinations.find(d => d.id === Number(destinationId));
+      const destination = destinations.find(
+        (d) => d.id === Number(destinationId)
+      );
       setSelectedDestination(destination || null);
     } else {
       setSelectedDestination(null);
@@ -26,7 +36,7 @@ const Destinations = () => {
   }, [destinationId]);
 
   const handleBack = () => {
-    window.history.pushState({}, '', '/destinations');
+    window.history.pushState({}, "", "/destinations");
     setSelectedDestination(null);
   };
 
@@ -35,14 +45,14 @@ const Destinations = () => {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const item = {
     hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+    show: { y: 0, opacity: 1, transition: { duration: 0.5 } },
   };
 
   return (
@@ -252,8 +262,8 @@ const Destinations = () => {
               world, from bustling cities to serene landscapes.
             </p>
           </motion.div>
-
-          <section className="mb-5">
+          <DestinationMap />
+          <section className="my-5">
             <h2 className="fw-bold mb-4">Featured Destinations</h2>
             <motion.div
               variants={staggerContainer}

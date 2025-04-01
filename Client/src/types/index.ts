@@ -137,6 +137,7 @@ export interface Destination {
   image: string;
   rating: number;
   tags: string[];
+  coordinates: [number, number];
 }
 
 export interface Comment {
