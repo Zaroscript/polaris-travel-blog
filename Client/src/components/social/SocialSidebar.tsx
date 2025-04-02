@@ -2,9 +2,13 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Users, Bell, Newspaper, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 
 const SocialSidebar = () => {
   const { authUser } = useAuthStore();
+  const navigate = useNavigate();
+
 
   return (
     <div className="hidden lg:flex flex-col w-56  border-x rounded-lg border-border/40 sticky top-[85px] h-[calc(100vh-65px)] overflow-hidden">
@@ -49,6 +53,7 @@ const SocialSidebar = () => {
           variant="ghost"
           className="w-full justify-start font-medium"
           size="lg"
+          onClick={() => navigate("/settings/")}
         >
           <Settings className="mr-3 h-5 w-5" />
           Settings
