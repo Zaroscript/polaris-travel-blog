@@ -21,7 +21,7 @@ import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-
+import Settings from '../src/pages/Settings';
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -79,7 +79,9 @@ const App = () => {
               path="/reset-password/:token"
               element={<ResetPasswordPage />}
             />
+            <Route path="/settings/*" element={<Settings />} />
           </Routes>
+      
         </div>
       </BrowserRouter>
     </QueryClientProvider>
