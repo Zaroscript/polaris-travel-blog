@@ -14,10 +14,10 @@ const Layout: FC<LayoutProps> = ({ children }) => {
   }, []);
 
   return (
-    <div className="d-flex flex-column min-vh-100">
+    <div className="flex flex-col min-h-screen">
       <Header />
       <motion.main
-        className="flex-grow-1 pt-16"
+        className="flex-grow pt-16"
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 15 }}

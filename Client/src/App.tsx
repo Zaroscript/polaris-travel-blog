@@ -1,13 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import "bootstrap/dist/css/bootstrap.min.css";
+import "./styles/globals.css";
 import "./styles/main.css";
-import { useAuthStore } from "./store/useAuthStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect } from "react";
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import NotificationListener from "./components/NotificationListener";
-import Profile from "@/pages/Profile";
+
 
 import Index from "./pages/Index";
 import About from "./pages/About";
@@ -19,10 +18,10 @@ import NotFound from "./pages/NotFound";
 import ChatPage from "./pages/ChatPage";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
+import Profile from "@/pages/Profile";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-import Settings from '../src/pages/Settings';
-const queryClient = new QueryClient();
+import Settings from "./pages/Settings";
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -40,51 +39,41 @@ const App = () => {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {/* Toast notifications container */}
-        <Toaster position="top-right" />
+    <BrowserRouter>
+      <Toaster position="top-right" />
 
-        {/* Notification listener for real-time updates */}
-        {authUser && <NotificationListener />}
-        <div data-theme="light">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/destinations" element={<Destinations />} />
-            <Route path="/blogs" element={<Blogs />} />
-            <Route path="/blog/:id" element={<BlogPost />} />
-            <Route path="/social" element={<Social />} />
+      {authUser && <NotificationListener />}
 
-            <Route
-              path="/messages"
-              element={authUser ? <ChatPage /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/signup"
-              element={!authUser ? <SignUpPage /> : <Navigate to="/" />}
-            />
-            <Route
-              path="/login"
-              element={!authUser ? <LoginPage /> : <Navigate to="/" />}
-            />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/destinations" element={<Destinations />} />
+        <Route path="/blogs" element={<Blogs />} />
+        <Route path="/blog/:id" element={<BlogPost />} />
+        <Route path="/social" element={<Social />} />
 
-            
-            <Route path="user/profile/:id" element={<Profile />} />
+        <Route
+          path="/messages"
+          element={authUser ? <ChatPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/signup"
+          element={!authUser ? <SignUpPage /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/login"
+          element={!authUser ? <LoginPage /> : <Navigate to="/" />}
+        />
 
-            <Route path="*" element={<NotFound />} />
+        <Route path="user/profile/:id" element={<Profile />} />
 
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route
-              path="/reset-password/:token"
-              element={<ResetPasswordPage />}
-            />
-            <Route path="/settings/*" element={<Settings />} />
-          </Routes>
-      
-        </div>
-      </BrowserRouter>
-    </QueryClientProvider>
+        <Route path="*" element={<NotFound />} />
+
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+        <Route path="/settings/*" element={<Settings />} />
+      </Routes>
+    </BrowserRouter>
   );
 };
 

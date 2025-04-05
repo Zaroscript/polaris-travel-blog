@@ -12,7 +12,7 @@ const MessageInput = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file");
       return;
@@ -50,19 +50,19 @@ const MessageInput = () => {
   };
 
   return (
-    <div className="p-4 w-full">
+    <div className="p-4 w-full bg-background">
       {imagePreview && (
         <div className="mb-3 flex items-center gap-2">
           <div className="relative">
             <img
               src={imagePreview}
               alt="Preview"
-              className="w-20 h-20 object-cover rounded-lg border border-gray-300"
+              className="w-20 h-20 object-cover rounded-lg border border-border"
             />
             <button
               onClick={removeImage}
-              className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gray-800 text-white rounded-full
-              flex items-center justify-center shadow-md hover:bg-gray-700"
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-foreground text-background rounded-full
+              flex items-center justify-center shadow-md hover:bg-foreground/90"
               type="button"
             >
               <X className="w-3 h-3" />
@@ -75,7 +75,7 @@ const MessageInput = () => {
         <div className="flex-1 flex gap-2">
           <input
             type="text"
-            className="w-full py-2 px-4 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full py-2 px-4 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             placeholder="Type a message..."
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -91,9 +91,11 @@ const MessageInput = () => {
           <button
             type="button"
             className={`hidden sm:flex items-center justify-center w-10 h-10 rounded-full border
-                      ${imagePreview 
-                        ? "text-emerald-500 border-emerald-500 bg-emerald-50 hover:bg-emerald-100" 
-                        : "text-gray-400 border-gray-300 bg-white hover:bg-gray-100"}`}
+                      ${
+                        imagePreview
+                          ? "text-primary border-primary bg-primary/10 hover:bg-primary/20"
+                          : "text-muted-foreground border-input bg-background hover:bg-muted"
+                      }`}
             onClick={() => fileInputRef.current?.click()}
           >
             <Image className="w-5 h-5" />
@@ -102,9 +104,11 @@ const MessageInput = () => {
         <button
           type="submit"
           className={`flex items-center justify-center w-10 h-10 rounded-full 
-                    ${(!text.trim() && !imagePreview) 
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
-                      : "bg-blue-600 text-white hover:bg-blue-700"}`}
+                    ${
+                      !text.trim() && !imagePreview
+                        ? "bg-muted text-muted-foreground cursor-not-allowed"
+                        : "bg-primary text-primary-foreground hover:bg-primary/90"
+                    }`}
           disabled={!text.trim() && !imagePreview}
         >
           <Send className="w-5 h-5" />

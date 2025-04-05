@@ -129,8 +129,8 @@ const Footer = () => {
               Subscribe to our newsletter for travel tips and inspiration.
             </p>
             <form>
-              <input className="mb-3 p-2 rounded" placeholder="Your email address" aria-label="Your email address" required />
-              <button className="bg-primary text-white p-2 rounded" type="submit">
+              <input className="mb-3 p-2 rounded text-primary dark:text-primary-foreground" placeholder="Your email address" aria-label="Your email address" required />
+              <button className="bg-primary dark:bg-primary-foreground text-white p-2 rounded" type="submit">
                 Subscribe
               </button>
             </form>

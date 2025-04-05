@@ -18,7 +18,6 @@ interface ProfileInfoProps {
   birthDate: string;
   location: string;
   email: string;
-  experience: Experience[];
   skills: string[];
 }
 
@@ -28,7 +27,6 @@ const ProfileInfo = ({
   birthDate,
   location,
   email,
-  experience,
   skills,
 }: ProfileInfoProps) => {
   return (
@@ -75,7 +73,7 @@ const ProfileInfo = ({
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {experience.map((exp, index) => (
+            {/* {experience.map((exp, index) => (
               <div key={index} className="flex items-start space-x-4">
                 <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
                   <img
@@ -99,7 +97,7 @@ const ProfileInfo = ({
                   </div>
                 </div>
               </div>
-            ))}
+            ))} */}
           </div>
         </CardContent>
       </Card>

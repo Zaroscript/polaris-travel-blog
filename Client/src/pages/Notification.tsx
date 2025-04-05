@@ -1,5 +1,14 @@
-import React from "react";
-import { Form, Container, Card, Button } from "react-bootstrap";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 interface NotificationItem {
   label: string;
@@ -7,51 +16,79 @@ interface NotificationItem {
   defaultChecked: boolean;
 }
 
-const Notification: React.FC = () => {
+const Notification = () => {
   const notifications: NotificationItem[] = [
-    { label: "Likes and Comments", desc: "Joy say painful removed reached end.", defaultChecked: true },
-    { label: "Reply to My comments", desc: "Ask a quick six seven offer see among.", defaultChecked: true },
-    { label: "Subscriptions", desc: "Preference any astonished unreserved Mrs.", defaultChecked: true },
-    { label: "Birthdays", desc: "Contented he gentleman agreeable do be.", defaultChecked: false },
-    { label: "Events", desc: "Fulfilled direction use continually.", defaultChecked: true },
-    { label: "Email notifications", desc: "As hastened oh produced prospect.", defaultChecked: false },
-    { label: "Push notifications", desc: "Rendered six say his striking confined.", defaultChecked: true },
+    {
+      label: "Likes and Comments",
+      desc: "Get notified when someone likes or comments on your posts",
+      defaultChecked: true,
+    },
+    {
+      label: "Reply to My comments",
+      desc: "Receive notifications when someone replies to your comments",
+      defaultChecked: true,
+    },
+    {
+      label: "Subscriptions",
+      desc: "Get updates about your subscription status and renewals",
+      defaultChecked: true,
+    },
+    {
+      label: "Birthdays",
+      desc: "Receive reminders about your connections' birthdays",
+      defaultChecked: false,
+    },
+    {
+      label: "Events",
+      desc: "Stay updated about upcoming events and meetups",
+      defaultChecked: true,
+    },
+    {
+      label: "Email notifications",
+      desc: "Receive important updates via email",
+      defaultChecked: false,
+    },
+    {
+      label: "Push notifications",
+      desc: "Get real-time updates through push notifications",
+      defaultChecked: true,
+    },
   ];
 
   return (
-    <Container className="d-flex justify-content-center p-0 p-lg-2">
-      <Card className=" m-auto p-2 p-lg-4">
-        <h1 className="mb-3 fw-bold fs-3">Notification</h1>
-        <p className="text-muted">
-          Tried law yet style child. The bore of true of no be deal. Frequently
-          sufficient to be unaffected. The furnished she concluded depending
-          procuring concealed.
-        </p>
-
-        <Form>
-          {notifications.map((item, index) => (
-            <div key={index}>
-              <Form.Group className="d-flex justify-content-between align-items-center py-3">
-                <div>
-                  <strong>{item.label}</strong>
-                  <p className="text-muted mb-0">{item.desc}</p>
-                </div>
-                <Form.Check
-                  type="switch"
-                  id={`custom-switch-${index}`}
-                  defaultChecked={item.defaultChecked}
-                />
-              </Form.Group>
-              {index < notifications.length - 1 && <hr />}
+    <Card className="max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>Notification Settings</CardTitle>
+        <CardDescription>
+          Choose how you want to receive notifications. You can change these
+          settings at any time.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {notifications.map((item, index) => (
+          <div key={index}>
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1 space-y-1">
+                <Label
+                  htmlFor={`notification-${index}`}
+                  className="text-base font-semibold"
+                >
+                  {item.label}
+                </Label>
+                <p className="text-sm text-muted-foreground">{item.desc}</p>
+              </div>
+              <Switch
+                id={`notification-${index}`}
+                defaultChecked={item.defaultChecked}
+              />
             </div>
-          ))}
+            {index < notifications.length - 1 && <Separator className="mt-6" />}
+          </div>
+        ))}
 
-          <Button variant="primary" className="mt-3 w-100">
-            Save Changes
-          </Button>
-        </Form>
-      </Card>
-    </Container>
+        <Button className="w-full mt-6">Save Changes</Button>
+      </CardContent>
+    </Card>
   );
 };
 

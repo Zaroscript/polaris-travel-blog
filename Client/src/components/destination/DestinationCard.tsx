@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Star } from "lucide-react";
-import { Destination } from "@/data/blogData";
+import { Destination } from "@/types/index";
 
 interface DestinationCardProps {
   destination: Destination;

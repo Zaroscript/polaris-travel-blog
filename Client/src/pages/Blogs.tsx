@@ -1,19 +1,13 @@
 import { useState, useEffect } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  Card,
-  Form,
-  InputGroup,
-  Badge,
-} from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaSearch, FaTimes } from "react-icons/fa";
+import { Search, X } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { blogPosts } from "@/data/blogData";
 import BlogCard from "@/components/blog/BlogCard";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Blogs = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -51,116 +45,111 @@ const Blogs = () => {
 
   return (
     <Layout>
-      <Container className="py-5">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-5"
+          className="text-center mb-10"
         >
-          <h1 className="display-4 fw-bold mb-3">Travel Stories & Tips</h1>
-          <p className="text-muted fs-5 mx-auto" style={{ maxWidth: "700px" }}>
+          <h1 className="text-4xl font-bold mb-4">Travel Stories & Tips</h1>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Discover travel insights, personal adventures, and practical advice
             for your next journey.
           </p>
         </motion.div>
 
-        <Row className="justify-content-center mb-5">
-          <Col md={6}>
-            <InputGroup>
-              <InputGroup.Text className="bg-white border-end-0">
-                <FaSearch className="text-muted" />
-              </InputGroup.Text>
-              <Form.Control
-                type="text"
-                placeholder="Search blog posts..."
-                className="border-start-0 shadow-none"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {searchTerm && (
-                <InputGroup.Text
-                  className="bg-white border-start-0 cursor-pointer"
-                  onClick={clearSearch}
-                >
-                  <FaTimes className="text-muted" />
-                </InputGroup.Text>
-              )}
-            </InputGroup>
-          </Col>
-        </Row>
+        <div className="flex justify-center mb-10">
+          <div className="relative w-full max-w-md">
+            <Input
+              type="text"
+              placeholder="Search blog posts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-10"
+            />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            {searchTerm && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6"
+                onClick={clearSearch}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
 
         {/* Featured posts section */}
-        <section className="mb-5">
-          <h2 className="fw-bold mb-4">Featured Stories</h2>
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold mb-6">Featured Stories</h2>
           <motion.div
             variants={staggerContainer}
             initial="hidden"
             animate="show"
           >
-            <Row>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {blogPosts
                 .filter((post) => post.featured)
                 .slice(0, 3)
                 .map((post) => (
-                  <Col
-                    as={motion.div}
+                  <motion.div
                     variants={item}
-                    lg={4}
-                    md={6}
-                    className="mb-4"
                     key={post.id}
                   >
-                    <BlogCard key={post.id} post={post} />
-                  </Col>
+                    <BlogCard post={post} />
+                  </motion.div>
                 ))}
-            </Row>
+            </div>
           </motion.div>
         </section>
 
-        <hr className="my-5" />
+        <div className="border-t my-12" />
 
         {/* All posts section */}
         <section>
-          <h2 className="fw-bold mb-4">
+          <h2 className="text-2xl font-bold mb-6">
             {searchTerm
               ? `Search Results (${filteredPosts.length})`
               : "All Blog Posts"}
           </h2>
 
           {filteredPosts.length === 0 ? (
-            <div className="text-center py-5">
-              <p className="text-muted mb-3">
-                No posts found matching "{searchTerm}"
-              </p>
-              <button className="btn btn-polaris-outline" onClick={clearSearch}>
-                Clear Search
-              </button>
-            </div>
+            <Card className="text-center py-12">
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  No posts found matching "{searchTerm}"
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={clearSearch}
+                >
+                  Clear Search
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
             <motion.div
               variants={staggerContainer}
               initial="hidden"
               animate="show"
             >
-              <Row>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPosts.map((post) => (
-                  <Col
-                    as={motion.div}
+                  <motion.div
                     variants={item}
-                    lg={4}
-                    md={6}
-                    className="mb-4"
                     key={post.id}
                   >
-                    <BlogCard key={post.id} post={post} />
-                  </Col>
+                    <BlogCard post={post} />
+                  </motion.div>
                 ))}
-              </Row>
+              </div>
             </motion.div>
           )}
         </section>
-      </Container>
+      </div>
     </Layout>
   );
 };

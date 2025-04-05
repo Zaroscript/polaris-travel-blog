@@ -128,7 +128,6 @@ export interface ApiError {
   message: string;
   status?: number;
 }
-
 export interface Destination {
   id: number;
   name: string;
@@ -137,7 +136,10 @@ export interface Destination {
   image: string;
   rating: number;
   tags: string[];
-  coordinates: [number, number];
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export interface Comment {

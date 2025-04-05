@@ -8,6 +8,7 @@ import {
 } from "react-simple-maps";
 import { Destination } from "@/types";
 import { destinations } from "../../data/destinations";
+import { useThemeStore } from "@/store/useThemeStore";
 
 // World map GeoJSON
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -16,6 +17,7 @@ const DestinationMap = () => {
   const [selectedDestination, setSelectedDestination] =
     useState<Destination | null>(null);
   const [showPopup, setShowPopup] = useState(false);
+  const isDarkMode = useThemeStore((state) => state.isDarkMode);
 
   const handleDestinationClick = (dest: Destination) => {
     setSelectedDestination(dest);
@@ -27,8 +29,8 @@ const DestinationMap = () => {
   };
 
   return (
-    <div className="w-full  mx-auto ">
-      <div className="relative w-full lg:h-[calc(100vh-320px)] bg-blue-50 rounded-lg overflow-hidden border border-gray-300">
+    <div className="w-full mx-auto">
+      <div className="relative w-full lg:h-[calc(100vh-320px)] bg-card rounded-lg overflow-hidden border">
         {/* World map with markers */}
         <ComposableMap
           projection="geoMercator"
@@ -44,11 +46,11 @@ const DestinationMap = () => {
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill="#EAEAEC"
-                    stroke="#D6D6DA"
+                    fill={isDarkMode ? "#2A2A2A" : "#EAEAEC"}
+                    stroke={isDarkMode ? "#404040" : "#D6D6DA"}
                     style={{
                       default: { outline: "none" },
-                      hover: { outline: "none", fill: "#F5F5F5" },
+                      hover: { outline: "none", fill: isDarkMode ? "#333333" : "#F5F5F5" },
                       pressed: { outline: "none" },
                     }}
                   />
@@ -67,21 +69,21 @@ const DestinationMap = () => {
                   style={{ cursor: "pointer" }}
                 >
                   <circle
-                    r={6}
+                    r={3}
                     fill={
                       selectedDestination?.id === dest.id
                         ? "#FF4F4F"
                         : "#3B82F6"
                     }
-                    stroke="#FFFFFF"
-                    strokeWidth={2}
+                    stroke={isDarkMode ? "#1F1F1F" : "#FFFFFF"}
+                    strokeWidth={1}
                   />
                   <text
                     textAnchor="middle"
                     y={-10}
                     style={{
-                      fontSize: "10px",
-                      fill: "#333",
+                      fontSize: "8px",
+                      fill: isDarkMode ? "#E5E5E5" : "#333",
                       pointerEvents: "none",
                     }}
                   >
@@ -94,12 +96,12 @@ const DestinationMap = () => {
         </ComposableMap>
 
         {/* Legend */}
-        <div className="absolute bottom-2 left-2 bg-white bg-opacity-50 p-2 rounded-md hidden lg:block">
+        <div className="absolute bottom-2 left-2 bg-card/50 p-2 rounded-md hidden lg:block">
           <div className="text-xs font-semibold mb-1">Destinations:</div>
           {destinations.map((dest) => (
             <div
               key={dest.id}
-              className="flex items-center mb-1 text-xs cursor-pointer hover:text-blue-600"
+              className="flex items-center mb-1 text-xs cursor-pointer hover:text-blue-400"
               onClick={() => handleDestinationClick(dest)}
             >
               <span
@@ -117,15 +119,15 @@ const DestinationMap = () => {
 
       {/* Popup for selected destination */}
       {showPopup && selectedDestination && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md m-4 relative">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-card rounded-lg shadow-xl w-full max-w-md m-4 relative">
             {/* Close button */}
             <button
               onClick={closePopup}
-              className="absolute top-2 right-2 p-1 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
+              className="absolute top-2 right-2 p-1 rounded-full bg-muted hover:bg-muted/80 transition-colors"
             >
               <svg
-                className="w-6 h-6 text-gray-600"
+                className="w-6 h-6 text-muted-foreground"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -140,7 +142,7 @@ const DestinationMap = () => {
             </button>
 
             {/* Destination image */}
-            <div className="h-40 bg-gray-300 rounded-t-lg overflow-hidden">
+            <div className="h-40 bg-muted rounded-t-lg overflow-hidden">
               <img
                 src={selectedDestination.image}
                 alt={selectedDestination.name}
@@ -168,10 +170,10 @@ const DestinationMap = () => {
                 </div>
               </div>
 
-              <p className="text-gray-600 text-sm mb-1">
+              <p className="text-muted-foreground text-sm mb-1">
                 {selectedDestination.location}
               </p>
-              <p className="text-gray-700 my-4">
+              <p className="text-card-foreground my-4">
                 {selectedDestination.description}
               </p>
 
@@ -179,7 +181,7 @@ const DestinationMap = () => {
                 {selectedDestination.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full"
+                    className="px-3 py-1 text-sm bg-muted text-muted-foreground rounded-full"
                   >
                     {tag}
                   </span>
@@ -187,7 +189,7 @@ const DestinationMap = () => {
               </div>
 
               <button
-                className="mt-6 w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                className="mt-6 w-full py-2 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
                 onClick={closePopup}
               >
                 Close

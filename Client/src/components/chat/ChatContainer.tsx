@@ -18,7 +18,7 @@ const ChatContainer = () => {
     subscribeToMessages,
     unsubscribeFromMessages,
   } = useChatStore();
-  
+
   const { authUser } = useAuthStore();
   const { notifications, markAsRead } = useNotificationStore();
   const messageEndRef = useRef<HTMLDivElement>(null);
@@ -44,17 +44,18 @@ const ChatContainer = () => {
   useEffect(() => {
     if (selectedUser && authUser) {
       // Find notifications from the selected user that are unread
-      const unreadNotifications = notifications.filter(notification => {
-        const sender = typeof notification.sender === 'object' 
-          ? notification.sender 
-          : { _id: notification.sender };
-          
+      const unreadNotifications = notifications.filter((notification) => {
+        const sender =
+          typeof notification.sender === "object"
+            ? notification.sender
+            : { _id: notification.sender };
+
         return sender._id === selectedUser._id && !notification.read;
       });
 
       // Mark each notification as read
-      unreadNotifications.forEach(notification => {
-        markAsRead(notification._id).catch(error => {
+      unreadNotifications.forEach((notification) => {
+        markAsRead(notification._id).catch((error) => {
           console.error("Failed to mark notification as read:", error);
         });
       });
@@ -72,7 +73,7 @@ const ChatContainer = () => {
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-auto border-r border-b border-t border-gray-200 rounded-tr-lg rounded-br-lg">
+    <div className="flex flex-1 flex-col overflow-auto border-r border-b border-t border-border rounded-tr-lg rounded-br-lg bg-background">
       <ChatHeader />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -81,13 +82,21 @@ const ChatContainer = () => {
           return (
             <div
               key={message._id}
-              className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${
+                isOwnMessage ? "justify-end" : "justify-start"
+              }`}
               ref={index === messages.length - 1 ? messageEndRef : null}
             >
-              <div className={`flex max-w-[80%] ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div
+                className={`flex max-w-[80%] ${
+                  isOwnMessage ? "flex-row-reverse" : "flex-row"
+                }`}
+              >
                 {/* Avatar */}
-                <div className={`flex-shrink-0 ${isOwnMessage ? 'ml-2' : 'mr-2'}`}>
-                  <div className="w-10 h-10 rounded-full border overflow-hidden">
+                <div
+                  className={`flex-shrink-0 ${isOwnMessage ? "ml-2" : "mr-2"}`}
+                >
+                  <div className="w-10 h-10 rounded-full border border-border overflow-hidden">
                     <img
                       src={
                         isOwnMessage
@@ -99,22 +108,24 @@ const ChatContainer = () => {
                     />
                   </div>
                 </div>
-                
+
                 {/* Message content */}
-                <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+                <div className="flex flex-col">
                   {/* Timestamp */}
                   <div className="mb-1">
-                    <time className="text-xs text-gray-500">
+                    <time className="text-xs text-muted-foreground">
                       {formatMessageTime(message.createdAt)}
                     </time>
                   </div>
-                  
+
                   {/* Message bubble */}
-                  <div className={`rounded-lg px-4 py-2 ${
-                    isOwnMessage 
-                      ? 'bg-blue-600 text-white rounded-br-none' 
-                      : 'bg-gray-200 text-gray-800 rounded-bl-none'
-                  }`}>
+                  <div
+                    className={`rounded-lg px-4 py-2 ${
+                      isOwnMessage
+                        ? "bg-primary text-primary-foreground rounded-br-none"
+                        : "bg-muted text-muted-foreground rounded-bl-none"
+                    }`}
+                  >
                     {message.image && (
                       <img
                         src={message.image}

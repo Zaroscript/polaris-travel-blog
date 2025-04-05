@@ -1,7 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
-import { useAuthStore } from "@/store/useAuthStore";
-import { usePostsStore } from "@/store/usePostsStore";
-import useProfileStore from "@/store/useProfileStore";
+import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
@@ -14,15 +11,6 @@ import { Post } from "@/types/social";
 import { newsItems } from "@/constants";
 
 const Social = () => {
-  const { authUser } = useAuthStore();
-  const {
-    posts,
-    isLoading: postsLoading,
-    getPosts,
-    likePost,
-    createPost,
-  } = usePostsStore();
-  const { profile, getProfile, toggleFollow } = useProfileStore();
   const [activeTab, setActiveTab] = useState("recent");
   const [savedPosts, setSavedPosts] = useState<{ [key: string]: boolean }>({});
   const [copiedLinks, setCopiedLinks] = useState<{ [key: string]: boolean }>(
@@ -30,31 +18,76 @@ const Social = () => {
   );
   const { toast } = useToast();
 
-  useEffect(() => {
-    getPosts();
-    if (authUser) {
-      getProfile();
-    }
-  }, [getPosts, getProfile, authUser]);
+  // Static mock data
+  const mockUser = {
+    _id: "1",
+    name: "John Doe",
+    profileImage: "/images/avatar.jpg",
+  };
 
-  const filteredPosts = useMemo(() => {
-    if (!Array.isArray(posts)) return [];
+  const mockPosts = [
+    {
+      id: "1",
+      content: "Just visited Paris!",
+      images: ["/images/paris.jpg"],
+      authorId: "1",
+      createdAt: "2024-02-20T10:00:00Z",
+      likes: ["2", "3"],
+      comments: [
+        {
+          id: "c1",
+          content: "Looks amazing!",
+          authorId: "2",
+          createdAt: "2024-02-20T11:00:00Z",
+          user: {
+            id: "2",
+            name: "Jane Smith",
+            profileImage: "/images/avatar2.jpg",
+          },
+          likes: [],
+          replies: [],
+        },
+      ],
+      destination: {
+        id: "paris1",
+        name: "Paris",
+        image: "/images/paris-icon.jpg",
+      },
+      gallery: [],
+    },
+    {
+      id: "2",
+      content: "Beautiful day in London",
+      images: ["/images/london.jpg"],
+      authorId: "1",
+      createdAt: "2024-02-19T15:30:00Z",
+      likes: ["2"],
+      comments: [],
+      destination: {
+        id: "london1",
+        name: "London",
+        image: "/images/london-icon.jpg",
+      },
+      gallery: [],
+    },
+  ];
 
-    switch (activeTab) {
-      case "popular":
-        return [...posts].sort((a, b) => b.likes.length - a.likes.length);
-      case "following":
-        return posts.filter((post) =>
-          profile?.following?.some((following) => following.id === post.user.id)
-        );
-      case "recent":
-      default:
-        return [...posts].sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-    }
-  }, [activeTab, posts, profile?.following]);
+  const mockConnections = [
+    {
+      id: "2",
+      name: "Jane Smith",
+      profileImage: "/images/avatar2.jpg",
+      role: "user",
+    },
+    {
+      id: "3",
+      name: "Bob Wilson",
+      profileImage: "/images/avatar3.jpg",
+      role: "user",
+    },
+  ];
+
+  const mockFollowing = ["2"];
 
   const handleSavePost = (postId: string) => {
     setSavedPosts((prev) => ({
@@ -88,29 +121,27 @@ const Social = () => {
     });
   };
 
-  const handleFollowUser = async (userId: string) => {
-    await toggleFollow(userId);
+  const handleFollowUser = (userId: string) => {
     toast({
-      title: profile?.following.some((following) => following.id === userId)
-        ? "Unfollowed"
-        : "Followed",
-      description: profile?.following.some(
-        (following) => following.id === userId
-      )
+      title: mockFollowing.includes(userId) ? "Unfollowed" : "Followed",
+      description: mockFollowing.includes(userId)
         ? "You have unfollowed this user"
         : "You are now following this user",
     });
   };
 
-  const handleLikePost = async (postId: string) => {
-    await likePost(postId);
+  const handleLikePost = (postId: string) => {
+    // Static like handling
+    toast({
+      title: "Post liked",
+      description: "You liked this post",
+    });
   };
 
-  const handleCreatePost = async (newPost: Post) => {
-    await createPost({
-      content: newPost.content,
-      images: newPost.gallery || [],
-      destinationId: newPost.destination?.id || undefined,
+  const handleCreatePost = (newPost: Post) => {
+    toast({
+      title: "Post created",
+      description: "Your post has been created successfully",
     });
   };
 
@@ -123,12 +154,10 @@ const Social = () => {
         onSave={handleSavePost}
         onCopyLink={handleCopyLink}
         onFollow={handleFollowUser}
-        isLiked={authUser ? post.likes.includes(authUser._id) : false}
+        isLiked={post.likes.includes(mockUser._id)}
         isSaved={savedPosts[post.id]}
         isCopied={copiedLinks[post.id]}
-        isFollowing={profile?.following.some(
-          (following) => following.id === post.user.id
-        )}
+        isFollowing={mockFollowing.includes(post.authorId)}
       />
     ));
 
@@ -173,32 +202,16 @@ const Social = () => {
                 </TabsList>
 
                 <TabsContent value="recent" className="mt-6">
-                  {postsLoading ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">Loading posts...</p>
-                            </div>
-                  ) : (
-                    renderPostCards(filteredPosts as Post[])
-                  )}
+                  {renderPostCards(mockPosts as Post[])}
                 </TabsContent>
 
                 <TabsContent value="popular" className="mt-6">
-                  {postsLoading ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">Loading posts...</p>
-                          </div>
-                  ) : (
-                    renderPostCards(filteredPosts as Post[])
-                  )}
+                  {renderPostCards(mockPosts as Post[])}
                 </TabsContent>
 
                 <TabsContent value="following" className="mt-6">
-                  {postsLoading ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">Loading posts...</p>
-                            </div>
-                  ) : filteredPosts.length > 0 ? (
-                    renderPostCards(filteredPosts as Post[])
+                  {mockPosts.length > 0 ? (
+                    renderPostCards(mockPosts as Post[])
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-muted-foreground">
@@ -207,25 +220,22 @@ const Social = () => {
                       <p className="text-sm text-muted-foreground mt-1">
                         Start following people to see their posts here.
                       </p>
-                          </div>
+                    </div>
                   )}
                 </TabsContent>
               </Tabs>
-                          </div>
-                        </div>
+            </div>
+          </div>
         </ScrollArea>
 
         {/* Right Sidebar */}
         <RightSidebar
-          suggestedConnections={(profile?.connections || []).map((conn) => ({
-            ...conn,
-            role: "user", // Adding required role property
-          }))}
-          following={(profile?.following || []).map((f) => f.id)} // Extract just the IDs
+          suggestedConnections={mockConnections}
+          following={mockFollowing}
           onFollow={handleFollowUser}
           newsItems={newsItems}
         />
-              </div>
+      </div>
     </Layout>
   );
 };

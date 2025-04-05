@@ -57,6 +57,10 @@ export const blogPosts: BlogPost[] = [
       id: 1,
       name: "Bali, Indonesia",
       location: "Indonesia",
+      coordinates: {
+        latitude: -8.3405,
+        longitude: 115.0920
+      },
       description:
         "Bali is a living postcard, an Indonesian paradise that feels like a fantasy. Soak up the sun on a stretch of fine white sand, or commune with the tropical creatures as you dive along coral ridges or the colorful wreck of a WWII war ship.",
       image:
@@ -116,6 +120,10 @@ export const blogPosts: BlogPost[] = [
       id: 2,
       name: "Santorini, Greece",
       location: "Greece",
+      coordinates: {
+        latitude: 36.3932,
+        longitude: 25.4615
+      },
       description:
         "Santorini is one of the Cyclades islands in the Aegean Sea. It was devastated by a volcanic eruption in the 16th century BC, forever shaping its rugged landscape. The whitewashed, cubiform houses of its 2 principal towns, Fira and Oia, cling to cliffs above an underwater caldera (crater).",
       image:
@@ -126,8 +134,8 @@ export const blogPosts: BlogPost[] = [
     travelTips: [
       "Use public transportation to save money.",
       "Look for free walking tours in major cities.",
-      "Stay in hostels or budget hotels for affordable accommodation."
-    ],
+        "Stay in hostels or budget hotels for affordable accommodation."
+      ],
     gallery: [
       "https://images.unsplash.com/photo-1491557345352-5929e343eb89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
       "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
@@ -190,6 +198,10 @@ export const blogPosts: BlogPost[] = [
       id: 3,
       name: "Kyoto, Japan",
       location: "Japan",
+      coordinates: {
+        latitude: 35.0116,
+        longitude: 135.7681
+      },
       description:
         "Kyoto, once the capital of Japan, is a city on the island of Honshu. It's famous for its numerous classical Buddhist temples, as well as gardens, imperial palaces, Shinto shrines and traditional wooden houses.",
       image:
@@ -254,6 +266,10 @@ export const blogPosts: BlogPost[] = [
       id: 1,
       name: "Bali, Indonesia",
       location: "Indonesia",
+      coordinates: {
+        latitude: -8.3405,
+        longitude: 115.0920
+      },
       description:
         "Bali is a living postcard, an Indonesian paradise that feels like a fantasy. Soak up the sun on a stretch of fine white sand, or commune with the tropical creatures as you dive along coral ridges or the colorful wreck of a WWII war ship.",
       image:
@@ -318,6 +334,10 @@ export const blogPosts: BlogPost[] = [
       id: 6,
       name: "Banff National Park, Canada",
       location: "Canada",
+      coordinates: {
+        latitude: 51.1789,
+        longitude: -115.5705
+      },
       description:
         "Banff National Park is Canada's oldest national park, established in 1885 in the Rocky Mountains. The park, located in Alberta's southwestern corner, encompasses 6,641 square kilometers of mountainous terrain, with numerous glaciers and ice fields, dense coniferous forest, and alpine landscapes.",
       image:
@@ -377,6 +397,10 @@ export const blogPosts: BlogPost[] = [
       id: 5,
       name: "Marrakech, Morocco",
       location: "Morocco",
+      coordinates: {
+        latitude: 31.6339,
+        longitude: -8.0069
+      },
       description:
         "Marrakech, a former imperial city in western Morocco, is a major economic center and home to mosques, palaces and gardens. The medina is a densely packed, walled medieval city dating to the Berber Empire, with mazelike alleys where thriving souks (marketplaces) sell traditional textiles, pottery and jewelry.",
       image:

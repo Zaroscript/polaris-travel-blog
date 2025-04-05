@@ -1,159 +1,140 @@
 import { create } from "zustand";
-import api from "@/lib/api";
-import { Profile } from "@/types/social";
+import { Profile, Post } from "@/types/social";
+import axios from "axios";
 
-
-
-interface ProfileStore {
+interface ProfileState {
   profile: Profile | null;
+  posts: Post[];
+  followers: Profile[];
+  following: Profile[];
   loading: boolean;
   error: string | null;
-
-  getAllUsers: () => Promise<Profile[]>;
-  getProfile: (userId?: string) => Promise<Profile | null>;
-  getUserFollowing: (userId: string) => Promise<Profile[]>;
-  getUserFollowers: (userId: string) => Promise<Profile[]>;
-  updateProfile: (data: Partial<Profile>) => Promise<Profile>;
-  updateProfileImage: (imageUrl: string) => Promise<Profile>;
-  updateCoverImage: (imageUrl: string) => Promise<Profile>;
-  toggleFollow: (userId: string) => Promise<void>;
+  fetchProfile: (userId: string) => Promise<void>;
+  fetchUserPosts: (userId: string) => Promise<void>;
+  fetchFollowers: (userId: string) => Promise<void>;
+  fetchFollowing: (userId: string) => Promise<void>;
+  updateProfile: (
+    userId: string,
+    profileData: Partial<Profile>
+  ) => Promise<void>;
+  followUser: (userId: string) => Promise<void>;
+  unfollowUser: (userId: string) => Promise<void>;
+  blockUser: (userId: string) => Promise<void>;
+  reportUser: (userId: string, reason: string) => Promise<void>;
 }
 
-const useProfileStore = create<ProfileStore>((set) => ({
+export const useProfileStore = create<ProfileState>((set, get) => ({
   profile: null,
+  posts: [],
+  followers: [],
+  following: [],
   loading: false,
   error: null,
 
-  getAllUsers: async () => {
-    const response = await api.get("api/users/all");
-    return response.data;
-  },
-
-  getProfile: async (userId) => {
+  fetchProfile: async (userId) => {
+    set({ loading: true, error: null });
     try {
-      set({ loading: true, error: null });
-      const response = await api.get(
-        userId ? `api/users/profile/${userId}` : "api/users/profile"
-      );
-      set({ profile: response.data, loading: false });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message
-        : 'Failed to fetch profile';
-      set({
-        error: errorMessage,
-        loading: false,
-      });
+      const response = await axios.get(`/api/users/${userId}`);
+      set({ profile: response.data.user, loading: false });
+    } catch (error) {
+      set({ error: "Failed to fetch profile", loading: false });
     }
   },
 
-  getUserFollowing: async (userId) => {
+  fetchUserPosts: async (userId) => {
+    set({ loading: true, error: null });
     try {
-      set({ loading: true, error: null });
-      const response = await api.get(`api/users/following/${userId}`);
-      set({ loading: false });
-      return response.data;
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message
-        : 'Failed to fetch user following';
-      set({
-        error: errorMessage,
-        loading: false
-      });
-      throw new Error(errorMessage);
+      const response = await axios.get(`/api/users/${userId}/posts`);
+      set({ posts: response.data.posts, loading: false });
+    } catch (error) {
+      set({ error: "Failed to fetch user posts", loading: false });
     }
   },
 
-  getUserFollowers: async (userId) => {
+  fetchFollowers: async (userId) => {
+    set({ loading: true, error: null });
     try {
-      set({ loading: true, error: null });
-      const response = await api.get(`api/users/followers/${userId}`);
-      set({ loading: false });
-      return response.data;
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message
-        : 'Failed to fetch user followers';
-      set({
-        error: errorMessage,
-        loading: false  
-      });
-      throw new Error(errorMessage);
+      const response = await axios.get(`/api/users/${userId}/followers`);
+      set({ followers: response.data.followers, loading: false });
+    } catch (error) {
+      set({ error: "Failed to fetch followers", loading: false });
     }
   },
 
-  updateProfile: async (data) => {
+  fetchFollowing: async (userId) => {
+    set({ loading: true, error: null });
     try {
-      set({ loading: true, error: null });
-      const response = await api.patch("api/users/profile", data);
-      set({ profile: response.data, loading: false });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Failed to update profile';
-      set({
-        error: errorMessage,
-        loading: false,
-      });
+      const response = await axios.get(`/api/users/${userId}/following`);
+      set({ following: response.data.following, loading: false });
+    } catch (error) {
+      set({ error: "Failed to fetch following", loading: false });
     }
   },
 
-  updateProfileImage: async (imageUrl) => {
+  updateProfile: async (userId, profileData) => {
+    set({ loading: true, error: null });
     try {
-      set({ loading: true, error: null });
-      const response = await api.patch("api/users/profile/image", {
-        profileImage: imageUrl,
-      });
-      set({ profile: response.data, loading: false });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message
-        : "Failed to update profile image";
-      set({
-        error: errorMessage,
-        loading: false,
-      });
+      const response = await axios.put(`/api/users/${userId}`, profileData);
+      set({ profile: response.data.user, loading: false });
+    } catch (error) {
+      set({ error: "Failed to update profile", loading: false });
     }
   },
 
-  updateCoverImage: async (imageUrl) => {
+  followUser: async (userId) => {
     try {
-      set({ loading: true, error: null });
-      const response = await api.patch("api/users/profile/cover", {
-        coverImage: imageUrl,
-      });
-      set({ profile: response.data, loading: false });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message
-        : "Failed to update cover image";
-      set({
-        error: errorMessage,
-        loading: false,
-      });
+      await axios.post(`/api/users/${userId}/follow`);
+      set((state) => ({
+        profile: state.profile
+          ? {
+              ...state.profile,
+              followers: [...state.profile.followers, "current-user-id"],
+            }
+          : null,
+        followers: [...state.followers, { id: "current-user-id" }],
+      }));
+    } catch (error) {
+      set({ error: "Failed to follow user" });
     }
   },
 
-  toggleFollow: async (userId) => {
+  unfollowUser: async (userId) => {
     try {
-      set({ loading: true, error: null });
-      await api.post(`api/users/follow/${userId}`);
-      // Refresh profile to get updated following/followers lists
-      const response = await api.get("api/users/profile");
-      set({ profile: response.data, loading: false });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message
-        : "Failed to toggle follow";
-      set({
-        error: errorMessage,
-        loading: false,
-      });
+      await axios.delete(`/api/users/${userId}/follow`);
+      set((state) => ({
+        profile: state.profile
+          ? {
+              ...state.profile,
+              followers: state.profile.followers.filter(
+                (id) => id !== "current-user-id"
+              ),
+            }
+          : null,
+        followers: state.followers.filter(
+          (follower) => follower.id !== "current-user-id"
+        ),
+      }));
+    } catch (error) {
+      set({ error: "Failed to unfollow user" });
     }
   },
 
+  blockUser: async (userId) => {
+    try {
+      await axios.post(`/api/users/${userId}/block`);
+      set((state) => ({
+        profile: state.profile ? { ...state.profile, isBlocked: true } : null,
+      }));
+    } catch (error) {
+      set({ error: "Failed to block user" });
+    }
+  },
 
+  reportUser: async (userId, reason) => {
+    try {
+      await axios.post(`/api/users/${userId}/report`, { reason });
+    } catch (error) {
+      set({ error: "Failed to report user" });
+    }
+  },
 }));
-
-export default useProfileStore;

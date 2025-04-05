@@ -1,214 +1,130 @@
 import { create } from "zustand";
-import { axiosInstance } from "../lib/axios";
-import toast from "react-hot-toast";
-import { BlogPost, ApiError } from "../types";
-import { Post, Profile } from "@/types/social";
+import { Post } from "@/types/social";
+import axios from "axios";
 
 interface PostsState {
   posts: Post[];
-  userPosts: Post[];
-  currentPost: Post | null;
-  isLoading: boolean;
+  loading: boolean;
   error: string | null;
-
-  // Actions
-  getPosts: () => Promise<void>;
-  getUserPosts: (userId: string) => Promise<void>;
-  getPost: (postId: string) => Promise<void>;
-  createPost: (data: {
-    content: string;
-    images?: string[];
-    destinationId?: string;
-  }) => Promise<void>;
-  updatePost: (
-    postId: string,
-    data: { content: string; images?: string[] }
-  ) => Promise<void>;
-  deletePost: (postId: string) => Promise<void>;
-  likePost: (postId: string) => Promise<void>;
+  fetchPosts: () => Promise<void>;
+  createPost: (postData: Partial<Post>) => Promise<void>;
+  updatePost: (id: string, postData: Partial<Post>) => Promise<void>;
+  deletePost: (id: string) => Promise<void>;
+  likePost: (id: string) => Promise<void>;
+  unlikePost: (id: string) => Promise<void>;
   addComment: (postId: string, content: string) => Promise<void>;
   deleteComment: (postId: string, commentId: string) => Promise<void>;
-  clearError: () => void;
 }
 
 export const usePostsStore = create<PostsState>((set, get) => ({
   posts: [],
-  userPosts: [],
-  currentPost: null,
-  isLoading: false,
+  loading: false,
   error: null,
 
-  getPosts: async () => {
-    set({ isLoading: true, error: null });
+  fetchPosts: async () => {
+    set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.get<Post[]>("/posts");
-      set({ posts: response.data || [] });
+      const response = await axios.get("/api/posts");
+      set({ posts: response.data.posts, loading: false });
     } catch (error) {
-      const message = (error as ApiError).message || "Failed to fetch posts";
-      set({ error: message, posts: [] });
-      toast.error(message);
-    } finally {
-      set({ isLoading: false });
+      set({ error: "Failed to fetch posts", loading: false });
     }
   },
 
-  getUserPosts: async (userId) => {
-    set({ isLoading: true, error: null });
+  createPost: async (postData) => {
+    set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.get<Post[]>(
-        `api/posts/user/${userId}`
-      );
-      set({ userPosts: response.data });
+      const response = await axios.post("/api/posts", postData);
+      set((state) => ({
+        posts: [response.data.post, ...state.posts],
+        loading: false,
+      }));
     } catch (error) {
-      const message =
-        (error as ApiError).message || "Failed to fetch user posts";
-      set({ error: message });
-      toast.error(message);
-    } finally {
-      set({ isLoading: false });
+      set({ error: "Failed to create post", loading: false });
     }
   },
 
-  getPost: async (postId) => {
-    set({ isLoading: true, error: null });
+  updatePost: async (id, postData) => {
+    set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.get<Post>(`posts/${postId}`);
-      set({ currentPost: response.data });
-    } catch (error) {
-      const message = (error as ApiError).message || "Failed to fetch post";
-      set({ error: message });
-      toast.error(message);
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  createPost: async (data) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await axiosInstance.post<Post>("posts", data);
-      set((state) => ({ posts: [response.data, ...state.posts] }));
-      toast.success("Post created successfully");
-    } catch (error) {
-      const message = (error as ApiError).message || "Failed to create post";
-      set({ error: message });
-      toast.error(message);
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  updatePost: async (postId, data) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await axiosInstance.put<Post>(`posts/${postId}`, data);
+      const response = await axios.put(`/api/posts/${id}`, postData);
       set((state) => ({
         posts: state.posts.map((post) =>
-          post.id === postId ? response.data : post
+          post.id === id ? response.data.post : post
         ),
-        currentPost:
-          state.currentPost?.id === postId ? response.data : state.currentPost,
-        userPosts: state.userPosts.map((post) =>
-          post.id === postId ? response.data : post
-        ),
+        loading: false,
       }));
-      toast.success("Post updated successfully");
     } catch (error) {
-      const message = (error as ApiError).message || "Failed to update post";
-      set({ error: message });
-      toast.error(message);
-      throw error;
-    } finally {
-      set({ isLoading: false });
+      set({ error: "Failed to update post", loading: false });
     }
   },
 
-  deletePost: async (postId) => {
-    set({ isLoading: true, error: null });
+  deletePost: async (id) => {
+    set({ loading: true, error: null });
     try {
-      await axiosInstance.delete(`posts/${postId}`);
+      await axios.delete(`/api/posts/${id}`);
       set((state) => ({
-        posts: state.posts.filter((post) => post.id !== postId),
-        currentPost:
-          state.currentPost?.id === postId ? null : state.currentPost,
-        userPosts: state.userPosts.filter((post) => post.id !== postId),
+        posts: state.posts.filter((post) => post.id !== id),
+        loading: false,
       }));
-      toast.success("Post deleted successfully");
     } catch (error) {
-      const message = (error as ApiError).message || "Failed to delete post";
-      set({ error: message });
-      toast.error(message);
-      throw error;
-    } finally {
-      set({ isLoading: false });
+      set({ error: "Failed to delete post", loading: false });
     }
   },
 
-  likePost: async (postId) => {
+  likePost: async (id) => {
     try {
-      await axiosInstance.post(`posts/${postId}/like`);
+      await axios.post(`/api/posts/${id}/like`);
       set((state) => ({
         posts: state.posts.map((post) =>
-          post.id === postId
-            ? { ...post, likes: [...post.likes, postId] }
+          post.id === id
+            ? { ...post, likes: [...post.likes, "current-user-id"] }
             : post
         ),
-        currentPost:
-          state.currentPost?.id === postId
+      }));
+    } catch (error) {
+      set({ error: "Failed to like post" });
+    }
+  },
+
+  unlikePost: async (id) => {
+    try {
+      await axios.delete(`/api/posts/${id}/like`);
+      set((state) => ({
+        posts: state.posts.map((post) =>
+          post.id === id
             ? {
-                ...state.currentPost,
-                likes: [...state.currentPost.likes, postId],
+                ...post,
+                likes: post.likes.filter((like) => like !== "current-user-id"),
               }
-            : state.currentPost,
-        userPosts: state.userPosts.map((post) =>
-          post.id === postId
-            ? { ...post, likes: [...post.likes, postId] }
             : post
         ),
       }));
     } catch (error) {
-      const message = (error as ApiError).message || "Failed to like post";
-      toast.error(message);
-      throw error;
+      set({ error: "Failed to unlike post" });
     }
   },
 
   addComment: async (postId, content) => {
     try {
-      const response = await axiosInstance.post(`posts/${postId}/comments`, {
+      const response = await axios.post(`/api/posts/${postId}/comments`, {
         content,
       });
       set((state) => ({
         posts: state.posts.map((post) =>
           post.id === postId
-            ? { ...post, comments: [...post.comments, response.data] }
-            : post
-        ),
-        currentPost:
-          state.currentPost?.id === postId
-            ? {
-                ...state.currentPost,
-                comments: [...state.currentPost.comments, response.data],
-              }
-            : state.currentPost,
-        userPosts: state.userPosts.map((post) =>
-          post.id === postId
-            ? { ...post, comments: [...post.comments, response.data] }
+            ? { ...post, comments: [...post.comments, response.data.comment] }
             : post
         ),
       }));
-      toast.success("Comment added successfully");
     } catch (error) {
-      const message = (error as ApiError).message || "Failed to add comment";
-      toast.error(message);
-      throw error;
+      set({ error: "Failed to add comment" });
     }
   },
 
   deleteComment: async (postId, commentId) => {
     try {
-      await axiosInstance.delete(`posts/${postId}/comments/${commentId}`);
+      await axios.delete(`/api/posts/${postId}/comments/${commentId}`);
       set((state) => ({
         posts: state.posts.map((post) =>
           post.id === postId
@@ -220,35 +136,9 @@ export const usePostsStore = create<PostsState>((set, get) => ({
               }
             : post
         ),
-        currentPost:
-          state.currentPost?.id === postId
-            ? {
-                ...state.currentPost,
-                comments: state.currentPost.comments.filter(
-                  (comment) => comment.id !== commentId
-                ),
-              }
-            : state.currentPost,
-        userPosts: state.userPosts.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                comments: post.comments.filter(
-                  (comment) => comment.id !== commentId
-                ),
-              }
-            : post
-        ),
       }));
-      toast.success("Comment deleted successfully");
     } catch (error) {
-      const message = (error as ApiError).message || "Failed to delete comment";
-      toast.error(message);
-      throw error;
+      set({ error: "Failed to delete comment" });
     }
-  },
-
-  clearError: () => {
-    set({ error: null });
   },
 }));

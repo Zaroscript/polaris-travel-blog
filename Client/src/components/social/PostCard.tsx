@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
-import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -28,8 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import CommentSection from "./CommentSection";
 import { Post } from "@/types/social";
-import { usePostsStore } from "@/store/usePostsStore";
-import useProfileStore from "@/store/useProfileStore";
+import { Comment } from "@/types/social";
 
 interface PostCardProps {
   post: Post;
@@ -55,11 +53,17 @@ const PostCard = ({
   isFollowing,
 }: PostCardProps) => {
   const [expandedComments, setExpandedComments] = useState(false);
-  const { authUser } = useAuthStore();
 
-  // get user profile
-  const { getProfile } = useProfileStore();
-  const user = getProfile(post.authorId);
+  // Static mock data
+  const mockUser = {
+    name: "John Doe",
+    profileImage: "/images/avatar.jpg",
+    _id: "1"
+  };
+
+  const mockAuthUser = {
+    _id: "1"
+  };
 
   const toggleComments = () => {
     setExpandedComments(!expandedComments);
@@ -76,17 +80,13 @@ const PostCard = ({
           <div className="">
             <div className="flex items-center space-x-4">
               <Avatar className="h-10 w-10 ring-2 ring-primary/10">
-                <AvatarImage src={user?.profileImage} />
-                <AvatarFallback>
-                  {postAuthorProfile?.name.charAt(0)}
-                </AvatarFallback>
+                <AvatarImage src={mockUser.profileImage} />
+                <AvatarFallback>{mockUser.name.charAt(0)}</AvatarFallback>
               </Avatar>
 
               <div className="flex-1 flex space-x-2 items-center">
                 <div>
-                  <h3 className="font-semibold text-base">
-                    {postAuthorProfile?.name}
-                  </h3>
+                  <h3 className="font-semibold text-base">{mockUser.name}</h3>
                   <p className="text-sm text-muted-foreground">
                     {formatDistanceToNow(new Date(post.createdAt), {
                       addSuffix: true,
@@ -101,7 +101,7 @@ const PostCard = ({
                     "h-8 px-2 text-muted-foreground hover:text-primary hover:bg-primary/10",
                     isFollowing && "text-primary"
                   )}
-                  onClick={() => onFollow(postAuthorProfile?._id)}
+                  onClick={() => onFollow(post.authorId)}
                 >
                   {isFollowing ? (
                     <UserMinus className="h-4 w-4" />
@@ -138,7 +138,7 @@ const PostCard = ({
                         "Copy link"
                       )}
                     </DropdownMenuItem>
-                    {postAuthorProfile?._id === authUser?._id && (
+                    {mockUser._id === mockAuthUser._id && (
                       <DropdownMenuItem className="text-destructive">
                         Delete
                       </DropdownMenuItem>

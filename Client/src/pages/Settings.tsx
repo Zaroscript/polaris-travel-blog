@@ -1,42 +1,54 @@
-import React, { useState } from "react";
-import { Container, Row, Col, Button, Offcanvas } from "react-bootstrap";
-import "bootstrap/dist/css/bootstrap.min.css";
+import { useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 import Notification from "../pages/Notification";
 import AccountSettings from "../pages/AcountSettings";
 import Sidebar from "../components/Sidebar/Sidebar";
+import Layout from "../components/layout/Layout";
 
-const Settings: React.FC = () => {
+const Settings = () => {
   const location = useLocation();
-  const [showSidebar, setShowSidebar] = useState<boolean>(false);
+  const [open, setOpen] = useState(false);
 
   return (
-    <Container fluid className="layout-container p-1 p-lg-5">
-      <Button className="d-md-none m-3" onClick={() => setShowSidebar(true)}>
-        Settings
-      </Button>
+    <Layout>
+      <div className="container mx-auto p-4 lg:p-8">
+        <div className="md:hidden">
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[300px]">
+              <SheetHeader>
+                <SheetTitle>Settings</SheetTitle>
+              </SheetHeader>
+              <div className="mt-4">
+                <Sidebar activePath={location.pathname} />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
 
-      <Offcanvas show={showSidebar} onHide={() => setShowSidebar(false)} className="d-md-none w-75">
-        <Offcanvas.Header closeButton>
-          <Offcanvas.Title>Settings</Offcanvas.Title>
-        </Offcanvas.Header>
-        <Offcanvas.Body>
-          <Sidebar activePath={location.pathname} />
-        </Offcanvas.Body>
-      </Offcanvas>
-
-      <Row className="main-content">
-        <Col md={3} className="sidebar-container bg-light d-none d-md-block rounded-3">
-          <Sidebar activePath={location.pathname} />
-        </Col>
-        <Col md={9} sm={12}className="p-4 content-container">
-          <Routes>
-            <Route path="/" element={<AccountSettings />} />
-            <Route path="/notification" element={<Notification />} />
-          </Routes>
-        </Col>
-      </Row>
-    </Container>
+        <div className="flex gap-8">
+          <aside className="hidden md:block w-64 shrink-0">
+            <div className="sticky top-8 rounded-lg border bg-card p-4">
+              <Sidebar activePath={location.pathname} />
+            </div>
+          </aside>
+          
+          <main className="flex-1">
+            <Routes>
+              <Route path="/" element={<AccountSettings />} />
+              <Route path="/notification" element={<Notification />} />
+            </Routes>
+          </main>
+        </div>
+      </div>
+    </Layout>
   );
 };
 

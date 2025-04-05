@@ -1,7 +1,4 @@
-import { useState, useEffect } from "react";
-import { useAuthStore } from "@/store/useAuthStore";
-import { usePostsStore } from "@/store/usePostsStore";
-import useDestinationStore from "@/store/useDestinationStore";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,9 +28,6 @@ interface CreatePostProps {
 }
 
 const CreatePost = ({ onPostCreate }: CreatePostProps) => {
-  const { authUser } = useAuthStore();
-  const { createPost } = usePostsStore();
-  const { destinations, getDestinations } = useDestinationStore();
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [content, setContent] = useState("");
   const [selectedDestination, setSelectedDestination] = useState<string>("");
@@ -41,20 +35,49 @@ const CreatePost = ({ onPostCreate }: CreatePostProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    getDestinations();
-  }, [getDestinations]);
+  // Static mock data
+  const mockAuthUser = {
+    profilePic: "/images/avatar.jpg",
+    fullName: "John Doe",
+    _id: "1",
+  };
+
+  const mockDestinations = [
+    { id: "1", name: "Paris" },
+    { id: "2", name: "London" },
+    { id: "3", name: "Tokyo" },
+    { id: "4", name: "New York" },
+  ];
 
   const handleCreatePost = async () => {
     if (!content.trim()) return;
 
     setIsSubmitting(true);
     try {
-      await createPost({
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const newPost = {
+        id: Date.now().toString(),
         content,
         images,
-        destinationId: selectedDestination || undefined,
-      });
+        authorId: mockAuthUser._id,
+        createdAt: new Date().toISOString(),
+        likes: [],
+        comments: [],
+        gallery: [],
+        destination: selectedDestination
+          ? {
+              id: selectedDestination,
+              name:
+                mockDestinations.find((d) => d.id === selectedDestination)
+                  ?.name || "",
+              image: "",
+            }
+          : undefined,
+      };
+
+      onPostCreate(newPost as Post);
       setContent("");
       setSelectedDestination("");
       setImages([]);
@@ -89,17 +112,13 @@ const CreatePost = ({ onPostCreate }: CreatePostProps) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  if (!authUser) return null;
-
   return (
     <Card className="mb-6 shadow-sm hover:shadow-md transition-shadow duration-200">
       <CardContent className="p-6">
         <div className="flex items-start space-x-4">
           <Avatar className="h-10 w-10 ring-2 ring-primary/10">
-            <AvatarImage src={authUser.profilePic} />
-            <AvatarFallback>
-              {authUser.fullName?.charAt(0) || "?"}
-            </AvatarFallback>
+            <AvatarImage src={mockAuthUser.profilePic} />
+            <AvatarFallback>{mockAuthUser.fullName.charAt(0)}</AvatarFallback>
           </Avatar>
           <Dialog open={isCreatingPost} onOpenChange={setIsCreatingPost}>
             <DialogTrigger asChild>
@@ -176,15 +195,11 @@ const CreatePost = ({ onPostCreate }: CreatePostProps) => {
                       <SelectValue placeholder="Select a destination" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.isArray(destinations) &&
-                        destinations.map((destination) => (
-                          <SelectItem
-                            key={destination.id}
-                            value={destination.id}
-                          >
-                            {destination.name}
-                          </SelectItem>
-                        ))}
+                      {mockDestinations.map((destination) => (
+                        <SelectItem key={destination.id} value={destination.id}>
+                          {destination.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

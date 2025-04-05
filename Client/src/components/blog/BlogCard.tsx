@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { MessageCircle, Heart } from "lucide-react";
-import { BlogPost } from "@/data/blogData";
+import { BlogPost } from "@/types";
 
 interface BlogCardProps {
   post: BlogPost;

@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { useChatStore } from "@/store/useChatStore";
-import { useTheme } from "next-themes";
+import { useThemeStore } from "@/store/useThemeStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import toast from "react-hot-toast";
@@ -36,6 +36,8 @@ import { PopulatedNotification } from "@/types";
 import MobileNav from "../navbar/MobileNav";
 import { navItems } from "@/constants";
 import ProfileCard from "../navbar/ProfileCard";
+import { ThemeToggle } from "../theme/ThemeToggle";
+
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -49,7 +51,7 @@ const Header = () => {
     unreadCount,
   } = useNotificationStore();
   const { unreadMessages } = useChatStore();
-  const { setTheme, theme } = useTheme();
+  const { theme, setTheme } = useThemeStore();
   const isActive = (path: string) => location.pathname === path;
   const [isMobile, setIsMobile] = useState(false);
 
@@ -259,13 +261,13 @@ const Header = () => {
                         asChild
                       >
                         <Link to="/notifications">View all notifications</Link>
-              </Button>
-            </div>
+                      </Button>
+                    </div>
                   </PopoverContent>
                 </Popover>
 
                 {/* Theme Toggle */}
-                <DropdownMenu>
+                {/* <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
@@ -300,7 +302,9 @@ const Header = () => {
                       System
                     </DropdownMenuItem>
                   </DropdownMenuContent>
-                </DropdownMenu>
+                </DropdownMenu> */}
+
+                <ThemeToggle />
 
                 <ProfileCard authUser={authUser} handleLogout={handleLogout} />
               </>

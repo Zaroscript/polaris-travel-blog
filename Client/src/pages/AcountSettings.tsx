@@ -1,128 +1,258 @@
 import { useRef, useState, FormEvent } from "react";
-import { Form, Button, Row, Col, InputGroup } from "react-bootstrap";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
-const AccountSettings: React.FC = () => {
- 
-  const [validatedAccountSettings, setValidatedAccountSettings] = useState<boolean>(false);
-  const [validatedChangePassword, setValidatedChangePassword] = useState<boolean>(false);
-  
-  const passwordRef = useRef<HTMLInputElement | null>(null);
-  const confirmPasswordRef = useRef<HTMLInputElement | null>(null);
-  const [passwordError, setPasswordError] = useState<string>("");
+const accountFormSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  additionalName: z.string().optional(),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  birthday: z.string().min(1, "Birthday is required"),
+  phone: z.string().min(1, "Phone number is required"),
+  email: z.string().email("Invalid email address"),
+  overview: z.string().max(300, "Overview cannot exceed 300 characters")
+});
 
-  const handleAccountSettingsSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    if (!form.checkValidity()) {
-      event.stopPropagation();
+const passwordFormSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string()
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"]
+});
+
+const AccountSettings = () => {
+  const accountForm = useForm<z.infer<typeof accountFormSchema>>({
+    resolver: zodResolver(accountFormSchema),
+    defaultValues: {
+      firstName: "Sam",
+      lastName: "Lanson",
+      username: "samlanson",
+      email: "sam@webestica.com"
     }
-    setValidatedAccountSettings(true);
+  });
+
+  const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
+    resolver: zodResolver(passwordFormSchema)
+  });
+
+  const onAccountSubmit = (data: z.infer<typeof accountFormSchema>) => {
+    console.log(data);
+    // Handle account update
   };
 
- 
-  const handleChangePasswordSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    if (!form.checkValidity()) {
-      event.stopPropagation();
-    }
-    setValidatedChangePassword(true);
-  };
-
-  const handleConfirmPasswordChange = () => {
-    if (
-      confirmPasswordRef.current?.value !== passwordRef.current?.value
-    ) {
-      setPasswordError("Passwords do not match!");
-    } else {
-      setPasswordError("");
-    }
+  const onPasswordSubmit = (data: z.infer<typeof passwordFormSchema>) => {
+    console.log(data);
+    // Handle password update
   };
 
   return (
-    <>
-     
-      <Form noValidate validated={validatedAccountSettings} onSubmit={handleAccountSettingsSubmit} className="w-100 m-auto  p-1 p-lg-3">
-        <h2 className="mb-3 fw-bold fs-3">Account Settings</h2>
-        <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Minima, at nobis autem Sed, impedit.</p>
-        <Row className="mb-3 p-1 p-lg-3 w-100">
-          <Form.Group as={Col} md="4" controlId="firstName">
-            <Form.Label>First Name</Form.Label>
-            <Form.Control required type="text" placeholder="First Name" defaultValue="Sam" />
-            <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-          </Form.Group>
-          <Form.Group as={Col} md="4" controlId="lastName">
-            <Form.Label>Last Name</Form.Label>
-            <Form.Control required type="text" placeholder="Last Name" defaultValue="Lanson" />
-            <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-          </Form.Group>
-          <Form.Group as={Col} md="4" controlId="additionalName">
-            <Form.Label>Additional Name</Form.Label>
-            <Form.Control type="text" placeholder="Additional Name" />
-          </Form.Group>
-        </Row>
-        <Row className="mb-3 p-1 p-lg-3 w-100">
-          <Form.Group as={Col} md="6" controlId="username">
-            <Form.Label>Username</Form.Label>
-            <InputGroup hasValidation>
-              <InputGroup.Text>@</InputGroup.Text>
-              <Form.Control type="text" placeholder="Username" required defaultValue="samlanson" />
-              <Form.Control.Feedback type="invalid">Please choose a username.</Form.Control.Feedback>
-            </InputGroup>
-          </Form.Group>
-          <Form.Group as={Col} md="6" controlId="birthday">
-            <Form.Label>Birthday</Form.Label>
-            <Form.Control type="date" required />
-            <Form.Control.Feedback type="invalid">Please provide a valid date.</Form.Control.Feedback>
-          </Form.Group>
-        </Row>
-        <Row className="mb-3 p-1 p-lg-3 w-100">
-          <Form.Group as={Col} md="6" controlId="phone">
-            <Form.Label>Phone Number</Form.Label>
-            <Form.Control type="tel" placeholder="(678) 324-1251" required />
-          </Form.Group>
-          <Form.Group as={Col} md="6" controlId="email">
-            <Form.Label>Email</Form.Label>
-            <Form.Control type="email" placeholder="sam@webestica.com" required />
-          </Form.Group>
-        </Row>
-        <Form.Group className="mb-3 w-100 p-1 p-lg-3">
-          <Form.Label>Overview</Form.Label>
-          <Form.Control as="textarea" rows={3} placeholder="Description (Required)" required maxLength={300} />
-          <Form.Text>Character limit: 300</Form.Text>
-        </Form.Group>
-        <Button type="submit">Save Changes</Button>
-      </Form>
+    <div className="space-y-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Account Settings</CardTitle>
+          <CardDescription>
+            Update your account information and profile details
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...accountForm}>
+            <form onSubmit={accountForm.handleSubmit(onAccountSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={accountForm.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={accountForm.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={accountForm.control}
+                  name="additionalName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Additional Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-     
-      <Form noValidate validated={validatedChangePassword} onSubmit={handleChangePasswordSubmit} className="w-100 m-auto  p-1 p-lg-3">
-        <h2 className="mb-3 fw-bold fs-3">Change Your Password</h2>
-        <p>Update your password for security reasons.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={accountForm.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <div className="flex">
+                          <span className="flex items-center px-3 border border-r-0 rounded-l-md bg-muted">@</span>
+                          <Input {...field} className="rounded-l-none" />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={accountForm.control}
+                  name="birthday"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Birthday</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-        <Row className="mb-3 p-1 p-lg-3">
-          <Form.Group as={Col} md="12" controlId="currentPassword">
-            <Form.Label>Current Password</Form.Label>
-            <Form.Control type="password" />
-          </Form.Group>
-        </Row>
-        <Row className="mb-3 p-1 p-lg-3">
-          <Form.Group as={Col} md="12" controlId="newPassword">
-            <Form.Label>New Password</Form.Label>
-            <InputGroup>
-              <Form.Control type="password" ref={passwordRef} required />
-            </InputGroup>
-          </Form.Group>
-        </Row>
-        <Row className="mb-3 p-1 p-lg-3">
-          <Form.Group as={Col} md="12" controlId="confirmPassword">
-            <Form.Label>Confirm Password</Form.Label>
-            <Form.Control type="password" ref={confirmPasswordRef} onChange={handleConfirmPasswordChange} required />
-            {passwordError && <p className="text-danger mt-2">{passwordError}</p>}
-          </Form.Group>
-        </Row>
-        <Button type="submit">Update Password</Button>
-      </Form>
-    </>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={accountForm.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input type="tel" placeholder="(678) 324-1251" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={accountForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={accountForm.control}
+                name="overview"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Overview</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Description (Required)" 
+                        className="min-h-[100px]"
+                        maxLength={300}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>Character limit: 300</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button type="submit">Save Changes</Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Change Password</CardTitle>
+          <CardDescription>
+            Update your password for security reasons
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...passwordForm}>
+            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+              <FormField
+                control={passwordForm.control}
+                name="currentPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Current Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={passwordForm.control}
+                name="newPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={passwordForm.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button type="submit">Update Password</Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

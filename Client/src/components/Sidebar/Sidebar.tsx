@@ -1,8 +1,7 @@
-import { Nav } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faBell } from "@fortawesome/free-solid-svg-icons";
-import './Sidebar.css';
+import { User, Bell } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type SidebarProps = {
   activePath: string;
@@ -10,21 +9,34 @@ type SidebarProps = {
 
 const Sidebar: React.FC<SidebarProps> = ({ activePath }) => {
   return (
-    <Nav className="flex-column p-2 p-lg-5">
-      <Nav.Item>
-        <Nav.Link as={Link} to="/settings/" active={activePath === "/settings/"} className="fw-bold">
-          <FontAwesomeIcon icon={faUser} className="me-2" />
+    <nav className="space-y-2 px-4 py-6">
+      <Link to="/settings/">
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start gap-2 text-base font-medium",
+            activePath === "/settings/" && "bg-primary/10 text-primary"
+          )}
+        >
+          <User className="h-5 w-5" />
           Account Settings
-        </Nav.Link>
-      </Nav.Item>
-      
-      <Nav.Item>
-        <Nav.Link as={Link} to="/settings/notification" active={activePath === "/settings/notification"} className="fw-bold">
-          <FontAwesomeIcon icon={faBell} className="me-2" />
+        </Button>
+      </Link>
+
+      <Link to="/settings/notification">
+        <Button
+          variant="ghost" 
+          className={cn(
+            "w-full justify-start gap-2 text-base font-medium",
+            activePath === "/settings/notification" && "bg-primary/10 text-primary"
+          )}
+        >
+          <Bell className="h-5 w-5" />
           Notification
-        </Nav.Link>
-      </Nav.Item>
-    </Nav>
+        </Button>
+      </Link>
+    </nav>
   );
 };
+
 export default Sidebar;

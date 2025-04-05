@@ -49,9 +49,9 @@ const UserItem = ({
     <button
       onClick={onClick}
       className={`
-        w-full p-1 lg:p-2 border-b border-gray-200 flex items-center gap-1
-        hover:bg-gray-100 transition-colors
-        ${isSelected ? "bg-gray-100 border-l-4 border-blue-500" : ""}
+        w-full p-1 lg:p-2 border-b border-gray-200 dark:border-gray-800 flex items-center gap-1
+        hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+        ${isSelected ? "bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500" : ""}
       `}
     >
       <div className="relative lg:mx-0">
@@ -69,7 +69,7 @@ const UserItem = ({
       </div>
 
       <div className="block text-left min-w-0 ml-2 flex-1">
-        <div className="font-medium truncate text-gray-900">
+        <div className="font-medium truncate text-gray-900 dark:text-gray-100">
           {user.fullName}
         </div>
         <div className="text-xs text-gray-500 truncate">
