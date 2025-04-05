@@ -41,7 +41,7 @@ const AuthInput: React.FC<InputProps> = ({
             error ? 'border-red-500' : 'border-gray-300'
           } rounded-md focus:outline-none focus:ring-2 ${
             error ? 'focus:ring-red-500' : 'focus:ring-blue-500'
-          } focus:border-transparent placeholder-gray-400`}
+          } focus:border-transparent placeholder-gray-400 dark:text-primary-foreground`}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
