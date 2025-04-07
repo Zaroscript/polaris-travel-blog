@@ -35,8 +35,8 @@ const About = () => {
     },
     {
       name: "Mariam Nabil",
-      role: "React front-end developer",
-      bio: "React.js front-end developer",
+      role: "MERN Stack developer",
+      bio: "Front-end MERN stack developer",
       avatar: "https://randomuser.me/api/portraits/lego/1.jpg",
       social: { github: "#", instagram: "#", linkedin: "#" },
     },

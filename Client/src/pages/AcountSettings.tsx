@@ -104,10 +104,7 @@ const AccountSettings = () => {
       
       
       // Call the updateProfile function with the properly formatted data
-      const updatedUser = await updateProfile(profileData);
-      
-      setSuccessMessage("Profile updated successfully!");
-      
+      const updatedUser = await updateProfile(profileData);      
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
