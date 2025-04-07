@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { Profile, Post } from "@/types/social";
 import axios from "axios";
+import { log } from "console";
 
 interface ProfileState {
   profile: Profile | null;
@@ -74,10 +75,18 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   updateProfile: async (userId, profileData) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.put(`/api/users/${userId}`, profileData);
-      set({ profile: response.data.user, loading: false });
-    } catch (error) {
-      set({ error: "Failed to update profile", loading: false });
+      const response = await axios.put(`/api/users/profile`, profileData);
+      set({ 
+        profile: response.data.user, 
+        loading: false 
+      });
+      return response.data;
+    } catch (error: unknown) {
+      const errorMessage = axios.isAxiosError(error) && error.response?.data?.message 
+        ? error.response.data.message 
+        : "Failed to update profile";
+      set({ error: errorMessage, loading: false });
+      throw new Error(errorMessage);
     }
   },
 

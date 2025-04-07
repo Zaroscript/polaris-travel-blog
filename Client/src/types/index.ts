@@ -4,10 +4,25 @@ export interface User {
   _id: string;
   fullName: string;
   email: string;
+  password?: string;
+  role?: string;
   profilePic?: string;
+  coverImage?: string;
+  location?: string;
+  about?: string;
+  status?: string;
+  birthDate?: Date | string;
+  joinedDate?: Date | string;
+  isVerified?: boolean;
+  connections?: string[];
+  savedPosts?: string[];
+  following?: string[];
+  followers?: string[];
+  resetPasswordToken?: string | null;
+  resetPasswordExpires?: Date | string | null;
   createdAt?: string;
   updatedAt?: string;
-  token?: string;
+  token?: string; // For authentication in frontend
 }
 
 export interface Message {
@@ -59,6 +74,7 @@ export interface AuthState {
   login: (data: LoginData) => Promise<User>;
   logout: () => Promise<void>;
   updateProfile: (data: UpdateProfileData) => Promise<User>;
+  changePassword: (data: ChangePasswordData) => Promise<{ message: string }>; 
   connectSocket: () => void;
   disconnectSocket: () => void;
   clearError: () => void;
@@ -108,9 +124,19 @@ export interface LoginData {
   email: string;
   password: string;
 }
-
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
 export interface UpdateProfileData {
-  profilePic: string;
+  fullName?: string;
+  email?: string;
+  profilePic?: string;
+  coverImage?: string;
+  location?: string;
+  about?: string;
+  status?: string;
+  birthDate?: string;
 }
 
 export interface SendMessageData {
