@@ -3,7 +3,13 @@ import React from "react";
 import { AvatarImage } from "../ui/avatar";
 import { AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import { User, Settings, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -12,16 +18,16 @@ export default function ProfileCard({ authUser, handleLogout }) {
     <>
       {/* Profile Menu */}
 
-      
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="relative h-10 px-2 rounded-full hover:bg-muted/50 transition-colors"
+            className="relative h-10 rounded-full hover:bg-muted/50 transition-colors"
           >
             <div className="flex items-center space-x-2">
-              <Avatar className="h-8 w-8 ring-2 ring-border/20">
+              <Avatar className="h-8 w-8 ">
                 <AvatarImage
+                  className="rounded-full object-cover"
                   src={authUser.profilePic}
                   alt={authUser.fullName}
                 />
@@ -32,8 +38,12 @@ export default function ProfileCard({ authUser, handleLogout }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <div className="flex items-center space-x-2 p-2 border-b">
-            <Avatar className="h-10 w-10 ring-2 ring-border/20">
-              <AvatarImage src={authUser.profilePic} alt={authUser.fullName} />
+            <Avatar className="h-10 w-10 ">
+              <AvatarImage
+                className="rounded-full object-cover"
+                src={authUser.profilePic}
+                alt={authUser.fullName}
+              />
               <AvatarFallback>{authUser.fullName?.[0]}</AvatarFallback>
             </Avatar>
             <div>
@@ -41,7 +51,10 @@ export default function ProfileCard({ authUser, handleLogout }) {
             </div>
           </div>
           <DropdownMenuItem asChild className="cursor-pointer">
-            <Link to={`/user/profile/${authUser._id}`} className="flex items-center">
+            <Link
+              to={`/user/profile/${authUser._id}`}
+              className="flex items-center"
+            >
               <User className="mr-2 h-4 w-4" />
               Profile
             </Link>
