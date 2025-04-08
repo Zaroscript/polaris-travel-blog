@@ -13,10 +13,6 @@ export const axiosInstance = axios.create({
 // Add request interceptor for logging
 axiosInstance.interceptors.request.use(
   (config) => {
-    console.log(
-      `Making ${config.method?.toUpperCase()} request to:`,
-      `${config.baseURL}${config.url}`
-    );
     return config;
   },
   (error) => {

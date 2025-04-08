@@ -50,6 +50,7 @@ export interface AuthState {
   login: (data: LoginData) => Promise<Profile>;
   logout: () => Promise<void>;
   updateProfile: (data: UpdateProfileData) => Promise<Profile>;
+  changePassword: (data: ChangePasswordData) => Promise<{ message: string }>; 
   connectSocket: () => void;
   disconnectSocket: () => void;
   clearError: () => void;
@@ -99,9 +100,19 @@ export interface LoginData {
   email: string;
   password: string;
 }
-
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
 export interface UpdateProfileData {
-  profilePic: string;
+  fullName?: string;
+  email?: string;
+  profilePic?: string;
+  coverImage?: string;
+  location?: string;
+  about?: string;
+  status?: string;
+  birthDate?: string;
 }
 
 export interface SendMessageData {

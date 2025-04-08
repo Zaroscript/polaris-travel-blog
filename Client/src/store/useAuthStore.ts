@@ -8,8 +8,10 @@ import {
   SignupData,
   UpdateProfileData,
   ApiResponse,
+  ChangePasswordData,
 } from "../types";
 import { Profile } from "@/types/social";
+import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -65,6 +67,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       localStorage.setItem("token", res.data.token);
       set({ authUser: res.data, error: null });
+      
       toast.success("Account created successfully");
       get().connectSocket();
       return res.data;
@@ -181,7 +184,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       toast.success("Profile updated successfully");
       return res.data;
     } catch (error: unknown) {
-      console.log("error in update profile:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -190,6 +192,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ error: errorMessage });
       toast.error(errorMessage);
       throw error;
+    } finally {
+      set({ isUpdatingProfile: false });
+    }
+  },
+  
+  changePassword: async (data: ChangePasswordData) => {
+    set({ isUpdatingProfile: true, error: null });
+    try {
+      const res = await axiosInstance.put("/auth/change-password", data);
+      toast.success("Password updated successfully");
+      return res.data;
+    } catch (error: unknown) {
+      const errorMessage = axios.isAxiosError(error) && error.response?.data?.message
+        ? error.response.data.message
+        : "Password change failed";
+      set({ error: errorMessage });
+      toast.error(errorMessage);
+      throw error; 
     } finally {
       set({ isUpdatingProfile: false });
     }
@@ -209,10 +229,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       auth: { token },
       withCredentials: true,
       transports: ["websocket", "polling"],
-    });
-
-    socket.on("connect", () => {
-      console.log("Socket connected successfully");
     });
 
     socket.on("connect_error", (error) => {
