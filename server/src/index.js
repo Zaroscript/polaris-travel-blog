@@ -13,9 +13,14 @@ import messageRoutes from "./routes/message.route.js";
 import notificationRoutes from "./routes/notification.route.js";
 import accountRoutes from "./routes/account.route.js";
 
+import serverless from "serverless-http";
+
 import { app, server } from "./lib/socket.js";
 
 dotenv.config();
+
+// Export as a serverless handler
+export const handler = serverless(app);
 
 const PORT = process.env.PORT || 5000;
 // import "./seeds/destinations.seed.js";
@@ -58,7 +63,7 @@ connectDB()
   .then(() => {
     // Start server only after successful database connection
     server.listen(PORT, () => {
-      console.log(`Server is running on PORT: ${PORT}`);
+      console.log(`Server is running on PORT:`);
     });
   })
   .catch((error) => {
