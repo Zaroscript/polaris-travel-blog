@@ -6,18 +6,34 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    subtitle: {
+      type: String,
+      required: false,
+    },
     content: {
       type: String,
       required: true,
     },
-    image: {
+    coverImage: {
       type: String,
     },
     author: {
       type: mongoose.Schema.Types.ObjectId,
+
       ref: "User",
+      fullName: {
+        type: String,
+      },
+      profilePic: {
+        type: String,
+      },
       required: true,
     },
+    gallery: [
+      {
+        type: String,
+      },
+    ],
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -33,8 +49,20 @@ const postSchema = new mongoose.Schema(
         author: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
+          fullName: {
+            type: String,
+          },
+          profilePic: {
+            type: String,
+          },
           required: true,
         },
+        likes: [
+          {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+          },
+        ],
         createdAt: {
           type: Date,
           default: Date.now,
@@ -49,6 +77,12 @@ const postSchema = new mongoose.Schema(
               type: mongoose.Schema.Types.ObjectId,
               ref: "User",
               required: true,
+              fullName: {
+                type: String,
+              },
+              profilePic: {
+                type: String,
+              },
             },
             createdAt: {
               type: Date,
@@ -79,6 +113,12 @@ const postSchema = new mongoose.Schema(
           user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
+            fullName: {
+              type: String,
+            },
+            profilePic: {
+              type: String,
+            },
           },
         },
       ],

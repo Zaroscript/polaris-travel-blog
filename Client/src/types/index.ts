@@ -1,29 +1,5 @@
 import { Socket } from "socket.io-client";
-
-export interface User {
-  _id: string;
-  fullName: string;
-  email: string;
-  password?: string;
-  role?: string;
-  profilePic?: string;
-  coverImage?: string;
-  location?: string;
-  about?: string;
-  status?: string;
-  birthDate?: Date | string;
-  joinedDate?: Date | string;
-  isVerified?: boolean;
-  connections?: string[];
-  savedPosts?: string[];
-  following?: string[];
-  followers?: string[];
-  resetPasswordToken?: string | null;
-  resetPasswordExpires?: Date | string | null;
-  createdAt?: string;
-  updatedAt?: string;
-  token?: string; // For authentication in frontend
-}
+import { Profile } from "./social";
 
 export interface Message {
   _id: string;
@@ -50,8 +26,8 @@ export interface Notification {
 // Populated Notification with full objects
 export interface PopulatedNotification {
   _id: string;
-  recipient: User;
-  sender: User;
+  recipient: Profile;
+  sender: Profile;
   message: Message;
   type: string;
   read: boolean;
@@ -61,7 +37,7 @@ export interface PopulatedNotification {
 
 // Auth state interface
 export interface AuthState {
-  authUser: User | null;
+  authUser: Profile | null;
   isSigningUp: boolean;
   isLoggingIn: boolean;
   isUpdatingProfile: boolean;
@@ -69,11 +45,11 @@ export interface AuthState {
   error: string | null;
   onlineUsers: string[];
   socket: Socket | null;
-  checkAuth: () => Promise<User | null>;
-  signup: (data: SignupData) => Promise<User>;
-  login: (data: LoginData) => Promise<User>;
+  checkAuth: () => Promise<Profile | null>;
+  signup: (data: SignupData) => Promise<Profile>;
+  login: (data: LoginData) => Promise<Profile>;
   logout: () => Promise<void>;
-  updateProfile: (data: UpdateProfileData) => Promise<User>;
+  updateProfile: (data: UpdateProfileData) => Promise<Profile>;
   changePassword: (data: ChangePasswordData) => Promise<{ message: string }>; 
   connectSocket: () => void;
   disconnectSocket: () => void;
@@ -83,19 +59,19 @@ export interface AuthState {
 // Chat state interface
 export interface ChatState {
   messages: Message[];
-  users: User[];
-  selectedUser: User | null;
+  users: Profile[];
+  selectedUser: Profile | null;
   isUsersLoading: boolean;
   isMessagesLoading: boolean;
   isSendingMessage: boolean;
   error: string | null;
   unreadMessages: number;
-  getUsers: () => Promise<User[]>;
+  getUsers: () => Promise<Profile[]>;
   getMessages: (userId: string) => Promise<Message[]>;
   sendMessage: (messageData: SendMessageData) => Promise<Message>;
   subscribeToMessages: () => void;
   unsubscribeFromMessages: () => void;
-  setSelectedUser: (selectedUser: User) => void;
+  setSelectedUser: (selectedUser: Profile) => void;
   clearError: () => void;
   getUnreadMessages: () => Promise<number>;
 }

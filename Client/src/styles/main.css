@@ -55,6 +55,36 @@ h3 {
   font-size: 2rem;
 }
 
+input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+input:active {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+textarea:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
 /* Button styling */
 .btn-polaris-primary {
   background-color: var(--polaris-primary) !important;
@@ -156,8 +186,8 @@ h3 {
 
 /* Footer styling */
 .footer-polaris {
-  background-color: var(--polaris-dark) !important;
-  color: white !important;
+  /* background-color: var(--polaris-dark) !important; */
+  /* color: white !important; */
   padding: 4rem 0 2rem !important;
 }
 

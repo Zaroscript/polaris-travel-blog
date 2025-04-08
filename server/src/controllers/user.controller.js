@@ -4,23 +4,52 @@ import { catchAsync } from "../lib/utils.js";
 
 // get all users
 export const getAllUsers = catchAsync(async (req, res) => {
-  const users = await User.find().select("-password -role");
-  res.json(users);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.search || "";
+  const skip = (page - 1) * limit;
+
+  const query = search
+    ? {
+        $or: [
+          { fullName: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const users = await User.find(query)
+    .select("-password -role")
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+
+  const total = await User.countDocuments(query);
+
+  res.json({
+    users,
+    pagination: {
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      limit,
+    },
+  });
 });
 
 export const getUserById = catchAsync(async (req, res) => {
   const userId = req.params.id || req.user.id;
   const user = await User.findById(userId)
     .select("-password -role")
-    .populate("connections", "name profileImage")
-    .populate("following", "name profileImage")
-    .populate("followers", "name profileImage");
+    .populate("following", "fullName profilePic")
+    .populate("followers", "fullName profilePic")
+    .populate("savedPosts", "title coverImage");
 
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
 
-  res.json(user);
+  res.json({ user });
 });
 
 export const updateProfile = catchAsync(async (req, res) => {
@@ -34,7 +63,7 @@ export const updateProfile = catchAsync(async (req, res) => {
     fullName: req.body.fullName,
     email: req.body.email,
     location: req.body.location,
-    about: req.body.about, 
+    about: req.body.about,
     status: req.body.status,
     birthDate: req.body.birthDate,
     profilePic: req.body.profilePic,
@@ -50,8 +79,8 @@ export const updateProfile = catchAsync(async (req, res) => {
   }
 
   // Only update fields that are provided and not empty
-  Object.keys(updates).forEach(key => {
-    if (updates[key] === undefined || updates[key] === '') {
+  Object.keys(updates).forEach((key) => {
+    if (updates[key] === undefined || updates[key] === "") {
       delete updates[key];
     }
   });
@@ -65,31 +94,29 @@ export const updateProfile = catchAsync(async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.user.id,
       { $set: updates },
-      { 
-        new: true, 
+      {
+        new: true,
         runValidators: true,
-        context: 'query'
+        context: "query",
       }
     ).select("-password -role");
 
     res.json({
       message: "Profile updated successfully",
-      user
+      user,
     });
-
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
         message: "Invalid input data",
-        errors: Object.values(error.errors).map(err => err.message)
+        errors: Object.values(error.errors).map((err) => err.message),
       });
     }
     throw error;
   }
 });
 
-
-export const toggleFollow = catchAsync(async (req, res) => {
+export const followUser = catchAsync(async (req, res) => {
   // Prevent following yourself
   if (req.params.id === req.user.id) {
     return res.status(400).json({ message: "You cannot follow yourself" });
@@ -101,44 +128,95 @@ export const toggleFollow = catchAsync(async (req, res) => {
     return res.status(404).json({ message: "User not found" });
   }
 
+  // Check if already following
   const isFollowing = userToFollow.followers.includes(req.user.id);
-  const operation = isFollowing ? "$pull" : "$addToSet";
+  if (isFollowing) {
+    return res
+      .status(400)
+      .json({ message: "You are already following this user" });
+  }
 
   try {
     // Update both users atomically
     const [currentUser, followedUser] = await Promise.all([
       User.findByIdAndUpdate(
         req.user.id,
-        { [operation]: { following: userToFollow._id } },
+        { $addToSet: { following: userToFollow._id } },
         { new: true }
       ).select("following"),
       User.findByIdAndUpdate(
         userToFollow._id,
-        { [operation]: { followers: req.user.id } },
+        { $addToSet: { followers: req.user.id } },
         { new: true }
-      ).select("followers")
+      ).select("followers"),
     ]);
 
     // Return updated follow counts and status
     res.json({
-      following: !isFollowing,
+      following: true,
       followingCount: currentUser.following.length,
       followerCount: followedUser.followers.length,
-      message: isFollowing ? "Unfollowed successfully" : "Followed successfully"
+      message: "Followed successfully",
     });
-
   } catch (error) {
-    return res.status(500).json({ 
-      message: "Error updating follow status",
-      error: error.message
+    return res.status(500).json({
+      message: "Error following user",
+      error: error.message,
+    });
+  }
+});
+
+export const unfollowUser = catchAsync(async (req, res) => {
+  // Prevent unfollowing yourself
+  if (req.params.id === req.user.id) {
+    return res.status(400).json({ message: "You cannot unfollow yourself" });
+  }
+
+  // Find user to unfollow and validate they exist
+  const userToUnfollow = await User.findById(req.params.id);
+  if (!userToUnfollow) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // Check if not following
+  const isFollowing = userToUnfollow.followers.includes(req.user.id);
+  if (!isFollowing) {
+    return res.status(400).json({ message: "You are not following this user" });
+  }
+
+  try {
+    // Update both users atomically
+    const [currentUser, unfollowedUser] = await Promise.all([
+      User.findByIdAndUpdate(
+        req.user.id,
+        { $pull: { following: userToUnfollow._id } },
+        { new: true }
+      ).select("following"),
+      User.findByIdAndUpdate(
+        userToUnfollow._id,
+        { $pull: { followers: req.user.id } },
+        { new: true }
+      ).select("followers"),
+    ]);
+
+    // Return updated follow counts and status
+    res.json({
+      following: false,
+      followingCount: currentUser.following.length,
+      followerCount: unfollowedUser.followers.length,
+      message: "Unfollowed successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error unfollowing user",
+      error: error.message,
     });
   }
 });
 
 export const getUserPosts = catchAsync(async (req, res) => {
   const userId = req.params.id || req.user.id;
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+
   const search = req.query.search || "";
 
   // Validate user exists
@@ -150,18 +228,18 @@ export const getUserPosts = catchAsync(async (req, res) => {
   // Build query
   const query = {
     author: userId,
-    ...(search && { 
+    ...(search && {
       $or: [
         { title: { $regex: search, $options: "i" } },
-        { content: { $regex: search, $options: "i" } }
-      ]
-    })
+        { content: { $regex: search, $options: "i" } },
+      ],
+    }),
   };
+
+  const skip = (page - 1) * limit;
 
   const posts = await Post.find(query)
     .sort({ createdAt: -1 })
-    .skip((page - 1) * limit)
-    .limit(limit)
     .populate("author", "fullName profilePic")
     .populate("likes", "fullName profilePic")
     .populate("comments.author", "fullName profilePic")
@@ -174,15 +252,11 @@ export const getUserPosts = catchAsync(async (req, res) => {
     user: {
       fullName: user.fullName,
       profilePic: user.profilePic,
-      postsCount: total
+      postsCount: total,
     },
     pagination: {
-      page,
-      limit,
       total,
-      pages: Math.ceil(total / limit),
-      hasMore: page < Math.ceil(total / limit)
-    }
+    },
   });
 });
 

@@ -60,7 +60,7 @@ export default function ProfileCard({ authUser, handleLogout }) {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild className="cursor-pointer">
-            <Link to="/settings" className="flex items-center">
+            <Link to='settings' className="flex items-center">
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </Link>

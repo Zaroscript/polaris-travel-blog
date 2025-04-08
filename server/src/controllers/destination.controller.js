@@ -1,22 +1,51 @@
 import Destination from "../models/destination.model.js";
 import { catchAsync } from "../lib/utils.js";
+import { uploadImage, uploadImages } from "../lib/uploadImage.js";
 
 export const createDestination = catchAsync(async (req, res) => {
-  const destination = await Destination.create({
-    ...req.body,
-    createdBy: req.user.id,
+  // Check if destination with same name and location already exists
+  const existingDestination = await Destination.findOne({
+    name: req.body.name,
+    "location.coordinates": req.body.location.coordinates
   });
 
-  await destination.populate("createdBy", "name profileImage");
+  if (existingDestination) {
+    return res.status(400).json({ message: "Destination already exists" });
+  }
+
+  // Handle image uploads
+  const { images, image, ...restBody } = req.body;
+  
+  // Upload main destination image
+  let mainImage = null;
+  if (image) {
+    mainImage = await uploadImage(image, {
+      folder: 'polaris-travel/destinations/main'
+    });
+  }
+
+  // Upload additional destination images
+  let uploadedImages = [];
+  if (images && images.length > 0) {
+    uploadedImages = await uploadImages(images, {
+      folder: 'polaris-travel/destinations/gallery'
+    });
+  }
+
+  const destination = await Destination.create({
+    ...restBody,
+    createdBy: req.user.id,
+    image: mainImage,
+    images: uploadedImages
+  });
+
   await destination.populate("reviews.author", "name profileImage");
 
   res.status(201).json(destination);
 });
 
 export const getDestinations = catchAsync(async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const { search, category, country, priceRange } = req.query;
+  const { search, address, city, country } = req.query;
 
   const query = {};
 
@@ -27,23 +56,20 @@ export const getDestinations = catchAsync(async (req, res) => {
     ];
   }
 
-  if (category) {
-    query.categories = category;
+  if (address) {
+    query["location.address"] = { $regex: address, $options: "i" };
+  }
+
+  if (city) {
+    query["location.city"] = { $regex: city, $options: "i" };
   }
 
   if (country) {
     query["location.country"] = country;
   }
 
-  if (priceRange) {
-    query.priceRange = priceRange;
-  }
-
   const destinations = await Destination.find(query)
     .sort({ createdAt: -1 })
-    .skip((page - 1) * limit)
-    .limit(limit)
-    .populate("createdBy", "name profileImage")
     .populate("reviews.author", "name profileImage");
 
   const total = await Destination.countDocuments(query);
@@ -51,18 +77,16 @@ export const getDestinations = catchAsync(async (req, res) => {
   res.json({
     destinations,
     pagination: {
-      page,
-      limit,
       total,
-      pages: Math.ceil(total / limit),
     },
   });
 });
 
 export const getDestination = catchAsync(async (req, res) => {
-  const destination = await Destination.findById(req.params.id)
-    .populate("createdBy", "name profileImage")
-    .populate("reviews.author", "name profileImage");
+  const destination = await Destination.findById(req.params.id).populate(
+    "reviews.author",
+    "name profileImage"
+  );
 
   if (!destination) {
     return res.status(404).json({ message: "Destination not found" });
@@ -72,13 +96,28 @@ export const getDestination = catchAsync(async (req, res) => {
 });
 
 export const updateDestination = catchAsync(async (req, res) => {
+  const { images, image, ...restBody } = req.body;
+  const updates = { ...restBody };
+
+  // Handle main image update if provided
+  if (image) {
+    updates.image = await uploadImage(image, {
+      folder: 'polaris-travel/destinations/main'
+    });
+  }
+
+  // Handle additional images update if provided
+  if (images) {
+    updates.images = await uploadImages(images, {
+      folder: 'polaris-travel/destinations/gallery'
+    });
+  }
+
   const destination = await Destination.findOneAndUpdate(
-    { _id: req.params.id, createdBy: req.user.id },
-    { $set: req.body },
+    { _id: req.params.id },
+    { $set: updates },
     { new: true, runValidators: true }
-  )
-    .populate("createdBy", "name profileImage")
-    .populate("reviews.author", "name profileImage");
+  ).populate("reviews.author", "name profileImage");
 
   if (!destination) {
     return res
@@ -92,7 +131,6 @@ export const updateDestination = catchAsync(async (req, res) => {
 export const deleteDestination = catchAsync(async (req, res) => {
   const destination = await Destination.findOneAndDelete({
     _id: req.params.id,
-    createdBy: req.user.id,
   });
 
   if (!destination) {
@@ -101,7 +139,7 @@ export const deleteDestination = catchAsync(async (req, res) => {
       .json({ message: "Destination not found or unauthorized" });
   }
 
-  res.status(204).end();
+  res.status(204).json({ message: "Destination deleted successfully" });
 });
 
 export const addReview = catchAsync(async (req, res) => {
@@ -116,9 +154,7 @@ export const addReview = catchAsync(async (req, res) => {
       },
     },
     { new: true }
-  )
-    .populate("createdBy", "name profileImage")
-    .populate("reviews.author", "name profileImage");
+  ).populate("reviews.author", "name profileImage");
 
   if (!destination) {
     return res.status(404).json({ message: "Destination not found" });
@@ -148,7 +184,6 @@ export const deleteReview = catchAsync(async (req, res) => {
     },
     { new: true }
   )
-    .populate("createdBy", "name profileImage")
     .populate("reviews.author", "name profileImage");
 
   if (!destination) {
@@ -171,6 +206,16 @@ export const deleteReview = catchAsync(async (req, res) => {
 export const getNearbyDestinations = catchAsync(async (req, res) => {
   const { longitude, latitude, maxDistance = 10000 } = req.query; // maxDistance in meters
 
+  // Validate required parameters
+  if (!longitude || !latitude) {
+    return res.status(400).json({
+      message: "Both longitude and latitude are required query parameters"
+    });
+  }
+
+  // Example request:
+  // GET /api/destinations/nearby?longitude=-73.935242&latitude=40.730610&maxDistance=5000
+
   const destinations = await Destination.find({
     location: {
       $near: {
@@ -183,8 +228,16 @@ export const getNearbyDestinations = catchAsync(async (req, res) => {
     },
   })
     .limit(10)
-    .populate("createdBy", "name profileImage")
     .populate("reviews.author", "name profileImage");
 
-  res.json(destinations);
+  res.json({
+    message: "Nearby destinations retrieved successfully",
+    count: destinations.length,
+    maxDistance: `${maxDistance} meters`,
+    origin: {
+      longitude: parseFloat(longitude),
+      latitude: parseFloat(latitude)
+    },
+    destinations
+  });
 });

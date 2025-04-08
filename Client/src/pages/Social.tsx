@@ -1,165 +1,197 @@
-import { useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
-import Layout from "../components/layout/Layout";
-import CreatePost from "@/components/social/CreatePost";
+import { useEffect, useState } from "react";
+import { usePostsStore } from "@/store/usePostsStore";
+import { useProfileStore } from "@/store/useProfileStore";
 import PostCard from "@/components/social/PostCard";
+import CreatePost from "@/components/social/CreatePost";
+import { Button } from "@/components/ui/button";
+import { Loader, Plus } from "lucide-react";
+import Layout from "../components/layout/Layout";
 import SocialSidebar from "@/components/social/SocialSidebar";
 import RightSidebar from "@/components/social/RightSidebar";
-import { Post } from "@/types/social";
 import { newsItems } from "@/constants";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useToast } from "@/components/ui/use-toast";
+import { Profile } from "@/types/social";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Social = () => {
+  const [suggestedUsers, setSuggestedUsers] = useState<Profile[]>([]);
   const [activeTab, setActiveTab] = useState("recent");
-  const [savedPosts, setSavedPosts] = useState<{ [key: string]: boolean }>({});
-  const [copiedLinks, setCopiedLinks] = useState<{ [key: string]: boolean }>(
-    {}
-  );
-  const { toast } = useToast();
 
-  // Static mock data
-  const mockUser = {
-    _id: "1",
-    name: "John Doe",
-    profileImage: "/images/avatar.jpg",
+  const handleLike = async (postId: string) => {
+    if (!authUser?._id) {
+      toast({
+        description: "Please login to like posts",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const post = posts.find(p => p._id === postId);
+      if (!post) return;
+
+      const isCurrentlyLiked = post.likes.some(like => like._id === authUser._id);
+      
+      if (isCurrentlyLiked) {
+        await usePostsStore.getState().unlikePost(postId);
+        toast({
+          description: "Post unliked",
+        });
+      } else {
+        await usePostsStore.getState().likePost(postId);
+        toast({
+          description: "Post liked",
+        });
+      }
+
+      // Refresh posts to get updated like status
+      await loadPosts();
+    } catch (error) {
+      console.error("Error handling like:", error);
+      toast({
+        variant: "destructive",
+        description: "Failed to update like status",
+      });
+    }
   };
 
-  const mockPosts = [
-    {
-      id: "1",
-      content: "Just visited Paris!",
-      images: ["/images/paris.jpg"],
-      authorId: "1",
-      createdAt: "2024-02-20T10:00:00Z",
-      likes: ["2", "3"],
-      comments: [
-        {
-          id: "c1",
-          content: "Looks amazing!",
-          authorId: "2",
-          createdAt: "2024-02-20T11:00:00Z",
-          user: {
-            id: "2",
-            name: "Jane Smith",
-            profileImage: "/images/avatar2.jpg",
-          },
-          likes: [],
-          replies: [],
-        },
-      ],
-      destination: {
-        id: "paris1",
-        name: "Paris",
-        image: "/images/paris-icon.jpg",
-      },
-      gallery: [],
-    },
-    {
-      id: "2",
-      content: "Beautiful day in London",
-      images: ["/images/london.jpg"],
-      authorId: "1",
-      createdAt: "2024-02-19T15:30:00Z",
-      likes: ["2"],
-      comments: [],
-      destination: {
-        id: "london1",
-        name: "London",
-        image: "/images/london-icon.jpg",
-      },
-      gallery: [],
-    },
-  ];
+  const handleSave = async (postId: string) => {
+    if (!authUser?._id) {
+      toast({
+        description: "Please login to save posts",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  const mockConnections = [
-    {
-      id: "2",
-      name: "Jane Smith",
-      profileImage: "/images/avatar2.jpg",
-      role: "user",
-    },
-    {
-      id: "3",
-      name: "Bob Wilson",
-      profileImage: "/images/avatar3.jpg",
-      role: "user",
-    },
-  ];
+    try {
+      const { message } = await usePostsStore.getState().toggleSavePost(postId);
+      toast({
+        description: message,
+      });
 
-  const mockFollowing = ["2"];
-
-  const handleSavePost = (postId: string) => {
-    setSavedPosts((prev) => ({
-      ...prev,
-      [postId]: !prev[postId],
-    }));
-    toast({
-      title: savedPosts[postId] ? "Post unsaved" : "Post saved",
-      description: savedPosts[postId]
-        ? "Post has been removed from your saved items"
-        : "Post has been saved to your collection",
-    });
+      // Refresh posts to get updated save status
+      await loadPosts();
+    } catch (error) {
+      console.error("Error handling save:", error);
+      toast({
+        variant: "destructive",
+        description: "Failed to update save status",
+      });
+    }
   };
 
   const handleCopyLink = (postId: string) => {
-    const postUrl = `${window.location.origin}/blog/${postId}`;
-    navigator.clipboard.writeText(postUrl);
-    setCopiedLinks((prev) => ({
-      ...prev,
-      [postId]: true,
-    }));
-    setTimeout(() => {
-      setCopiedLinks((prev) => ({
-        ...prev,
-        [postId]: false,
-      }));
-    }, 2000);
-    toast({
-      title: "Link copied",
-      description: "Post link has been copied to clipboard",
-    });
+    try {
+      const postUrl = `${window.location.origin}/post/${postId}`;
+      navigator.clipboard.writeText(postUrl);
+      toast({
+        description: "Post link copied to clipboard",
+      });
+    } catch (error) {
+      console.error("Error copying link:", error);
+      toast({
+        variant: "destructive",
+        description: "Failed to copy link",
+      });
+    }
   };
 
-  const handleFollowUser = (userId: string) => {
-    toast({
-      title: mockFollowing.includes(userId) ? "Unfollowed" : "Followed",
-      description: mockFollowing.includes(userId)
-        ? "You have unfollowed this user"
-        : "You are now following this user",
-    });
+  const {
+
+    posts,
+    loading: postsLoading,
+    error: postsError,
+    fetchPosts,
+    fetchPopularPosts,
+    fetchFollowingPosts,
+  } = usePostsStore();
+  const {
+    profile,
+    loading: profileLoading,
+    error: profileError,
+    fetchProfile,
+    fetchFollowing,
+    fetchSuggestedUsers,
+  } = useProfileStore();
+  const { authUser } = useAuthStore();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!authUser?._id) return;
+
+      try {
+        const [profileData, followingData] = await Promise.all([
+          fetchProfile(authUser._id),
+          fetchFollowing(authUser._id),
+        ]);
+
+        // Fetch suggested users separately to handle potential errors
+        try {
+          const suggestions = await fetchSuggestedUsers(authUser._id);
+          setSuggestedUsers(suggestions);
+        } catch (error) {
+          console.error("Failed to fetch suggested users:", error);
+        }
+
+        // Load initial posts based on active tab
+        await loadPosts();
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load data",
+          variant: "destructive",
+        });
+      }
+    };
+
+    loadData();
+  }, [authUser?._id, fetchProfile, fetchFollowing, fetchSuggestedUsers, toast]);
+
+  const loadPosts = async () => {
+    try {
+      switch (activeTab) {
+        case "recent":
+          await fetchPosts();
+          break;
+        case "popular":
+          await fetchPopularPosts();
+          break;
+        case "following":
+          await fetchFollowingPosts();
+          break;
+        default:
+          await fetchPosts();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load posts",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleLikePost = (postId: string) => {
-    // Static like handling
-    toast({
-      title: "Post liked",
-      description: "You liked this post",
-    });
-  };
+  useEffect(() => {
+    loadPosts();
+  }, [activeTab]);
 
-  const handleCreatePost = (newPost: Post) => {
-    toast({
-      title: "Post created",
-      description: "Your post has been created successfully",
-    });
-  };
+  const loading = postsLoading || profileLoading;
+  const error = postsError || profileError;
 
-  const renderPostCards = (posts: Post[]) =>
-    posts.map((post) => (
-      <PostCard
-        key={post.id}
-        post={post}
-        onLike={handleLikePost}
-        onSave={handleSavePost}
-        onCopyLink={handleCopyLink}
-        onFollow={handleFollowUser}
-        isLiked={post.likes.includes(mockUser._id)}
-        isSaved={savedPosts[post.id]}
-        isCopied={copiedLinks[post.id]}
-        isFollowing={mockFollowing.includes(post.authorId)}
-      />
-    ));
+  if (loading && !posts.length) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader className="size-10 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="text-red-500 text-center p-4">Error: {error}</div>;
+  }
 
   return (
     <Layout>
@@ -168,71 +200,88 @@ const Social = () => {
         <SocialSidebar />
 
         {/* Main Content */}
-        <ScrollArea className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0">
           <div className="max-w-2xl mx-auto py-6 px-4">
-            {/* Create Post Card */}
-            <CreatePost onPostCreate={handleCreatePost} />
-
-            {/* Posts Feed */}
-            <div className="space-y-6">
-              <Tabs
-                defaultValue="recent"
-                className="w-full"
-                onValueChange={setActiveTab}
-              >
-                <TabsList className="w-full justify-start border-b rounded-none h-12 bg-transparent p-0">
-                  <TabsTrigger
-                    value="recent"
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-4"
-                  >
-                    Recent
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="popular"
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-4"
-                  >
-                    Popular
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="following"
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-4"
-                  >
-                    Following
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="recent" className="mt-6">
-                  {renderPostCards(mockPosts as Post[])}
-                </TabsContent>
-
-                <TabsContent value="popular" className="mt-6">
-                  {renderPostCards(mockPosts as Post[])}
-                </TabsContent>
-
-                <TabsContent value="following" className="mt-6">
-                  {mockPosts.length > 0 ? (
-                    renderPostCards(mockPosts as Post[])
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">
-                        No posts from people you follow yet.
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Start following people to see their posts here.
-                      </p>
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold">Social Feed</h1>
             </div>
+
+            <CreatePost />
+
+            {/* Tabs */}
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="mb-6"
+            >
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="recent">Recent Posts</TabsTrigger>
+                <TabsTrigger value="popular">Popular Posts</TabsTrigger>
+                <TabsTrigger value="following">Following Posts</TabsTrigger>
+              </TabsList>
+              <TabsContent value="recent" className="mt-4">
+                <div className="grid grid-cols-1 gap-6">
+                  {posts.map((post) => (
+                    <PostCard
+                      key={post._id}
+                      post={post}
+                      onLike={handleLike}
+                      onSave={handleSave}
+                      onCopyLink={handleCopyLink}
+                    />
+                  ))}
+                </div>
+              </TabsContent>
+              <TabsContent value="popular" className="mt-4">
+                <div className="grid grid-cols-1 gap-6">
+                  {posts.map((post) => (
+                    <PostCard
+                      key={post._id}
+                      post={post}
+                      onLike={handleLike}
+                      onSave={handleSave}
+                      onCopyLink={handleCopyLink}
+                    />
+                  ))}
+                </div>
+              </TabsContent>
+              <TabsContent value="following" className="mt-4">
+                <div className="grid grid-cols-1 gap-6">
+                  {posts.map((post) => (
+                    <PostCard
+                      key={post._id}
+                      post={post}
+                      onLike={handleLike}
+                      onSave={handleSave}
+                      onCopyLink={handleCopyLink}
+                    />
+                  ))}
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Right Sidebar */}
         <RightSidebar
-          suggestedConnections={mockConnections}
-          following={mockFollowing}
-          onFollow={handleFollowUser}
+          suggestedConnections={suggestedUsers}
+          following={profile?.following?.map((f) => f._id) || []}
+          onFollow={async (userId) => {
+            try {
+              await useProfileStore.getState().followUser(userId);
+              // Update suggested users after following
+              const updatedSuggestions = await fetchSuggestedUsers(
+                authUser?._id
+              );
+              setSuggestedUsers(updatedSuggestions);
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "Failed to follow user",
+                variant: "destructive",
+              });
+            }
+          }}
           newsItems={newsItems}
         />
       </div>
