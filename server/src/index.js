@@ -20,7 +20,7 @@ import { app, server } from "./lib/socket.js";
 dotenv.config();
 
 // Export as a serverless handler
-export const handler = serverless(app);
+// export const handler = serverless(app);
 
 const PORT = process.env.PORT || 5000;
 // import "./seeds/destinations.seed.js";
@@ -40,8 +40,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/destinations", destinationRoutes);
-app.use("/api/messages", messageRoutes);
-app.use("/api/notifications", notificationRoutes);
+// app.use("/api/messages", messageRoutes);
+// app.use("/api/notifications", notificationRoutes);
 app.use("/api/users/:id/account-settings", accountRoutes);
 
 // 404 handler
