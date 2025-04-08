@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import Post from "../models/post.model.js";
 import { catchAsync } from "../lib/utils.js";
+import { uploadImage } from "../lib/uploadImage.js"; // Importing the uploadImage function
 
 // get all users
 export const getAllUsers = catchAsync(async (req, res) => {
@@ -69,6 +70,14 @@ export const updateProfile = catchAsync(async (req, res) => {
     profilePic: req.body.profilePic,
     coverImage: req.body.coverImage,
   };
+
+  // Handle image uploads
+  if (req.body.profilePic) {
+    updates.profilePic = await uploadImage(req.body.profilePic, { folder: 'polaris-travel/users/profile' });
+  }
+  if (req.body.coverImage) {
+    updates.coverImage = await uploadImage(req.body.coverImage, { folder: 'polaris-travel/users/cover' });
+  }
 
   // Validate email if being updated
   if (updates.email && updates.email !== existingUser.email) {

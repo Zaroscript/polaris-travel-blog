@@ -34,6 +34,7 @@ import { usePostsStore } from "@/store/usePostsStore";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfileStore } from "@/store/useProfileStore";
+import { error } from "console";
 
 interface PostCardProps {
   key?: string;
@@ -104,21 +105,12 @@ const PostCard = ({ post, onLike, onSave, onCopyLink }: PostCardProps) => {
       } else {
         await unlikePost(post._id);
       }
-
-      // Call parent callback if provided
-      if (onLike) {
-        await onLike(post._id);
-      }
     } catch (error) {
-      // Revert UI changes on error
-      setIsLiked(currentLikeState);
-      post.likes = currentLikes;
-
       toast({
         title: "Action failed",
         description: `Failed to ${
           currentLikeState ? "unlike" : "like"
-        } the post. Please try again.`,
+        } the post. Error is ${error}, Please try again.`,
         variant: "destructive",
       });
     }

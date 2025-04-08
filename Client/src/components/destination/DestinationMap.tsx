@@ -7,13 +7,12 @@ import {
   ZoomableGroup,
 } from "react-simple-maps";
 import { Destination } from "@/types";
-import { destinations } from "../../data/destinations";
 import { useThemeStore } from "@/store/useThemeStore";
 
 // World map GeoJSON
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
-const DestinationMap = () => {
+const DestinationMap = ({ destinations }) => {
   const [selectedDestination, setSelectedDestination] =
     useState<Destination | null>(null);
   const [showPopup, setShowPopup] = useState(false);
@@ -50,7 +49,10 @@ const DestinationMap = () => {
                     stroke={isDarkMode ? "#404040" : "#D6D6DA"}
                     style={{
                       default: { outline: "none" },
-                      hover: { outline: "none", fill: isDarkMode ? "#333333" : "#F5F5F5" },
+                      hover: {
+                        outline: "none",
+                        fill: isDarkMode ? "#333333" : "#F5F5F5",
+                      },
                       pressed: { outline: "none" },
                     }}
                   />
@@ -60,8 +62,8 @@ const DestinationMap = () => {
 
             {destinations.map((dest) => (
               <Marker
-                key={dest.id}
-                coordinates={dest.coordinates}
+                key={dest._id}
+                coordinates={dest.location.coordinates}
                 onClick={() => handleDestinationClick(dest)}
               >
                 <g
@@ -71,7 +73,7 @@ const DestinationMap = () => {
                   <circle
                     r={3}
                     fill={
-                      selectedDestination?.id === dest.id
+                      selectedDestination?._id === dest._id
                         ? "#FF4F4F"
                         : "#3B82F6"
                     }
@@ -100,13 +102,13 @@ const DestinationMap = () => {
           <div className="text-xs font-semibold mb-1">Destinations:</div>
           {destinations.map((dest) => (
             <div
-              key={dest.id}
+              key={dest._id}
               className="flex items-center mb-1 text-xs cursor-pointer hover:text-blue-400"
               onClick={() => handleDestinationClick(dest)}
             >
               <span
                 className={`w-2 h-2 rounded-full ${
-                  selectedDestination?.id === dest.id
+                  selectedDestination?._id === dest._id
                     ? "bg-red-500"
                     : "bg-blue-500"
                 } mr-1`}
@@ -144,8 +146,8 @@ const DestinationMap = () => {
             {/* Destination image */}
             <div className="h-40 bg-muted rounded-t-lg overflow-hidden">
               <img
-                src={selectedDestination.image}
-                alt={selectedDestination.name}
+                src={selectedDestination.coverImage.url}
+                alt={selectedDestination.coverImage.caption}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -171,7 +173,7 @@ const DestinationMap = () => {
               </div>
 
               <p className="text-muted-foreground text-sm mb-1">
-                {selectedDestination.location}
+                {selectedDestination.location.address}
               </p>
               <p className="text-card-foreground my-4">
                 {selectedDestination.description}

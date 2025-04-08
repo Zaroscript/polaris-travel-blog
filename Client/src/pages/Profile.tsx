@@ -85,7 +85,7 @@ const Profile = () => {
             followersCount={profile?.followers?.length || 0}
             followingCount={profile?.following?.length || 0}
             postsCount={profile?.postsCount || 0}
-            onEditProfile={() => navigate('/settings')}
+            onEditProfile={() => navigate('/user/settings')}
             onBlockUser={() => {
               toast({
                 title: "User Blocked",
@@ -333,7 +333,7 @@ const Profile = () => {
                     <Card className="p-6">
                       <h2 className="text-xl font-semibold mb-4">Travel Map</h2>
                       <div className="h-[400px] rounded-lg overflow-hidden">
-                        <DestinationMap />
+                        {/* <DestinationMap  /> */}
                       </div>
                     </Card>
                   </TabsContent>

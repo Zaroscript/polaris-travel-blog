@@ -3,32 +3,43 @@ import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Globe, Plane, Mountain, ArrowLeft } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import { destinations } from "@/data/destinations";
 import DestinationCard from "@/components/destination/DestinationCard";
 import DestinationMap from "@/components/destination/DestinationMap";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Destination } from "@/types";
 
 const Destinations = () => {
   const [searchParams] = useSearchParams();
   const destinationId = searchParams.get("id");
-  const [selectedDestination, setSelectedDestination] = useState(
-    destinationId
-      ? destinations.find((d) => d.id === Number(destinationId))
-      : null
-  );
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [selectedDestination, setSelectedDestination] =
+    useState<Destination | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (destinationId) {
-      const destination = destinations.find(
-        (d) => d.id === Number(destinationId)
-      );
-      setSelectedDestination(destination || null);
-    } else {
-      setSelectedDestination(null);
-    }
+    const fetchDestinations = async () => {
+      try {
+        const response = await fetch("http://localhost:5001/api/destinations");
+        const data = await response.json();
+        setDestinations(data.destinations);
+
+        if (destinationId) {
+          const destination = data.destinations.find(
+            (d: Destination) => d._id === destinationId
+          );
+          setSelectedDestination(destination || null);
+        }
+      } catch (error) {
+        console.error("Error fetching destinations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDestinations();
   }, [destinationId]);
 
   const handleBack = () => {
@@ -54,7 +65,11 @@ const Destinations = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        {selectedDestination ? (
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : selectedDestination ? (
           <div className="max-w-7xl mx-auto">
             <Button
               variant="ghost"
@@ -74,21 +89,28 @@ const Destinations = () => {
                 >
                   <div className="rounded-lg overflow-hidden mb-6 h-[400px]">
                     <img
-                      src={selectedDestination.image}
+                      src={selectedDestination.coverImage.url}
                       alt={selectedDestination.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
 
-                  <h1 className="text-4xl font-bold mb-2">{selectedDestination.name}</h1>
+                  <h1 className="text-4xl font-bold mb-2">
+                    {selectedDestination.name}
+                  </h1>
                   <div className="flex items-center text-muted-foreground mb-4">
                     <MapPin className="h-4 w-4 mr-2" />
-                    <span>{selectedDestination.location}</span>
+                    <span>
+                      {selectedDestination.location.city},{" "}
+                      {selectedDestination.location.country}
+                    </span>
                   </div>
 
                   <div className="flex flex-wrap gap-2 mb-6">
                     {selectedDestination.tags.map((tag, index) => (
-                      <Badge key={index} variant="secondary">{tag}</Badge>
+                      <Badge key={index} variant="secondary">
+                        {tag}
+                      </Badge>
                     ))}
                   </div>
 
@@ -98,17 +120,13 @@ const Destinations = () => {
                     transition={{ duration: 0.6, delay: 0.2 }}
                     className="prose prose-lg max-w-none"
                   >
-                    <p className="text-lg mb-6">{selectedDestination.description}</p>
-
-                    <p className="mb-6">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam in dui mauris. 
-                      Vivamus hendrerit arcu sed erat molestie vehicula. Sed auctor neque eu tellus 
-                      rhoncus ut eleifend nibh porttitor.
+                    <p className="text-lg mb-6">
+                      {selectedDestination.description}
                     </p>
 
                     <h2 className="text-2xl font-bold mb-4">Things to Do</h2>
                     <ul className="space-y-4 list-none pl-0">
-                      {["Visit the famous landmarks", "Try local cuisine", "Explore nature trails", "Experience local culture"].map((item, i) => (
+                      {selectedDestination.thingsToDo.map((item, i) => (
                         <li key={i} className="flex items-center gap-3">
                           <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground">
                             {i + 1}
@@ -138,7 +156,10 @@ const Destinations = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold">Best Time to Visit</h3>
-                          <p className="text-sm text-muted-foreground">April to October</p>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedDestination.bestTimeToVisit.from} to{" "}
+                            {selectedDestination.bestTimeToVisit.to}
+                          </p>
                         </div>
                       </div>
 
@@ -147,8 +168,11 @@ const Destinations = () => {
                           <Plane className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold">Getting There</h3>
-                          <p className="text-sm text-muted-foreground">International airport with connections</p>
+                          <h3 className="font-semibold">Location</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedDestination.location.address},{" "}
+                            {selectedDestination.location.city}
+                          </p>
                         </div>
                       </div>
 
@@ -157,8 +181,10 @@ const Destinations = () => {
                           <Mountain className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold">Attractions</h3>
-                          <p className="text-sm text-muted-foreground">Mountains, beaches, historical sites</p>
+                          <h3 className="font-semibold">Rating</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedDestination.rating} / 5
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -175,14 +201,16 @@ const Destinations = () => {
               transition={{ duration: 0.5 }}
               className="text-center mb-12"
             >
-              <h1 className="text-4xl font-bold mb-4">Discover Amazing Destinations</h1>
+              <h1 className="text-4xl font-bold mb-4">
+                Discover Amazing Destinations
+              </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Explore our curated list of breathtaking destinations around the world, 
-                from bustling cities to serene landscapes.
+                Explore our curated list of breathtaking destinations around the
+                world, from bustling cities to serene landscapes.
               </p>
             </motion.div>
 
-            <DestinationMap />
+            <DestinationMap destinations={destinations} />
 
             <section className="my-12">
               <h2 className="text-2xl font-bold mb-6">Featured Destinations</h2>
@@ -193,7 +221,7 @@ const Destinations = () => {
                 className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
               >
                 {destinations.slice(0, 3).map((destination) => (
-                  <motion.div key={destination.id} variants={item}>
+                  <motion.div key={destination._id} variants={item}>
                     <DestinationCard destination={destination} />
                   </motion.div>
                 ))}
@@ -211,7 +239,7 @@ const Destinations = () => {
                 className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
               >
                 {destinations.map((destination) => (
-                  <motion.div key={destination.id} variants={item}>
+                  <motion.div key={destination._id} variants={item}>
                     <DestinationCard destination={destination} />
                   </motion.div>
                 ))}
