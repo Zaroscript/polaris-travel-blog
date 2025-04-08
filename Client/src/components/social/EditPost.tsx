@@ -18,7 +18,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -30,20 +29,16 @@ import {
 import { usePostsStore } from "@/store/usePostsStore";
 import { useToast } from "@/components/ui/use-toast";
 import {
-  Plus,
   Image as ImageIcon,
   X,
   Tag,
   MapPin,
-  Calendar,
   Info,
   Globe,
   Camera,
 } from "lucide-react";
 import { useDestinationsStore } from "@/store/useDestinationsStore";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useAuthStore } from "@/store/useAuthStore";
 import { Badge } from "@/components/ui/badge";
 import {
   Command,
@@ -61,6 +56,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Post } from "@/types/social";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -73,18 +69,23 @@ const formSchema = z.object({
   destinationId: z.string().optional(),
 });
 
-const CreatePost = () => {
-  const [open, setOpen] = useState(false);
-  const [previewImages, setPreviewImages] = useState<string[]>([]);
-  const [coverImage, setCoverImage] = useState<string>("");
-  const [galleryImages, setGalleryImages] = useState<string[]>([]);
-  const [travelTips, setTravelTips] = useState<string[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
+interface EditPostProps {
+  post: Post;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+const EditPost = ({ post, open, onOpenChange }: EditPostProps) => {
   const [activeTab, setActiveTab] = useState("content");
-  const { createPost } = usePostsStore();
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [coverImage, setCoverImage] = useState<string>(post.coverImage || "");
+  const [galleryImages, setGalleryImages] = useState<string[]>(post.gallery || []);
+  const [travelTips, setTravelTips] = useState<string[]>(post.travelTips || []);
+  const [tags, setTags] = useState<string[]>(post.tags || []);
+
+  const { updatePost } = usePostsStore();
   const { destinations, fetchDestinations } = useDestinationsStore();
   const { toast } = useToast();
-  const { authUser } = useAuthStore();
 
   useEffect(() => {
     fetchDestinations();
@@ -93,108 +94,61 @@ const CreatePost = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      subtitle: "",
-      content: "",
-      coverImage: "",
-      gallery: [],
-      travelTips: [],
-      tags: [],
-      destinationId: "",
+      title: post.title,
+      subtitle: post.subtitle || "",
+      content: post.content,
+      coverImage: post.coverImage || "",
+      gallery: post.gallery || [],
+      travelTips: post.travelTips || [],
+      tags: post.tags || [],
+      destinationId: post.destinationId || "",
     },
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const urls = files.map((file) => URL.createObjectURL(file));
-    setPreviewImages(urls);
-    form.setValue("gallery", urls);
-  };
-
-  const removeImage = (index: number) => {
-    const newImages = [...previewImages];
-    newImages.splice(index, 1);
-    setPreviewImages(newImages);
-    form.setValue("gallery", newImages);
-  };
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await createPost({
+      await updatePost(post._id, {
         ...values,
         tags: values.tags ? values.tags.map((tag) => tag.trim()) : [],
       });
       toast({
         title: "Success",
-        description: "Post created successfully",
+        description: "Post updated successfully",
       });
-      setOpen(false);
-      setPreviewImages([]);
-      form.reset();
+      onOpenChange(false);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create post",
+        description: "Failed to update post",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <div className="w-full mb-4 p-4 bg-card rounded-lg shadow-sm cursor-pointer hover:bg-accent transition-colors">
-          <div className="flex items-center gap-3">
-            <Avatar className="size-10">
-              <AvatarImage src={authUser?.profilePic} />
-              <AvatarFallback>{authUser?.fullName?.[0]}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <p className="text-muted-foreground">
-                Share your travel experience,{" "}
-                {authUser?.fullName?.split(" ")[0]}!
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center justify-between mt-3 pt-3 border-t">
-            <Button variant="ghost" className="flex-1 gap-2">
-              <ImageIcon className="size-5 text-green-600" />
-              <span>Photos</span>
-            </Button>
-            <Button variant="ghost" className="flex-1 gap-2">
-              <MapPin className="size-5 text-blue-600" />
-              <span>Location</span>
-            </Button>
-            <Button variant="ghost" className="flex-1 gap-2">
-              <Tag className="size-5 text-purple-600" />
-              <span>Tags</span>
-            </Button>
-            <Button variant="ghost" className="flex-1 gap-2">
-              <Info className="size-5 text-yellow-600" />
-              <span>Tips</span>
-            </Button>
-          </div>
-        </div>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="text-center">Create Travel Post</DialogTitle>
-        </DialogHeader>
-        <div className="flex items-center gap-3 mb-4">
-          <Avatar className="size-10">
-            <AvatarImage src={authUser?.profilePic} />
-            <AvatarFallback>{authUser?.fullName?.[0]}</AvatarFallback>
-          </Avatar>
+        <DialogHeader className="space-y-4 pb-6">
           <div>
-            <p className="font-medium">{authUser?.fullName}</p>
+            <DialogTitle className="text-2xl font-semibold mb-1">Edit Post</DialogTitle>
+            <p className="text-sm text-muted-foreground">Update your travel story</p>
           </div>
-        </div>
+        </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="content">Content</TabsTrigger>
-            <TabsTrigger value="media">Media</TabsTrigger>
-            <TabsTrigger value="tips">Tips & Tags</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 p-1 gap-1">
+            <TabsTrigger value="content" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Globe className="size-4 mr-2" />
+              Content
+            </TabsTrigger>
+            <TabsTrigger value="media" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Camera className="size-4 mr-2" />
+              Media
+            </TabsTrigger>
+            <TabsTrigger value="tips" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Tag className="size-4 mr-2" />
+              Tips & Tags
+            </TabsTrigger>
           </TabsList>
 
           <Form {...form}>
@@ -272,11 +226,11 @@ const CreatePost = () => {
                     name="content"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Story</FormLabel>
+                        <FormLabel>Content</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Share your travel experience, highlights, and memorable moments..."
-                            className="min-h-[200px] resize-none"
+                            placeholder="Share your travel experience..."
+                            className="min-h-[200px]"
                             {...field}
                           />
                         </FormControl>
@@ -287,28 +241,28 @@ const CreatePost = () => {
                 </TabsContent>
 
                 <TabsContent value="media" className="space-y-4">
-                  <Card>
-                    <CardContent className="p-4 space-y-4">
+                  <Card className="border-dashed hover:border-primary/50 transition-colors">
+                    <CardContent className="p-6 space-y-6">
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">
-                            Cover Image
-                          </span>
+                          <div>
+                            <h4 className="text-base font-semibold mb-0.5">Cover Image</h4>
+                            <p className="text-sm text-muted-foreground">Set a cover image for your post</p>
+                          </div>
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
+                            className="gap-2 hover:bg-primary hover:text-primary-foreground"
                             onClick={() =>
-                              document
-                                .getElementById("cover-image-upload")
-                                ?.click()
+                              document.getElementById("cover-upload")?.click()
                             }
                           >
-                            <Camera className="h-4 w-4 mr-2" />
-                            Add Cover
+                            <ImageIcon className="h-4 w-4" />
+                            Choose Image
                           </Button>
                           <input
-                            id="cover-image-upload"
+                            id="cover-upload"
                             type="file"
                             accept="image/*"
                             className="hidden"
@@ -375,10 +329,7 @@ const CreatePost = () => {
                                 URL.createObjectURL(file)
                               );
                               setGalleryImages([...galleryImages, ...urls]);
-                              form.setValue("gallery", [
-                                ...galleryImages,
-                                ...urls,
-                              ]);
+                              form.setValue("gallery", [...galleryImages, ...urls]);
                             }}
                           />
                         </div>
@@ -436,7 +387,7 @@ const CreatePost = () => {
                               form.setValue("travelTips", [...travelTips, ""]);
                             }}
                           >
-                            <Plus className="h-4 w-4 mr-2" />
+                            <Info className="h-4 w-4 mr-2" />
                             Add Tip
                           </Button>
                         </div>
@@ -546,28 +497,20 @@ const CreatePost = () => {
                         </div>
                         {tags.length > 0 && (
                           <div className="flex flex-wrap gap-2">
-                            {tags.map((tag) => (
+                            {tags.map((tag, index) => (
                               <Badge
-                                key={tag}
+                                key={index}
                                 variant="secondary"
-                                className="flex items-center gap-1"
+                                className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
+                                onClick={() => {
+                                  const newTags = [...tags];
+                                  newTags.splice(index, 1);
+                                  setTags(newTags);
+                                  form.setValue("tags", newTags);
+                                }}
                               >
                                 {tag}
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-4 w-4"
-                                  onClick={() => {
-                                    const newTags = tags.filter(
-                                      (t) => t !== tag
-                                    );
-                                    setTags(newTags);
-                                    form.setValue("tags", newTags);
-                                  }}
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
+                                <X className="w-3 h-3 ml-1" />
                               </Badge>
                             ))}
                           </div>
@@ -578,17 +521,15 @@ const CreatePost = () => {
                 </TabsContent>
               </ScrollArea>
 
-              <div className="flex justify-end gap-2 pt-4 border-t">
+              <div className="flex justify-end gap-2 pt-4">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setOpen(false)}
+                  onClick={() => onOpenChange(false)}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? "Posting..." : "Create Post"}
-                </Button>
+                <Button type="submit">Update Post</Button>
               </div>
             </form>
           </Form>
@@ -598,4 +539,4 @@ const CreatePost = () => {
   );
 };
 
-export default CreatePost;
+export default EditPost;

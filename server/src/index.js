@@ -11,13 +11,14 @@ import postRoutes from "./routes/post.route.js";
 import destinationRoutes from "./routes/destination.route.js";
 import messageRoutes from "./routes/message.route.js";
 import notificationRoutes from "./routes/notification.route.js";
+import accountRoutes from "./routes/account.route.js";
 
 import { app, server } from "./lib/socket.js";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
-// import "./seeds/user.seed.js";
+const PORT = process.env.PORT || 5001;
+// import "./seeds/destinations.seed.js";
 app.use(express.json());
 app.use(cookieParser());
 app.use(
@@ -35,6 +36,7 @@ app.use("/api/posts", postRoutes);
 app.use("/api/destinations", destinationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/users/:id/account-settings", accountRoutes);
 
 // 404 handler
 app.use((req, res) => {

@@ -50,7 +50,7 @@ const App = () => {
         <Route path="/destinations" element={<Destinations />} />
         <Route path="/blogs" element={<Blogs />} />
         <Route path="/blog/:id" element={<BlogPost />} />
-        <Route path="/social" element={<Social />} />
+        <Route path="/social" element={!authUser ? <Navigate to="/login" /> : <Social />} />
 
         <Route
           path="/messages"
@@ -65,13 +65,16 @@ const App = () => {
           element={!authUser ? <LoginPage /> : <Navigate to="/" />}
         />
 
-        <Route path="user/profile/:id" element={<Profile />} />
+        <Route
+          path="user/profile/:id"
+          element={!authUser ? <Navigate to="/login" /> : <Profile />}
+        />
 
         <Route path="*" element={<NotFound />} />
 
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-        <Route path="/settings/*" element={<Settings />} />
+        <Route path="user/settings/*" element={<Settings />} />
       </Routes>
     </BrowserRouter>
   );

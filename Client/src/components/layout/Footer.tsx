@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
-import { Globe, Instagram, Facebook, Twitter } from "lucide-react"; // Using lucide icons
+import { Instagram, Facebook, Twitter } from "lucide-react"; // Using lucide icons
+import { useThemeStore } from "@/store/useThemeStore";
 
 const Footer = () => {
+  const { theme } = useThemeStore();
   return (
     <footer className="footer-polaris mt-auto">
       <div className="container mx-auto px-4">
@@ -9,35 +11,35 @@ const Footer = () => {
           <div className="mb-4">
             <Link
               to="/"
-              className="flex items-center mb-4 text-white no-underline"
+              className="flex items-center mb-4 text-polaris-dark no-underline"
             >
-              <Globe className="mr-2" size={24} />
+              <img src={theme !== "light" ? "/logoDark.svg" : "/logo.svg"} alt="Polaris" className="w-10 h-10 mr-2" />
               <span className="font-bold text-2xl">Polaris</span>
             </Link>
-            <p className="text-white-50 mb-4">
+            <p className="text-gray-600 mb-4">
               Exploring the world one adventure at a time. Join us on our
               journey of discovery.
             </p>
             <div className="flex gap-3">
-              <a href="#" className="text-white-50 hover-lift">
+              <a href="#" className="text-gray-600 hover:text-polaris-primary hover-lift">
                 <Instagram size={18} />
               </a>
-              <a href="#" className="text-white-50 hover-lift">
+              <a href="#" className="text-gray-600 hover:text-polaris-primary hover-lift">
                 <Facebook size={18} />
               </a>
-              <a href="#" className="text-white-50 hover-lift">
+              <a href="#" className="text-gray-600 hover:text-polaris-primary hover-lift">
                 <Twitter size={18} />
               </a>
             </div>
           </div>
 
           <div>
-            <h5 className="text-white mb-3">Quick Links</h5>
+            <h5 className="text-polaris-dark mb-3">Quick Links</h5>
             <ul className="list-none">
               <li className="mb-2">
                 <Link
                   to="/"
-                  className="text-white-50 no-underline hover-lift"
+                  className="text-gray-600 no-underline hover:text-polaris-primary hover-lift"
                 >
                   Home
                 </Link>
@@ -45,7 +47,7 @@ const Footer = () => {
               <li className="mb-2">
                 <Link
                   to="/about"
-                  className="text-white-50 no-underline hover-lift"
+                  className="text-gray-600 no-underline hover:text-polaris-primary hover-lift"
                 >
                   About
                 </Link>
@@ -53,7 +55,7 @@ const Footer = () => {
               <li className="mb-2">
                 <Link
                   to="/destinations"
-                  className="text-white-50 no-underline hover-lift"
+                  className="text-gray-600 no-underline hover:text-polaris-primary hover-lift"
                 >
                   Destinations
                 </Link>
@@ -61,7 +63,7 @@ const Footer = () => {
               <li className="mb-2">
                 <Link
                   to="/blogs"
-                  className="text-white-50 no-underline hover-lift"
+                  className="text-gray-600 no-underline hover:text-polaris-primary hover-lift"
                 >
                   Blog
                 </Link>
@@ -69,7 +71,7 @@ const Footer = () => {
               <li className="mb-2">
                 <Link
                   to="/social"
-                  className="text-white-50 no-underline hover-lift"
+                  className="text-gray-600 no-underline hover:text-polaris-primary hover-lift"
                 >
                   Social Feed
                 </Link>
@@ -78,12 +80,12 @@ const Footer = () => {
           </div>
 
           <div>
-            <h5 className="text-white mb-3">Top Destinations</h5>
+            <h5 className="text-polaris-dark mb-3">Top Destinations</h5>
             <ul className="list-none">
               <li className="mb-2">
                 <a
                   href="#"
-                  className="text-white-50 no-underline hover-lift"
+                  className="text-gray-600 no-underline hover:text-polaris-primary hover-lift"
                 >
                   Bali, Indonesia
                 </a>
@@ -91,7 +93,7 @@ const Footer = () => {
               <li className="mb-2">
                 <a
                   href="#"
-                  className="text-white-50 no-underline hover-lift"
+                  className="text-gray-600 no-underline hover:text-polaris-primary hover-lift"
                 >
                   Santorini, Greece
                 </a>
@@ -99,7 +101,7 @@ const Footer = () => {
               <li className="mb-2">
                 <a
                   href="#"
-                  className="text-white-50 no-underline hover-lift"
+                  className="text-gray-600 no-underline hover:text-polaris-primary hover-lift"
                 >
                   Kyoto, Japan
                 </a>
@@ -107,7 +109,7 @@ const Footer = () => {
               <li className="mb-2">
                 <a
                   href="#"
-                  className="text-white-50 no-underline hover-lift"
+                  className="text-gray-600 no-underline hover:text-polaris-primary hover-lift"
                 >
                   Machu Picchu, Peru
                 </a>
@@ -115,7 +117,7 @@ const Footer = () => {
               <li className="mb-2">
                 <a
                   href="#"
-                  className="text-white-50 no-underline hover-lift"
+                  className="text-gray-600 no-underline hover:text-polaris-primary hover-lift"
                 >
                   Marrakech, Morocco
                 </a>
@@ -124,8 +126,8 @@ const Footer = () => {
           </div>
 
           <div>
-            <h5 className="text-white mb-3">Newsletter</h5>
-            <p className="text-white-50 mb-3">
+            <h5 className="text-polaris-dark mb-3">Newsletter</h5>
+            <p className="text-gray-600 mb-3">
               Subscribe to our newsletter for travel tips and inspiration.
             </p>
             <form>

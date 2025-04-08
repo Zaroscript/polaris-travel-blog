@@ -7,9 +7,9 @@ import {
   LoginData,
   SignupData,
   UpdateProfileData,
-  User,
   ApiResponse,
 } from "../types";
+import { Profile } from "@/types/social";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -25,7 +25,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   checkAuth: async () => {
     try {
-      const res = await axiosInstance.get<User>("/auth/check");
+      const res = await axiosInstance.get<Profile>("/auth/check");
       set({ authUser: res.data, error: null });
       get().connectSocket();
       return res.data;
@@ -57,7 +57,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         ...data,
         password: "[REDACTED]",
       });
-      const res = await axiosInstance.post<User>("/auth/signup", data);
+      const res = await axiosInstance.post<Profile>("/auth/signup", data);
 
       if (!res.data || !res.data.token) {
         throw new Error("Invalid response from server: No token received");
@@ -108,7 +108,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (data: LoginData) => {
     set({ isLoggingIn: true, error: null });
     try {
-      const res = await axiosInstance.post<User>("/auth/login", data);
+      const res = await axiosInstance.post<Profile>("/auth/login", data);
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
       }
@@ -176,7 +176,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   updateProfile: async (data: UpdateProfileData) => {
     set({ isUpdatingProfile: true, error: null });
     try {
-      const res = await axiosInstance.put<User>("/auth/update-profile", data);
+      const res = await axiosInstance.put<Profile>("/auth/update-profile", data);
       set({ authUser: res.data });
       toast.success("Profile updated successfully");
       return res.data;

@@ -5,6 +5,7 @@ import {
   Copy,
   CheckCheck,
   Trash2,
+  Edit,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -21,6 +22,7 @@ interface PostMenuProps {
   onSave: (postId: string) => void;
   onCopyLink: (postId: string) => void;
   onDelete: (postId: string) => void;
+  onEdit: (postId: string) => void;
   isSaved: boolean;
   isCopied: boolean;
 }
@@ -31,6 +33,7 @@ const PostMenu = ({
   onSave,
   onCopyLink,
   onDelete,
+  onEdit,
   isSaved,
   isCopied,
 }: PostMenuProps) => {
@@ -65,14 +68,20 @@ const PostMenu = ({
             </>
           )}
         </DropdownMenuItem>
-        {authorId === authUser?.id && (
-          <DropdownMenuItem
-            className="text-destructive"
-            onClick={() => onDelete(postId)}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </DropdownMenuItem>
+        {authorId === authUser?._id && (
+          <>
+            <DropdownMenuItem onClick={() => onEdit(postId)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive"
+              onClick={() => onDelete(postId)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

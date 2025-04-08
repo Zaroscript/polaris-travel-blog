@@ -23,16 +23,19 @@ const Index = () => {
       {/* Hero section */}
       <section className="relative">
         <div className="absolute inset-0 bg-black/40 z-10" />
-        <div 
+        <div
           className="relative h-[80vh] bg-cover bg-center"
-          style={{ 
-            backgroundImage: `url(${destinations[0].image})` 
+          style={{
+            backgroundImage: `url(${destinations[0].image})`,
           }}
         />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white z-20 w-full max-w-4xl px-4">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Explore The World With Us</h1>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
+            Explore The World With Us
+          </h1>
           <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto">
-            Discover amazing destinations, travel tips, and stories from adventurers around the globe.
+            Discover amazing destinations, travel tips, and stories from
+            adventurers around the globe.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
@@ -59,7 +62,10 @@ const Index = () => {
         <div className="container mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold">Popular Destinations</h2>
-            <Link to="/destinations" className="flex items-center gap-1 text-primary hover:underline">
+            <Link
+              to="/destinations"
+              className="flex items-center gap-1 text-primary hover:underline"
+            >
               View All <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
@@ -76,7 +82,10 @@ const Index = () => {
         <div className="container mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold">Featured Travel Stories</h2>
-            <Link to="/blogs" className="flex items-center gap-1 text-primary hover:underline">
+            <Link
+              to="/blogs"
+              className="flex items-center gap-1 text-primary hover:underline"
+            >
               View All <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
@@ -89,11 +98,12 @@ const Index = () => {
       </section>
 
       {/* CTA section */}
-      <section className="py-20 px-4 bg-muted text-center">
+      <section className="py-20 px-4 bg-gradient-to-b from-background to-muted/30 text-center">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-3xl font-bold mb-4">Join Our Travel Community</h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Connect with fellow travelers, share your experiences, and stay updated with the latest travel tips and destinations.
+            Connect with fellow travelers, share your experiences, and stay
+            updated with the latest travel tips and destinations.
           </p>
           <Button size="lg" className="bg-primary hover:bg-primary/90" asChild>
             <Link to="/social">

@@ -28,10 +28,18 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    location: String,
-    about: String,
-    status: String,
-    birthDate: Date,
+    location: {
+      type: String,
+      default: "",
+    },
+    about: {
+      type: String,
+      default: "",
+    },
+    birthDate: {
+      type: Date,
+      default: "",
+    },
     joinedDate: {
       type: Date,
       default: Date.now,
@@ -40,10 +48,16 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    connections: [
+    visitedDestinations: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: "Destination",
+      },
+    ],
+    posts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Post",
       },
     ],
     savedPosts: [
@@ -64,6 +78,10 @@ const userSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    accountSettings: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "AccountSettings",
+    },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
   },

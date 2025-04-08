@@ -1,20 +1,7 @@
 import { create } from "zustand";
-import { Post } from "@/types/social";
-import axios from "axios";
-
-interface PostsState {
-  posts: Post[];
-  loading: boolean;
-  error: string | null;
-  fetchPosts: () => Promise<void>;
-  createPost: (postData: Partial<Post>) => Promise<void>;
-  updatePost: (id: string, postData: Partial<Post>) => Promise<void>;
-  deletePost: (id: string) => Promise<void>;
-  likePost: (id: string) => Promise<void>;
-  unlikePost: (id: string) => Promise<void>;
-  addComment: (postId: string, content: string) => Promise<void>;
-  deleteComment: (postId: string, commentId: string) => Promise<void>;
-}
+import { Post, PostsState } from "../types/social";
+import { axiosInstance } from "../lib/axios";
+import { useProfileStore } from "./useProfileStore";
 
 export const usePostsStore = create<PostsState>((set, get) => ({
   posts: [],
@@ -24,114 +11,184 @@ export const usePostsStore = create<PostsState>((set, get) => ({
   fetchPosts: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.get("/api/posts");
-      set({ posts: response.data.posts, loading: false });
+      const response = await axiosInstance.get("/posts");
+      set({
+        posts: response.data.posts,
+        loading: false,
+      });
     } catch (error) {
       set({ error: "Failed to fetch posts", loading: false });
+      throw error;
     }
   },
 
-  createPost: async (postData) => {
+  fetchPost: async (id: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.post("/api/posts", postData);
+      const response = await axiosInstance.get(`/posts/${id}`);
+      return response.data;
+    } catch (error) {
+      set({ error: "Failed to fetch post", loading: false });
+      throw error;
+    }
+  },
+
+  createPost: async (postData: Partial<Post>) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosInstance.post("/posts", postData);
       set((state) => ({
         posts: [response.data.post, ...state.posts],
         loading: false,
       }));
+      return response.data.post;
     } catch (error) {
       set({ error: "Failed to create post", loading: false });
+      throw error;
     }
   },
 
-  updatePost: async (id, postData) => {
+  updatePost: async (id: string, postData: Partial<Post>) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.put(`/api/posts/${id}`, postData);
+      const response = await axiosInstance.put(`/posts/${id}`, postData);
       set((state) => ({
         posts: state.posts.map((post) =>
-          post.id === id ? response.data.post : post
+          post._id === id ? response.data.post : post
         ),
         loading: false,
       }));
+      return response.data.post;
     } catch (error) {
       set({ error: "Failed to update post", loading: false });
+      throw error;
     }
   },
 
-  deletePost: async (id) => {
+  deletePost: async (id: string) => {
     set({ loading: true, error: null });
     try {
-      await axios.delete(`/api/posts/${id}`);
+      await axiosInstance.delete(`/posts/${id}`);
       set((state) => ({
-        posts: state.posts.filter((post) => post.id !== id),
+        posts: state.posts.filter((post) => post._id !== id),
         loading: false,
       }));
     } catch (error) {
       set({ error: "Failed to delete post", loading: false });
+      throw error;
     }
   },
 
-  likePost: async (id) => {
+  likePost: async (postId: string) => {
     try {
-      await axios.post(`/api/posts/${id}/like`);
+      const response = await axiosInstance.post(`/posts/${postId}/like`);
+      return response.data;
+    } catch (error) {
+      console.error("Error liking post:", error);
+      throw new Error("Failed to like post");
+    }
+  },
+
+  unlikePost: async (postId: string) => {
+    try {
+      const response = await axiosInstance.post(`/posts/${postId}/unlike`);
+      return response.data;
+    } catch (error) {
+      console.error("Error unliking post:", error);
+      throw new Error("Failed to unlike post");
+    }
+  },
+
+  addComment: async (postId: string, content: string) => {
+    try {
+      const response = await axiosInstance.post(`/posts/${postId}/comments`, {
+        content,
+      });
       set((state) => ({
         posts: state.posts.map((post) =>
-          post.id === id
-            ? { ...post, likes: [...post.likes, "current-user-id"] }
+          post._id === postId
+            ? {
+                ...post,
+                comments: [...post.comments, response.data.comment],
+              }
             : post
         ),
       }));
+      return response.data.comment;
     } catch (error) {
-      set({ error: "Failed to like post" });
+      set({ error: "Failed to add comment" });
+      throw error;
     }
   },
 
-  unlikePost: async (id) => {
+  likeComment: async (postId: string, commentId: string) => {
     try {
-      await axios.delete(`/api/posts/${id}/like`);
+      const response = await axiosInstance.post(
+        `/posts/${postId}/comments/${commentId}/like`
+      );
       set((state) => ({
         posts: state.posts.map((post) =>
-          post.id === id
+          post._id === postId
             ? {
                 ...post,
-                likes: post.likes.filter((like) => like !== "current-user-id"),
+                comments: post.comments.map((comment) =>
+                  comment._id === commentId
+                    ? {
+                        ...comment,
+                        likes: [...(comment.likes || []), response.data.user],
+                      }
+                    : comment
+                ),
               }
             : post
         ),
       }));
     } catch (error) {
-      set({ error: "Failed to unlike post" });
+      set({ error: "Failed to like comment" });
+      throw error;
     }
   },
 
-  addComment: async (postId, content) => {
+  unlikeComment: async (postId: string, commentId: string) => {
     try {
-      const response = await axios.post(`/api/posts/${postId}/comments`, {
-        content,
-      });
+      const response = await axiosInstance.delete(
+        `/posts/${postId}/comments/${commentId}/like`
+      );
       set((state) => ({
         posts: state.posts.map((post) =>
-          post.id === postId
-            ? { ...post, comments: [...post.comments, response.data.comment] }
+          post._id === postId
+            ? {
+                ...post,
+                comments: post.comments.map((comment) =>
+                  comment._id === commentId
+                    ? {
+                        ...comment,
+                        likes: comment.likes.filter(
+                          (like) => like._id !== response.data.user._id
+                        ),
+                      }
+                    : comment
+                ),
+              }
             : post
         ),
       }));
     } catch (error) {
-      set({ error: "Failed to add comment" });
+      set({ error: "Failed to unlike comment" });
+      throw error;
     }
   },
 
-  deleteComment: async (postId, commentId) => {
+  deleteComment: async (postId: string, commentId: string) => {
     try {
-      await axios.delete(`/api/posts/${postId}/comments/${commentId}`);
+      await axiosInstance.delete(`/posts/${postId}/comments/${commentId}`);
       set((state) => ({
         posts: state.posts.map((post) =>
-          post.id === postId
+          post._id === postId
             ? {
                 ...post,
                 comments: post.comments.filter(
-                  (comment) => comment.id !== commentId
+                  (comment) => comment._id !== commentId
                 ),
               }
             : post
@@ -139,6 +196,198 @@ export const usePostsStore = create<PostsState>((set, get) => ({
       }));
     } catch (error) {
       set({ error: "Failed to delete comment" });
+      throw error;
+    }
+  },
+
+  addReply: async (postId: string, commentId: string, content: string) => {
+    try {
+      const response = await axiosInstance.post(
+        `/posts/${postId}/comments/${commentId}/replies`,
+        {
+          content,
+        }
+      );
+      set((state) => ({
+        posts: state.posts.map((post) =>
+          post._id === postId
+            ? {
+                ...post,
+                comments: post.comments.map((comment) =>
+                  comment._id === commentId
+                    ? {
+                        ...comment,
+                        replies: [...comment.replies, response.data.reply],
+                      }
+                    : comment
+                ),
+              }
+            : post
+        ),
+      }));
+      return response.data.reply;
+    } catch (error) {
+      set({ error: "Failed to add reply" });
+      throw error;
+    }
+  },
+
+  likeReply: async (postId: string, commentId: string, replyId: string) => {
+    try {
+      const response = await axiosInstance.post(
+        `/posts/${postId}/comments/${commentId}/replies/${replyId}/like`
+      );
+      set((state) => ({
+        posts: state.posts.map((post) =>
+          post._id === postId
+            ? {
+                ...post,
+                comments: post.comments.map((comment) =>
+                  comment._id === commentId
+                    ? {
+                        ...comment,
+                        replies: comment.replies.map((reply) =>
+                          reply._id === replyId
+                            ? {
+                                ...reply,
+                                likes: [
+                                  ...(reply.likes || []),
+                                  response.data.user,
+                                ],
+                              }
+                            : reply
+                        ),
+                      }
+                    : comment
+                ),
+              }
+            : post
+        ),
+      }));
+    } catch (error) {
+      set({ error: "Failed to like reply" });
+      throw error;
+    }
+  },
+
+  unlikeReply: async (postId: string, commentId: string, replyId: string) => {
+    try {
+      const response = await axiosInstance.delete(
+        `/posts/${postId}/comments/${commentId}/replies/${replyId}/like`
+      );
+      set((state) => ({
+        posts: state.posts.map((post) =>
+          post._id === postId
+            ? {
+                ...post,
+                comments: post.comments.map((comment) =>
+                  comment._id === commentId
+                    ? {
+                        ...comment,
+                        replies: comment.replies.map((reply) =>
+                          reply._id === replyId
+                            ? {
+                                ...reply,
+                                likes: reply.likes.filter(
+                                  (like) => like._id !== response.data.user._id
+                                ),
+                              }
+                            : reply
+                        ),
+                      }
+                    : comment
+                ),
+              }
+            : post
+        ),
+      }));
+    } catch (error) {
+      set({ error: "Failed to unlike reply" });
+      throw error;
+    }
+  },
+
+  deleteReply: async (postId: string, commentId: string, replyId: string) => {
+    try {
+      await axiosInstance.delete(
+        `/posts/${postId}/comments/${commentId}/replies/${replyId}`
+      );
+      set((state) => ({
+        posts: state.posts.map((post) =>
+          post._id === postId
+            ? {
+                ...post,
+                comments: post.comments.map((comment) =>
+                  comment._id === commentId
+                    ? {
+                        ...comment,
+                        replies: comment.replies.filter(
+                          (reply) => reply._id !== replyId
+                        ),
+                      }
+                    : comment
+                ),
+              }
+            : post
+        ),
+      }));
+    } catch (error) {
+      set({ error: "Failed to delete reply" });
+      throw error;
+    }
+  },
+
+  toggleSavePost: async (id: string) => {
+    try {
+      const response = await axiosInstance.post(`/posts/${id}/toggle-save`);
+      set((state) => ({
+        posts: state.posts.map((post) =>
+          post._id === id ? { ...post, isSaved: response.data.isSaved } : post
+        ),
+      }));
+      return response.data;
+    } catch (error) {
+      set({ error: "Failed to toggle save post" });
+      throw error;
+    }
+  },
+
+  fetchPopularPosts: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosInstance.get("/posts");
+      // Sort posts by total engagement (likes + comments)
+      const popularPosts = response.data.posts.sort((a: Post, b: Post) => {
+        const aEngagement = a.likes.length + a.comments.length;
+        const bEngagement = b.likes.length + b.comments.length;
+        return bEngagement - aEngagement;
+      });
+      set({
+        posts: popularPosts,
+        loading: false,
+      });
+    } catch (error) {
+      set({ error: "Failed to fetch popular posts", loading: false });
+      throw error;
+    }
+  },
+
+  fetchFollowingPosts: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosInstance.get("/posts");
+      const { following } = useProfileStore.getState();
+      // Filter posts to only show posts from followed users
+      const followingPosts = response.data.posts.filter((post: Post) =>
+        following.some((followedUser) => followedUser._id === post.author._id)
+      );
+      set({
+        posts: followingPosts,
+        loading: false,
+      });
+    } catch (error) {
+      set({ error: "Failed to fetch following posts", loading: false });
+      throw error;
     }
   },
 }));

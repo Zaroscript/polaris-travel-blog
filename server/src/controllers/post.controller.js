@@ -1,75 +1,24 @@
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import { catchAsync } from "../lib/utils.js";
-
-/**
- * @route POST /api/posts
- * @example
- * POST http://localhost:5000/api/posts
- * Headers: {
- *   "Authorization": "Bearer <token>",
- *   "Content-Type": "application/json"
- * }
- * Body: {
- *   "content": "My first post!",
- *   "images": ["url1", "url2"],
- *   "destination": "destination_id"
- * }
- */
-export const createPost = catchAsync(async (req, res) => {
-  // Validate required fields
-  const { content } = req.body;
-  if (!content || content.trim().length === 0) {
-    return res.status(400).json({ message: "Post content is required" });
-  }
-
-  // Create post with validated data
-  const post = new Post({
-    ...req.body,
-    author: req.user.id,
-  });
-
-  // Save post to database
-  await post.save();
-
-  // Populate post with related data
-  await post.populate([
-    { path: "author", select: "fullName profilePic" },
-    { path: "destination", select: "name image" },
-    { path: "likes", select: "fullName profilePic" },
-    { path: "comments.author", select: "fullName profilePic" }
-  ]);
-
-  // Update user's post count
-  await User.findByIdAndUpdate(
-    req.user.id,
-    { $inc: { postsCount: 1 } }
-  );
-
-  res.status(201).json({
-    message: "Post created successfully", 
-    post,
-  });
-});
+import { uploadImages } from "../lib/uploadImage.js";
 
 /**
  * @route GET /api/posts
  * @example
  * GET http://localhost:5000/api/posts?page=1&limit=10
- * Headers: {
- *   "Authorization": "Bearer <token>"
- * }
  */
 export const getPosts = catchAsync(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const search = req.query.search || "";
-
   const query = search ? { content: { $regex: search, $options: "i" } } : {};
+
+  const skip = (page - 1) * limit;
 
   const posts = await Post.find(query)
     .sort({ createdAt: -1 })
-    .skip((page - 1) * limit)
+    .skip(skip)
     .limit(limit)
     .populate("author", "fullName profilePic")
     .populate("likes", "fullName profilePic")
@@ -81,10 +30,10 @@ export const getPosts = catchAsync(async (req, res) => {
   res.json({
     posts,
     pagination: {
-      page,
-      limit,
       total,
+      page,
       pages: Math.ceil(total / limit),
+      limit
     },
   });
 });
@@ -93,9 +42,6 @@ export const getPosts = catchAsync(async (req, res) => {
  * @route GET /api/posts/:id
  * @example
  * GET http://localhost:5000/api/posts/post_id
- * Headers: {
- *   "Authorization": "Bearer <token>"
- * }
  */
 export const getPost = catchAsync(async (req, res) => {
   const post = await Post.findById(req.params.id)
@@ -112,9 +58,68 @@ export const getPost = catchAsync(async (req, res) => {
 });
 
 /**
- * @route PATCH /api/posts/:id
+ * @route POST /api/posts
  * @example
- * PATCH http://localhost:5000/api/posts/post_id
+ * POST http://localhost:5000/api/posts
+ * Headers: {
+ *   "Authorization": "Bearer <token>",
+ *   "Content-Type": "application/json"
+ * }
+ * Body: {
+ *   "content": "My first post!",
+ *   "images": ["url1", "url2"],
+ *   "destination": "destination_id"
+ * }
+ */
+export const createPost = catchAsync(async (req, res) => {
+  const { content, images } = req.body;
+  if (!content || content.trim().length === 0) {
+    return res.status(400).json({ message: "Post content is required" });
+  }
+
+  if (content.length > 1000) {
+    return res.status(400).json({ message: "Post content cannot exceed 1000 characters" });
+  }
+
+  // Handle image uploads
+  let uploadedImages = [];
+  if (images && images.length > 0) {
+    try {
+      uploadedImages = await uploadImages(images, {
+        folder: 'polaris-travel/posts'
+      });
+    } catch (error) {
+      return res.status(400).json({ message: "Error uploading images" });
+    }
+  }
+
+  const post = new Post({
+    ...req.body,
+    author: req.user.id,
+    images: uploadedImages
+  });
+
+  await post.save();
+
+  await post.populate([
+    { path: "author", select: "fullName profilePic" },
+    { path: "destination", select: "name image" },
+    { path: "likes", select: "fullName profilePic" },
+    { path: "comments.author", select: "fullName profilePic" }
+  ]);
+
+  await User.findByIdAndUpdate(req.user.id, { $inc: { postsCount: 1 } });
+
+  res.status(201).json({
+    message: "Post created successfully",
+    post,
+  });
+});
+
+/**
+ * @route PUT /api/posts/:id
+ * @example
+ * PUT http://localhost:5000/api/posts/post_id
  * Headers: {
  *   "Authorization": "Bearer <token>",
  *   "Content-Type": "application/json"
@@ -125,65 +130,49 @@ export const getPost = catchAsync(async (req, res) => {
  * }
  */
 export const updatePost = catchAsync(async (req, res) => {
-  // First check if post exists and user is authorized
   const existingPost = await Post.findOne({
     _id: req.params.id,
+    author: req.user.id
   });
 
   if (!existingPost) {
     return res.status(404).json({ message: "Post not found or unauthorized" });
   }
 
-  // Validate update data
   const updates = {
     title: req.body.title,
     content: req.body.content,
     image: req.body.image,
-    destination: req.body.destination,
-    likes: req.body.likes,
-    comments: req.body.comments,
+    destination: req.body.destination
   };
 
-  // Remove undefined/empty fields
   Object.keys(updates).forEach((key) => {
     if (updates[key] === undefined || updates[key] === "") {
       delete updates[key];
     }
   });
 
-  // Check if there are any valid updates
   if (Object.keys(updates).length === 0) {
     return res.status(400).json({ message: "No valid updates provided" });
   }
 
-  try {
-    const post = await Post.findOneAndUpdate(
-      { _id: req.params.id },
-      { $set: updates },
-      {
-        new: true,
-        runValidators: true,
-        context: "query",
-      }
-    )
-      .populate("author", "fullName profilePic")
-      .populate("likes", "fullName profilePic")
-      .populate("comments.author", "fullName profilePic")
-      .populate("destination", "name image");
-
-    res.json({
-      message: "Post updated successfully",
-      post,
-    });
-  } catch (error) {
-    if (error.name === "ValidationError") {
-      return res.status(400).json({
-        message: "Invalid input data",
-        errors: Object.values(error.errors).map((err) => err.message),
-      });
+  const post = await Post.findOneAndUpdate(
+    { _id: req.params.id, author: req.user.id },
+    { $set: updates },
+    {
+      new: true,
+      runValidators: true
     }
-    throw error;
-  }
+  )
+    .populate("author", "fullName profilePic")
+    .populate("likes", "fullName profilePic")
+    .populate("comments.author", "fullName profilePic")
+    .populate("destination", "name image");
+
+  res.json({
+    message: "Post updated successfully",
+    post,
+  });
 });
 
 /**
@@ -204,7 +193,6 @@ export const deletePost = catchAsync(async (req, res) => {
     return res.status(404).json({ message: "Post not found or unauthorized" });
   }
 
-  // Remove post from all users' savedPosts
   await User.updateMany(
     { savedPosts: req.params.id },
     { $pull: { savedPosts: req.params.id } }
@@ -221,18 +209,16 @@ export const deletePost = catchAsync(async (req, res) => {
  *   "Authorization": "Bearer <token>"
  * }
  */
-export const toggleLike = catchAsync(async (req, res) => {
-  const post = await Post.findById(req.params.id);
-  if (!post) {
+export const likePost = catchAsync(async (req, res) => {
+  // First check if post exists
+  const existingPost = await Post.findById(req.params.id);
+  if (!existingPost) {
     return res.status(404).json({ message: "Post not found" });
   }
 
-  const isLiked = post.likes.includes(req.user.id);
-  const operation = isLiked ? "$pull" : "$addToSet";
-
-  const updatedPost = await Post.findByIdAndUpdate(
+  const post = await Post.findByIdAndUpdate(
     req.params.id,
-    { [operation]: { likes: req.user.id } },
+    { $addToSet: { likes: req.user.id } },
     { new: true }
   )
     .populate("author", "fullName profilePic")
@@ -240,10 +226,65 @@ export const toggleLike = catchAsync(async (req, res) => {
     .populate("comments.author", "fullName profilePic")
     .populate("destination", "name image");
 
+  res.json(post);
+});
+
+/**
+ * @route DELETE /api/posts/:id/like
+ * @example
+ * DELETE http://localhost:5000/api/posts/post_id/like
+ * Headers: {
+ *   "Authorization": "Bearer <token>"
+ * }
+ */
+export const unlikePost = catchAsync(async (req, res) => {
+  const post = await Post.findByIdAndUpdate(
+    req.params.id,
+    { $pull: { likes: req.user.id } },
+    { new: true }
+  )
+    .populate("author", "fullName profilePic")
+    .populate("likes", "fullName profilePic")
+    .populate("comments.author", "fullName profilePic")
+    .populate("destination", "name image");
+
+  if (!post) {
+    return res.status(404).json({ message: "Post not found" });
+  }
+
+  res.json(post);
+});
+
+/**
+ * @route POST /api/posts/:id/toggle-save
+ * @example
+ * POST http://localhost:5000/api/posts/post_id/toggle-save
+ * Headers: {
+ *   "Authorization": "Bearer <token>"
+ * }
+ */
+export const toggleSavePost = catchAsync(async (req, res) => {
+  const post = await Post.findById(req.params.id);
+  if (!post) {
+    return res.status(404).json({ message: "Post not found" });
+  }
+
+  const user = await User.findById(req.user.id);
+  const isSaved = user.savedPosts.includes(req.params.id);
+
+  if (isSaved) {
+    await User.findByIdAndUpdate(req.user.id, {
+      $pull: { savedPosts: req.params.id }
+    });
+  } else {
+    await User.findByIdAndUpdate(req.user.id, {
+      $addToSet: { savedPosts: req.params.id }
+    });
+  }
+
   res.json({
-    post: updatedPost,
-    liked: !isLiked,
-    likesCount: updatedPost.likes.length,
+    message: isSaved ? "Post unsaved" : "Post saved",
+    isSaved: !isSaved
   });
 });
 
@@ -285,7 +326,69 @@ export const addComment = catchAsync(async (req, res) => {
 });
 
 /**
- * @route DELETE /api/posts/:postId/comments/:commentId
+ * @route POST /api/posts/:id/comments/:commentId/like
+ * @example
+ * POST http://localhost:5000/api/posts/post_id/comments/comment_id/like
+ * Headers: {
+ *   "Authorization": "Bearer <token>"
+ * }
+ */
+export const likeComment = catchAsync(async (req, res) => {
+  const post = await Post.findOneAndUpdate(
+    { 
+      _id: req.params.id,
+      "comments._id": req.params.commentId
+    },
+    { 
+      $addToSet: { "comments.$.likes": req.user.id }
+    },
+    { new: true }
+  )
+    .populate("author", "fullName profilePic")
+    .populate("likes", "fullName profilePic")
+    .populate("comments.author", "fullName profilePic")
+    .populate("destination", "name image");
+
+  if (!post) {
+    return res.status(404).json({ message: "Post or comment not found" });
+  }
+
+  res.json(post);
+});
+
+/**
+ * @route DELETE /api/posts/:id/comments/:commentId/like
+ * @example
+ * DELETE http://localhost:5000/api/posts/post_id/comments/comment_id/like
+ * Headers: {
+ *   "Authorization": "Bearer <token>"
+ * }
+ */
+export const unlikeComment = catchAsync(async (req, res) => {
+  const post = await Post.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      "comments._id": req.params.commentId
+    },
+    {
+      $pull: { "comments.$.likes": req.user.id }
+    },
+    { new: true }
+  )
+    .populate("author", "fullName profilePic")
+    .populate("likes", "fullName profilePic")
+    .populate("comments.author", "fullName profilePic")
+    .populate("destination", "name image");
+
+  if (!post) {
+    return res.status(404).json({ message: "Post or comment not found" });
+  }
+
+  res.json(post);
+});
+
+/**
+ * @route DELETE /api/posts/:id/comments/:commentId
  * @example
  * DELETE http://localhost:5000/api/posts/post_id/comments/comment_id
  * Headers: {
@@ -294,7 +397,7 @@ export const addComment = catchAsync(async (req, res) => {
  */
 export const deleteComment = catchAsync(async (req, res) => {
   const post = await Post.findByIdAndUpdate(
-    req.params.postId,
+    req.params.id,
     {
       $pull: {
         comments: {
@@ -318,31 +421,157 @@ export const deleteComment = catchAsync(async (req, res) => {
 });
 
 /**
- * @route POST /api/posts/:id/save
+ * @route POST /api/posts/:id/comments/:commentId/replies
  * @example
- * POST http://localhost:5000/api/posts/post_id/save
+ * POST http://localhost:5000/api/posts/post_id/comments/comment_id/replies
+ * Headers: {
+ *   "Authorization": "Bearer <token>",
+ *   "Content-Type": "application/json"
+ * }
+ * Body: {
+ *   "content": "Great comment!"
+ * }
+ */
+export const addReply = catchAsync(async (req, res) => {
+  const post = await Post.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      "comments._id": req.params.commentId
+    },
+    {
+      $push: {
+        "comments.$.replies": {
+          content: req.body.content,
+          author: req.user.id
+        }
+      }
+    },
+    { new: true }
+  )
+    .populate("author", "fullName profilePic")
+    .populate("likes", "fullName profilePic")
+    .populate("comments.author", "fullName profilePic")
+    .populate("comments.replies.author", "fullName profilePic")
+    .populate("destination", "name image");
+
+  if (!post) {
+    return res.status(404).json({ message: "Post or comment not found" });
+  }
+
+  res.json(post);
+});
+
+/**
+ * @route POST /api/posts/:id/comments/:commentId/replies/:replyId/like
+ * @example
+ * POST http://localhost:5000/api/posts/post_id/comments/comment_id/replies/reply_id/like
  * Headers: {
  *   "Authorization": "Bearer <token>"
  * }
  */
-export const toggleSavePost = catchAsync(async (req, res) => {
-  const post = await Post.findById(req.params.id);
+export const likeReply = catchAsync(async (req, res) => {
+  const post = await Post.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      "comments._id": req.params.commentId,
+      "comments.replies._id": req.params.replyId
+    },
+    {
+      $addToSet: { "comments.$[comment].replies.$[reply].likes": req.user.id }
+    },
+    {
+      arrayFilters: [
+        { "comment._id": req.params.commentId },
+        { "reply._id": req.params.replyId }
+      ],
+      new: true
+    }
+  )
+    .populate("author", "fullName profilePic")
+    .populate("likes", "fullName profilePic")
+    .populate("comments.author", "fullName profilePic")
+    .populate("comments.replies.author", "fullName profilePic")
+    .populate("destination", "name image");
+
   if (!post) {
-    return res.status(404).json({ message: "Post not found" });
+    return res.status(404).json({ message: "Post, comment or reply not found" });
   }
 
-  const user = await User.findById(req.user.id);
-  const isSaved = user.savedPosts.includes(req.params.id);
-  const operation = isSaved ? "$pull" : "$addToSet";
+  res.json(post);
+});
 
-  const updatedUser = await User.findByIdAndUpdate(
-    req.user.id,
-    { [operation]: { savedPosts: req.params.id } },
+/**
+ * @route DELETE /api/posts/:id/comments/:commentId/replies/:replyId/like
+ * @example
+ * DELETE http://localhost:5000/api/posts/post_id/comments/comment_id/replies/reply_id/like
+ * Headers: {
+ *   "Authorization": "Bearer <token>"
+ * }
+ */
+export const unlikeReply = catchAsync(async (req, res) => {
+  const post = await Post.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      "comments._id": req.params.commentId,
+      "comments.replies._id": req.params.replyId
+    },
+    {
+      $pull: { "comments.$[comment].replies.$[reply].likes": req.user.id }
+    },
+    {
+      arrayFilters: [
+        { "comment._id": req.params.commentId },
+        { "reply._id": req.params.replyId }
+      ],
+      new: true
+    }
+  )
+    .populate("author", "fullName profilePic")
+    .populate("likes", "fullName profilePic")
+    .populate("comments.author", "fullName profilePic")
+    .populate("comments.replies.author", "fullName profilePic")
+    .populate("destination", "name image");
+
+  if (!post) {
+    return res.status(404).json({ message: "Post, comment or reply not found" });
+  }
+
+  res.json(post);
+});
+
+/**
+ * @route DELETE /api/posts/:id/comments/:commentId/replies/:replyId
+ * @example
+ * DELETE http://localhost:5000/api/posts/post_id/comments/comment_id/replies/reply_id
+ * Headers: {
+ *   "Authorization": "Bearer <token>"
+ * }
+ */
+export const deleteReply = catchAsync(async (req, res) => {
+  const post = await Post.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      "comments._id": req.params.commentId
+    },
+    {
+      $pull: {
+        "comments.$.replies": {
+          _id: req.params.replyId,
+          author: req.user.id
+        }
+      }
+    },
     { new: true }
-  );
+  )
+    .populate("author", "fullName profilePic")
+    .populate("likes", "fullName profilePic")
+    .populate("comments.author", "fullName profilePic")
+    .populate("comments.replies.author", "fullName profilePic")
+    .populate("destination", "name image");
 
-  res.json({
-    saved: !isSaved,
-    savedPostsCount: updatedUser.savedPosts.length,
-  });
+  if (!post) {
+    return res.status(404).json({ message: "Post, comment or reply not found" });
+  }
+
+  res.json(post);
 });
