@@ -17,20 +17,10 @@ export const createDestination = catchAsync(async (req, res) => {
   const { images, image, ...restBody } = req.body;
   
   // Upload main destination image
-  let mainImage = null;
-  if (image) {
-    mainImage = await uploadImage(image, {
-      folder: 'polaris-travel/destinations/main'
-    });
-  }
+  let mainImage = image ? await uploadImage(image, { folder: 'polaris-travel/destinations/main' }) : null;
 
   // Upload additional destination images
-  let uploadedImages = [];
-  if (images && images.length > 0) {
-    uploadedImages = await uploadImages(images, {
-      folder: 'polaris-travel/destinations/gallery'
-    });
-  }
+  let uploadedImages = images && images.length > 0 ? await uploadImages(images, { folder: 'polaris-travel/destinations/gallery' }) : [];
 
   const destination = await Destination.create({
     ...restBody,
@@ -101,16 +91,12 @@ export const updateDestination = catchAsync(async (req, res) => {
 
   // Handle main image update if provided
   if (image) {
-    updates.image = await uploadImage(image, {
-      folder: 'polaris-travel/destinations/main'
-    });
+    updates.image = await uploadImage(image, { folder: 'polaris-travel/destinations/main' });
   }
 
   // Handle additional images update if provided
   if (images) {
-    updates.images = await uploadImages(images, {
-      folder: 'polaris-travel/destinations/gallery'
-    });
+    updates.images = await uploadImages(images, { folder: 'polaris-travel/destinations/gallery' });
   }
 
   const destination = await Destination.findOneAndUpdate(

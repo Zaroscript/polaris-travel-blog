@@ -16,12 +16,10 @@ const destinations = [
       city: "Paris",
       country: "France",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34",
-        caption: "Eiffel Tower at sunset",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34",
+      caption: "Eiffel Tower at sunset",
+    },
     rating: 4.8,
     tags: ["romantic", "cultural", "historic", "food"],
     thingsToDo: [
@@ -47,12 +45,10 @@ const destinations = [
       city: "Tokyo",
       country: "Japan",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26",
-        caption: "Shibuya Crossing",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26",
+      caption: "Shibuya Crossing",
+    },
     rating: 4.7,
     tags: ["modern", "cultural", "food", "shopping"],
     thingsToDo: [
@@ -78,12 +74,10 @@ const destinations = [
       city: "New York City",
       country: "USA",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1499092348529-297b507fb90f",
-        caption: "Times Square at night",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1499092348529-297b507fb90f",
+      caption: "Times Square at night",
+    },
     rating: 4.6,
     tags: ["urban", "cultural", "shopping", "entertainment"],
     thingsToDo: [
@@ -109,12 +103,10 @@ const destinations = [
       city: "Rome",
       country: "Italy",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1552832230-c0197dd311b5",
-        caption: "Colosseum at sunset",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1552832230-c0197dd311b5",
+      caption: "Colosseum at sunset",
+    },
     rating: 4.7,
     tags: ["historic", "cultural", "food", "art"],
     thingsToDo: [
@@ -140,12 +132,10 @@ const destinations = [
       city: "Denpasar",
       country: "Indonesia",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1537996194471-e657df975ab4",
-        caption: "Bali rice terraces",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1537996194471-e657df975ab4",
+      caption: "Bali rice terraces",
+    },
     rating: 4.8,
     tags: ["beach", "nature", "cultural", "relaxation"],
     thingsToDo: [
@@ -171,12 +161,10 @@ const destinations = [
       city: "Dubai",
       country: "UAE",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1512453979798-5ea892f1e3be",
-        caption: "Burj Khalifa at night",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1512453979798-5ea892f1e3be",
+      caption: "Burj Khalifa at night",
+    },
     rating: 4.6,
     tags: ["modern", "luxury", "shopping", "desert"],
     thingsToDo: [
@@ -202,12 +190,10 @@ const destinations = [
       city: "Sydney",
       country: "Australia",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9",
-        caption: "Sydney Opera House",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9",
+      caption: "Sydney Opera House",
+    },
     rating: 4.7,
     tags: ["beach", "urban", "nature", "cultural"],
     thingsToDo: [
@@ -233,12 +219,10 @@ const destinations = [
       city: "Cape Town",
       country: "South Africa",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5",
-        caption: "Table Mountain",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5",
+      caption: "Table Mountain",
+    },
     rating: 4.7,
     tags: ["nature", "adventure", "wildlife", "beach"],
     thingsToDo: [
@@ -264,12 +248,10 @@ const destinations = [
       city: "Barcelona",
       country: "Spain",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1583422409516-2895a77efded",
-        caption: "Sagrada Familia",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1583422409516-2895a77efded",
+      caption: "Sagrada Familia",
+    },
     rating: 4.8,
     tags: ["architecture", "cultural", "beach", "food"],
     thingsToDo: [
@@ -295,12 +277,10 @@ const destinations = [
       city: "Kyoto",
       country: "Japan",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e",
-        caption: "Fushimi Inari Shrine",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e",
+      caption: "Fushimi Inari Shrine",
+    },
     rating: 4.9,
     tags: ["cultural", "historic", "temples", "traditional"],
     thingsToDo: [
@@ -326,12 +306,10 @@ const destinations = [
       city: "Thira",
       country: "Greece",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff",
-        caption: "Oia sunset",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff",
+      caption: "Oia sunset",
+    },
     rating: 4.8,
     tags: ["romantic", "beach", "scenic", "wine"],
     thingsToDo: [
@@ -357,12 +335,10 @@ const destinations = [
       city: "Cusco Region",
       country: "Peru",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1526392060635-9d6019884377",
-        caption: "Machu Picchu ruins",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1526392060635-9d6019884377",
+      caption: "Machu Picchu ruins",
+    },
     rating: 4.9,
     tags: ["historic", "adventure", "nature", "cultural"],
     thingsToDo: [
@@ -388,12 +364,10 @@ const destinations = [
       city: "Venice",
       country: "Italy",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1514890547357-a9ee288728e0",
-        caption: "Grand Canal",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1514890547357-a9ee288728e0",
+      caption: "Grand Canal",
+    },
     rating: 4.7,
     tags: ["romantic", "historic", "cultural", "architecture"],
     thingsToDo: [
@@ -419,12 +393,10 @@ const destinations = [
       city: "Queenstown",
       country: "New Zealand",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1589196728426-4482b895cc15",
-        caption: "Lake Wakatipu",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1589196728426-4482b895cc15",
+      caption: "Lake Wakatipu",
+    },
     rating: 4.8,
     tags: ["adventure", "nature", "sports", "scenic"],
     thingsToDo: [
@@ -450,12 +422,10 @@ const destinations = [
       city: "Marrakech",
       country: "Morocco",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1597211684565-dca64d72c4e6",
-        caption: "Djemaa el-Fna",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1597211684565-dca64d72c4e6",
+      caption: "Djemaa el-Fna",
+    },
     rating: 4.6,
     tags: ["cultural", "historic", "shopping", "food"],
     thingsToDo: [
@@ -481,12 +451,10 @@ const destinations = [
       city: "Reykjavik",
       country: "Iceland",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1490080886466-6ea0a78bae16",
-        caption: "Northern Lights",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1490080886466-6ea0a78bae16",
+      caption: "Northern Lights",
+    },
     rating: 4.7,
     tags: ["nature", "adventure", "scenic", "unique"],
     thingsToDo: [
@@ -512,12 +480,10 @@ const destinations = [
       city: "Ma'an Governorate",
       country: "Jordan",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1563177978-4c5ebf35e37f",
-        caption: "The Treasury",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1563177978-4c5ebf35e37f",
+      caption: "The Treasury",
+    },
     rating: 4.9,
     tags: ["historic", "archaeological", "cultural", "adventure"],
     thingsToDo: [
@@ -543,12 +509,10 @@ const destinations = [
       city: "Havana",
       country: "Cuba",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1500759285222-a95626b934cb",
-        caption: "Old Havana street",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1500759285222-a95626b934cb",
+      caption: "Old Havana street",
+    },
     rating: 4.6,
     tags: ["cultural", "historic", "music", "architecture"],
     thingsToDo: [
@@ -574,12 +538,10 @@ const destinations = [
       city: "Arusha Region",
       country: "Tanzania",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1516426122078-c23e76319801",
-        caption: "Wildlife safari",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1516426122078-c23e76319801",
+      caption: "Wildlife safari",
+    },
     rating: 4.9,
     tags: ["wildlife", "nature", "safari", "adventure"],
     thingsToDo: [
@@ -605,12 +567,10 @@ const destinations = [
       city: "Male",
       country: "Maldives",
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8",
-        caption: "Overwater bungalows",
-      },
-    ],
+    coverImage: {
+      url: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8",
+      caption: "Overwater bungalows",
+    },
     rating: 4.9,
     tags: ["beach", "luxury", "romantic", "water-sports"],
     thingsToDo: [

@@ -1,7 +1,14 @@
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import { catchAsync } from "../lib/utils.js";
-import { uploadImages } from "../lib/uploadImage.js";
+import cloudinary from 'cloudinary';
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 /**
  * @route GET /api/posts
@@ -81,13 +88,15 @@ export const createPost = catchAsync(async (req, res) => {
     return res.status(400).json({ message: "Post content cannot exceed 1000 characters" });
   }
 
-  // Handle image uploads
+  // Handle image uploads with Cloudinary
   let uploadedImages = [];
   if (images && images.length > 0) {
     try {
-      uploadedImages = await uploadImages(images, {
-        folder: 'polaris-travel/posts'
-      });
+      const uploadPromises = images.map(image => 
+        cloudinary.v2.uploader.upload(image, { folder: 'polaris-travel/posts' })
+      );
+      uploadedImages = await Promise.all(uploadPromises);
+      uploadedImages = uploadedImages.map(file => file.secure_url);
     } catch (error) {
       return res.status(400).json({ message: "Error uploading images" });
     }

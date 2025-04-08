@@ -79,7 +79,6 @@ const AccountSettings = () => {
         coverImage: authUser.coverImage || "https://cdn-icons-png.flaticon.com/128/1102/1102949.png",
         location: authUser.location || "",
         about: authUser.about || "",
-        status: authUser.status || "",
         birthDate: formatDate(authUser.birthDate),
       });
     }

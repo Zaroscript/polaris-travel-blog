@@ -50,7 +50,7 @@ export interface AuthState {
   login: (data: LoginData) => Promise<Profile>;
   logout: () => Promise<void>;
   updateProfile: (data: UpdateProfileData) => Promise<Profile>;
-  changePassword: (data: ChangePasswordData) => Promise<{ message: string }>; 
+  changePassword: (data: ChangePasswordData) => Promise<{ message: string }>;
   connectSocket: () => void;
   disconnectSocket: () => void;
   clearError: () => void;
@@ -130,18 +130,33 @@ export interface ApiError {
   message: string;
   status?: number;
 }
+
+export interface Location {
+  type: string;
+  coordinates: [number, number];
+  address: string;
+  city: string;
+  country: string;
+}
+
+export interface BestTimeToVisit {
+  from: string;
+  to: string;
+}
+
 export interface Destination {
-  id: number;
+  _id: string;
   name: string;
-  location: string;
   description: string;
-  image: string;
+  location: Location;
+  coverImage: {
+    url: string;
+    caption: string;
+  };
+  thingsToDo: string[];
+  bestTimeToVisit: BestTimeToVisit;
   rating: number;
   tags: string[];
-  coordinates: {
-    latitude: number;
-    longitude: number;
-  };
 }
 
 export interface Comment {
