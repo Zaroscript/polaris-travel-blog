@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Destination } from "@/types";
+import Contact from "./Contact";
 
 const Destinations = () => {
   const [searchParams] = useSearchParams();

@@ -6,8 +6,6 @@ import { useEffect } from "react";
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import NotificationListener from "./components/NotificationListener";
-
-
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Destinations from "./pages/Destinations";
@@ -22,6 +20,7 @@ import Profile from "@/pages/Profile";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import Settings from "./pages/Settings";
+
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -69,7 +68,7 @@ const App = () => {
           path="user/profile/:id"
           element={!authUser ? <Navigate to="/login" /> : <Profile />}
         />
-
+       
         <Route path="*" element={<NotFound />} />
 
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
