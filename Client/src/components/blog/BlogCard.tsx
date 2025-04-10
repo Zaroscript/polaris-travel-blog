@@ -1,6 +1,12 @@
-
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { MessageCircle, Heart } from "lucide-react";
 import { BlogPost } from "@/types";
@@ -26,7 +32,10 @@ const BlogCard = ({ post }: BlogCardProps) => {
           <span>{post.category}</span>
         </div>
         <CardTitle className="text-xl mb-2 line-clamp-2">
-          <Link to={`/blog/${post.id}`} className="hover:text-primary transition-colors">
+          <Link
+            to={`/blog/${post.id}`}
+            className="hover:text-primary transition-colors"
+          >
             {post.title}
           </Link>
         </CardTitle>
@@ -37,8 +46,8 @@ const BlogCard = ({ post }: BlogCardProps) => {
       <CardContent className="p-4 pt-2">
         <div className="flex flex-wrap gap-2 mt-3">
           {post.tags.slice(0, 3).map((tag, index) => (
-            <span 
-              key={index} 
+            <span
+              key={index}
               className="text-xs bg-muted px-2 py-1 rounded-full font-medium text-muted-foreground"
             >
               {tag}
@@ -49,7 +58,13 @@ const BlogCard = ({ post }: BlogCardProps) => {
       <CardFooter className="p-4 pt-4 mt-auto flex items-center justify-between border-t">
         <div className="flex items-center gap-2">
           <Avatar className="h-7 w-7">
-            <img src={post.author.avatar} alt={post.author.name} />
+            <img
+              src={
+                post.author.avatar ||
+                "https://cdn-icons-gif.flaticon.com/11617/11617195.gif"
+              }
+              alt={post.author.name}
+            />
           </Avatar>
           <span className="text-sm font-medium">{post.author.name}</span>
         </div>
