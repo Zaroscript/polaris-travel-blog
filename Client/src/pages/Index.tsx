@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import Layout from '@/components/layout/Layout';
-import { Button } from '@/components/ui/button';
-import { blogPosts } from '@/data/blogData';
-import BlogCard from '@/components/blog/BlogCard';
-import DestinationCard from '@/components/destination/DestinationCard';
-import { ArrowRight, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import Layout from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
+import { blogPosts } from "@/data/blogData";
+import BlogCard from "@/components/blog/BlogCard";
+import DestinationCard from "@/components/destination/DestinationCard";
+import { ArrowRight, ChevronRight } from "lucide-react";
 
 const Index = () => {
   const [featuredPosts, setFeaturedPosts] = useState(blogPosts.slice(0, 3));
@@ -15,11 +15,11 @@ const Index = () => {
     // Fetch popular destinations from the API
     const fetchDestinations = async () => {
       try {
-        const response = await fetch('http://localhost:5001/api/destinations');
+        const response = await fetch("http://localhost:5001/api/destinations");
         const data = await response.json();
         setPopularDestinations(data.destinations.slice(0, 4)); // Assuming the response has a 'destinations' field
       } catch (error) {
-        console.error('Error fetching destinations:', error);
+        console.error("Error fetching destinations:", error);
       }
     };
 
@@ -38,7 +38,7 @@ const Index = () => {
           <div
             className="relative h-[80vh] bg-cover bg-center"
             style={{
-              backgroundImage: `url(${popularDestinations[0].coverImage.url})`,
+              backgroundImage: `url(${popularDestinations[0].images[0].url})`,
             }}
           />
         )}
@@ -84,7 +84,10 @@ const Index = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {popularDestinations.map((destination) => (
-              <DestinationCard key={destination._id} destination={destination} />
+              <DestinationCard
+                key={destination._id}
+                destination={destination}
+              />
             ))}
           </div>
         </div>

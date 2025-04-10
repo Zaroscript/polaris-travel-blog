@@ -25,6 +25,8 @@ const Destinations = () => {
       try {
         const response = await fetch("http://localhost:5001/api/destinations");
         const data = await response.json();
+        console.log("Fetched destinations:", data.destinations);
+
         setDestinations(data.destinations);
 
         if (destinationId) {
@@ -90,7 +92,10 @@ const Destinations = () => {
                 >
                   <div className="rounded-lg overflow-hidden mb-6 h-[400px]">
                     <img
-                      src={selectedDestination.coverImage.url}
+                      src={
+                        selectedDestination.images[0].url ||
+                        selectedDestination.coverImage.url
+                      }
                       alt={selectedDestination.name}
                       className="w-full h-full object-cover"
                     />

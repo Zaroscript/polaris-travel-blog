@@ -19,7 +19,7 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
     <Card className="overflow-hidden hover:shadow-md transition-shadow duration-300">
       <div className="relative h-48 sm:h-64 overflow-hidden">
         <img
-          src={destination.coverImage.url}
+          src={destination.images[0].url || destination.coverImage.url}
           alt={destination.name}
           className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
         />

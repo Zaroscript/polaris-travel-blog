@@ -1,8 +1,21 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -10,13 +23,18 @@ import * as z from "zod";
 import { useAuthStore } from "@/store/useAuthStore";
 import ImagePicker from "../components/ui/ImagePicker";
 import { UpdateProfileData } from "@/types/index";
+import { Eye, EyeOff } from "lucide-react";
 
 // Form validation schema for account info
 const accountFormSchema = z.object({
   fullName: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
-  profilePic: z.string().default("https://cdn-icons-gif.flaticon.com/11617/11617195.gif"),
-  coverImage: z.string().default("https://cdn-icons-png.flaticon.com/128/1102/1102949.png"),
+  profilePic: z
+    .string()
+    .default("https://cdn-icons-gif.flaticon.com/11617/11617195.gif"),
+  coverImage: z
+    .string()
+    .default("https://cdn-icons-png.flaticon.com/128/1102/1102949.png"),
   location: z.string().optional(),
   about: z.string().max(300, "About cannot exceed 300 characters").optional(),
   status: z.string().optional(),
@@ -24,22 +42,27 @@ const accountFormSchema = z.object({
 });
 
 // Form validation schema for password change
-const passwordFormSchema = z.object({
-  currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string()
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"]
-});
+const passwordFormSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 const AccountSettings = () => {
-  const { authUser, updateProfile, isUpdatingProfile, error, changePassword } = useAuthStore();
+  const { authUser, updateProfile, isUpdatingProfile, error, changePassword } =
+    useAuthStore();
   const [successMessage, setSuccessMessage] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   // Setup account form
   const accountForm = useForm<z.infer<typeof accountFormSchema>>({
     resolver: zodResolver(accountFormSchema),
@@ -52,31 +75,35 @@ const AccountSettings = () => {
       about: "",
       status: "",
       birthDate: "",
-    }
+    },
   });
 
   // Setup password form
   const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
-    resolver: zodResolver(passwordFormSchema)
+    resolver: zodResolver(passwordFormSchema),
   });
 
   // Format date for the form
   const formatDate = (dateString?: string | Date): string => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date instanceof Date && !isNaN(date.getTime()) 
-      ? date.toISOString().split('T')[0]
+    return date instanceof Date && !isNaN(date.getTime())
+      ? date.toISOString().split("T")[0]
       : "";
   };
 
   // Populate form with user data when available
   useEffect(() => {
-    if (authUser) {      
+    if (authUser) {
       accountForm.reset({
         fullName: authUser.fullName || "",
         email: authUser.email || "",
-        profilePic: authUser.profilePic || "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
-        coverImage: authUser.coverImage || "https://cdn-icons-png.flaticon.com/128/1102/1102949.png",
+        profilePic:
+          authUser.profilePic ||
+          "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
+        coverImage:
+          authUser.coverImage ||
+          "https://cdn-icons-png.flaticon.com/128/1102/1102949.png",
         location: authUser.location || "",
         about: authUser.about || "",
         birthDate: formatDate(authUser.birthDate),
@@ -87,23 +114,26 @@ const AccountSettings = () => {
   // Handle account form submission
   const onAccountSubmit = async (data: z.infer<typeof accountFormSchema>) => {
     if (!authUser) return;
-    
+
     try {
       // Ensure all required fields are present with defaults if necessary
       const profileData: UpdateProfileData = {
         fullName: data.fullName,
         email: data.email,
-        profilePic: data.profilePic || "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
-        coverImage: data.coverImage || "https://cdn-icons-png.flaticon.com/128/1102/1102949.png",
+        profilePic:
+          data.profilePic ||
+          "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
+        coverImage:
+          data.coverImage ||
+          "https://cdn-icons-png.flaticon.com/128/1102/1102949.png",
         location: data.location,
         about: data.about,
         status: data.status,
         birthDate: data.birthDate,
       };
-      
-      
+
       // Call the updateProfile function with the properly formatted data
-      const updatedUser = await updateProfile(profileData);      
+      const updatedUser = await updateProfile(profileData);
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
@@ -115,18 +145,20 @@ const AccountSettings = () => {
   const onPasswordSubmit = async (data: z.infer<typeof passwordFormSchema>) => {
     setIsChangingPassword(true);
     setPasswordError("");
-    
+
     try {
       await changePassword({
         currentPassword: data.currentPassword,
-        newPassword: data.newPassword
+        newPassword: data.newPassword,
       });
-      
-      passwordForm.reset(); 
+
+      passwordForm.reset();
       setTimeout(() => setPasswordSuccess(""), 3000);
     } catch (err) {
       console.error("Failed to change password:", err);
-      setPasswordError(err instanceof Error ? err.message : "Failed to change password");
+      setPasswordError(
+        err instanceof Error ? err.message : "Failed to change password"
+      );
     } finally {
       setIsChangingPassword(false);
     }
@@ -140,14 +172,12 @@ const AccountSettings = () => {
           {successMessage}
         </div>
       )}
-      
+
       {/* Error message */}
       {error && (
-        <div className="p-4 rounded-md bg-red-100 text-red-800">
-          {error}
-        </div>
+        <div className="p-4 rounded-md bg-red-100 text-red-800">{error}</div>
       )}
-      
+
       {/* Account Settings Card */}
       <Card>
         <CardHeader>
@@ -158,7 +188,10 @@ const AccountSettings = () => {
         </CardHeader>
         <CardContent>
           <Form {...accountForm}>
-            <form onSubmit={accountForm.handleSubmit(onAccountSubmit)} className="space-y-6">
+            <form
+              onSubmit={accountForm.handleSubmit(onAccountSubmit)}
+              className="space-y-6"
+            >
               {/* Profile Pictures Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <FormField
@@ -180,7 +213,7 @@ const AccountSettings = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={accountForm.control}
                   name="coverImage"
@@ -282,12 +315,12 @@ const AccountSettings = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>About</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Tell us about yourself..." 
-                        className="min-h-[100px]"
+                    <FormControl className="">
+                      <Textarea
+                        placeholder="Tell us about yourself..."
+                        className="min-h-[100px] "
                         maxLength={300}
-                        {...field} 
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -318,16 +351,19 @@ const AccountSettings = () => {
               {passwordSuccess}
             </div>
           )}
-          
+
           {/* Error message */}
           {passwordError && (
             <div className="p-4 mb-4 rounded-md bg-red-100 text-red-800">
               {passwordError}
             </div>
           )}
-          
+
           <Form {...passwordForm}>
-            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+            <form
+              onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
+              className="space-y-4"
+            >
               <FormField
                 control={passwordForm.control}
                 name="currentPassword"
@@ -335,7 +371,27 @@ const AccountSettings = () => {
                   <FormItem>
                     <FormLabel>Current Password</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <div className="relative focus-within:ring-2 focus-within:ring-blue-500 focus-within:rounded">
+                        <Input
+                          type={showCurrentPassword ? "text" : "password"}
+                          {...field}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowCurrentPassword(!showCurrentPassword)
+                          }
+                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+                          tabIndex={-1}
+                        >
+                          {showCurrentPassword ? (
+                            <EyeOff size={16} />
+                          ) : (
+                            <Eye size={16} />
+                          )}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -349,7 +405,25 @@ const AccountSettings = () => {
                   <FormItem>
                     <FormLabel>New Password</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <div className="relative focus-within:ring-2 focus-within:ring-blue-500 focus-within:rounded">
+                        <Input
+                          type={showNewPassword ? "text" : "password"}
+                          {...field}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+                          tabIndex={-1}
+                        >
+                          {showNewPassword ? (
+                            <EyeOff size={16} />
+                          ) : (
+                            <Eye size={16} />
+                          )}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -363,7 +437,27 @@ const AccountSettings = () => {
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <div className="relative focus-within:ring-2 focus-within:ring-blue-500 focus-within:rounded">
+                        <Input
+                          type={showConfirmPassword ? "text" : "password"}
+                          {...field}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+                          tabIndex={-1}
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff size={16} />
+                          ) : (
+                            <Eye size={16} />
+                          )}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
