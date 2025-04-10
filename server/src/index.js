@@ -13,8 +13,6 @@ import messageRoutes from "./routes/message.route.js";
 import notificationRoutes from "./routes/notification.route.js";
 import accountRoutes from "./routes/account.route.js";
 
-import serverless from "serverless-http";
-
 import { app, server } from "./lib/socket.js";
 
 dotenv.config();
@@ -55,6 +53,8 @@ app.use((err, req, res, next) => {
     message: err.message || "Internal Server Error",
     ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
+
+  res.send("server connected")
 });
 
 // Connect to MongoDB first
@@ -63,6 +63,7 @@ connectDB()
     // Start server only after successful database connection
     server.listen(PORT, () => {
       console.log(`Server is running on PORT:`);
+      // return a message in the page
     });
   })
   .catch((error) => {

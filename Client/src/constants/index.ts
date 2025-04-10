@@ -8,6 +8,7 @@ export const navItems = [
   { path: "/destinations", label: "Destinations" },
   { path: "/blogs", label: "Blogs" },
   { path: "/social", label: "Social" },
+  { path: "/contact", label: "Contact" },
 ];
 
 // Mock data for suggested connections

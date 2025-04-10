@@ -20,6 +20,7 @@ import Profile from "@/pages/Profile";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import Settings from "./pages/Settings";
+import Contact from "./pages/Contact";
 
 
 const App = () => {
@@ -50,6 +51,7 @@ const App = () => {
         <Route path="/blogs" element={<Blogs />} />
         <Route path="/blog/:id" element={<BlogPost />} />
         <Route path="/social" element={!authUser ? <Navigate to="/login" /> : <Social />} />
+        <Route path="/contact" element={<Contact />} />
 
         <Route
           path="/messages"
