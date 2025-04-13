@@ -30,7 +30,7 @@ import { useNotificationStore } from "@/store/useNotificationStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useThemeStore } from "@/store/useThemeStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDistanceToNow } from "date-fns";
+import { formatRelativeTime } from "@/utils/date";
 import toast from "react-hot-toast";
 import { PopulatedNotification } from "@/types";
 import MobileNav from "../navbar/MobileNav";
@@ -244,10 +244,7 @@ const Header = () => {
                               </p>
                             </div>
                             <span className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(
-                                new Date(notification.createdAt),
-                                { addSuffix: true }
-                              )}
+                              {formatRelativeTime(notification.createdAt)}
                             </span>
                           </div>
                         </motion.div>
@@ -260,7 +257,7 @@ const Header = () => {
                         size="sm"
                         asChild
                       >
-                        <Link to="/notifications">View all notifications</Link>
+                        <Link to="/coming-soon">View all notifications</Link>
                       </Button>
                     </div>
                   </PopoverContent>

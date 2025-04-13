@@ -16,6 +16,12 @@ import {
   unlikeReply,
   deleteReply,
   toggleSavePost,
+  getUserPosts,
+  getUserPhotos,
+  getLikedPosts,
+  getSavedPosts,
+  getPopularPosts,
+  getFollowingPosts,
 } from "../controllers/post.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -23,6 +29,12 @@ const router = express.Router();
 
 // Public routes
 router.get("/", getPosts);
+router.get("/popular", getPopularPosts);
+router.get("/following", protectRoute, getFollowingPosts);
+router.get("/user/:userId", getUserPosts);
+router.get("/photos/:userId", getUserPhotos);
+router.get("/liked/:userId", getLikedPosts);
+router.get("/saved/:userId", getSavedPosts);
 router.get("/:id", getPost);
 
 // Protected routes

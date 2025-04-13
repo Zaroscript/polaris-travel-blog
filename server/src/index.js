@@ -62,7 +62,7 @@ connectDB()
   .then(() => {
     // Start server only after successful database connection
     server.listen(PORT, () => {
-      console.log(`Server is running on PORT:`);
+      console.log(`Server is running on PORT: ${PORT}`);
       // return a message in the page
     });
   })

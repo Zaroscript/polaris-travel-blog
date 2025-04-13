@@ -1,21 +1,68 @@
 import { create } from "zustand";
 import { Destination, DestinationsState } from "../types/destination";
 import { axiosInstance } from "../lib/axios";
+import { normalizeReviews } from "@/lib/reviewUtils";
 
 export const useDestinationsStore = create<DestinationsState>((set, get) => ({
   destinations: [],
   currentDestination: null,
   loading: false,
   error: null,
+  popularDestinations: [],
+  trendingDestinations: [],
+  isLoading: false,
 
   // Fetch all destinations with optional search and filter parameters
   fetchDestinations: async (params = {}) => {
-    set({ loading: true, error: null });
+    set({ loading: true, isLoading: true, error: null });
     try {
       const response = await axiosInstance.get("/destinations", { params });
-      set({ destinations: response.data.destinations, loading: false });
+      set({ destinations: response.data.destinations, loading: false, isLoading: false });
     } catch (error) {
-      set({ error: "Failed to fetch destinations", loading: false });
+      set({ error: "Failed to fetch destinations", loading: false, isLoading: false });
+    }
+  },
+
+  // Fetch popular destinations (sorted by rating)
+  fetchPopularDestinations: async (limit = 4) => {
+    set({ loading: true, isLoading: true, error: null });
+    try {
+      const response = await axiosInstance.get("/destinations", { 
+        params: { 
+          limit, 
+          sort: "-rating" 
+        } 
+      });
+      set({ 
+        popularDestinations: response.data.destinations, 
+        // Also update main destinations if empty
+        destinations: get().destinations.length === 0 ? response.data.destinations : get().destinations,
+        loading: false,
+        isLoading: false 
+      });
+    } catch (error) {
+      set({ error: "Failed to fetch popular destinations", loading: false, isLoading: false });
+    }
+  },
+
+  // Fetch trending destinations (could be based on recent views, bookmarks, etc.)
+  fetchTrendingDestinations: async (limit = 4) => {
+    set({ loading: true, isLoading: true, error: null });
+    try {
+      // This could use different criteria based on your API
+      const response = await axiosInstance.get("/destinations", { 
+        params: { 
+          limit, 
+          sort: "-updatedAt" // As an example - newest destinations
+        } 
+      });
+      set({ 
+        trendingDestinations: response.data.destinations,
+        loading: false,
+        isLoading: false 
+      });
+    } catch (error) {
+      set({ error: "Failed to fetch trending destinations", loading: false, isLoading: false });
     }
   },
 
@@ -24,7 +71,16 @@ export const useDestinationsStore = create<DestinationsState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await axiosInstance.get(`/destinations/${id}`);
-      set({ currentDestination: response.data, loading: false });
+      
+      // Normalize the reviews data to ensure it has the correct structure
+      const destinationData = response.data;
+      if (destinationData.reviews) {
+        destinationData.reviews = normalizeReviews(destinationData.reviews);
+      } else {
+        destinationData.reviews = [];
+      }
+      
+      set({ currentDestination: destinationData, loading: false });
     } catch (error) {
       set({ error: "Failed to fetch destination", loading: false });
     }
@@ -98,12 +154,16 @@ export const useDestinationsStore = create<DestinationsState>((set, get) => ({
         `/destinations/${destinationId}/reviews`,
         reviewData
       );
+      
+      // Normalize the new review before adding it to the state
+      const normalizedReview = normalizeReviews([response.data])[0];
+      
       set((state) => ({
         currentDestination:
           state.currentDestination?._id === destinationId
             ? {
                 ...state.currentDestination,
-                reviews: [...state.currentDestination.reviews, response.data],
+                reviews: [...(state.currentDestination.reviews || []), normalizedReview],
               }
             : state.currentDestination,
         loading: false,

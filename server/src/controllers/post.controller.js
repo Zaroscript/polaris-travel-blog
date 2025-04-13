@@ -13,34 +13,113 @@ cloudinary.config({
 /**
  * @route GET /api/posts
  * @example
- * GET http://localhost:5000/api/posts?page=1&limit=10
+ * GET http://localhost:5000/api/posts?page=1&limit=10&search=travel&sort=popular&category=adventure
  */
 export const getPosts = catchAsync(async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const search = req.query.search || "";
-  const query = search ? { content: { $regex: search, $options: "i" } } : {};
+  const { 
+    search = "", 
+    page = 1, 
+    limit = 10, 
+    sort = "recent", 
+    category = "",
+    destination = "",
+    author = ""
+  } = req.query;
 
-  const skip = (page - 1) * limit;
+  // Base query
+  const query = { isDeleted: false, isPublished: true };
 
+  // Search functionality
+  if (search) {
+    query.$or = [
+      { title: { $regex: search, $options: "i" } },
+      { content: { $regex: search, $options: "i" } },
+      { tags: { $in: [new RegExp(search, "i")] } }
+    ];
+  }
+
+  // Filter by category (tag)
+  if (category) {
+    query.tags = { $in: [category] };
+  }
+
+  // Filter by destination
+  if (destination) {
+    query.destination = destination;
+  }
+
+  // Filter by author
+  if (author) {
+    query.author = author;
+  }
+
+  // Sorting options
+  let sortOption = { createdAt: -1 }; // Default: recent first
+  
+  if (sort === "popular") {
+    sortOption = { views: -1 };
+  } else if (sort === "trending") {
+    // Trending: combination of recent + popular (posts from the last 7 days with most likes)
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    query.createdAt = { $gte: oneWeekAgo };
+    sortOption = { "likes.length": -1, createdAt: -1 };
+  } else if (sort === "comments") {
+    sortOption = { "comments.length": -1 };
+  }
+
+  // Add user-specific filters if authenticated
+  if (req.user) {
+    // Check if posts are liked or saved by the current user
+    const currentUser = await User.findById(req.user.id);
+    
+    if (req.query.saved === "true" && currentUser) {
+      const savedPostIds = currentUser.savedPosts.map(post => post.toString());
+      query._id = { $in: savedPostIds };
+    }
+    
+    if (req.query.liked === "true" && currentUser) {
+      query.likes = { $in: [req.user.id] };
+    }
+    
+    if (req.query.following === "true" && currentUser) {
+      query.author = { $in: currentUser.following.map(follow => follow.toString()) };
+    }
+  }
+
+  // Pagination
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  
   const posts = await Post.find(query)
-    .sort({ createdAt: -1 })
+    .sort(sortOption)
     .skip(skip)
-    .limit(limit)
+    .limit(parseInt(limit))
     .populate("author", "fullName profilePic")
     .populate("likes", "fullName profilePic")
     .populate("comments.author", "fullName profilePic")
     .populate("destination", "name image");
 
+  // For each post, check if the current user has liked/saved it
+  let enhancedPosts = posts;
+  if (req.user) {
+    const user = await User.findById(req.user.id);
+    enhancedPosts = posts.map(post => {
+      const postObj = post.toObject();
+      postObj.isLiked = post.likes.some(like => like._id.toString() === req.user.id);
+      postObj.isSaved = user.savedPosts.some(savedPost => savedPost.toString() === post._id.toString());
+      return postObj;
+    });
+  }
+
   const total = await Post.countDocuments(query);
 
   res.json({
-    posts,
+    posts: enhancedPosts,
     pagination: {
       total,
-      page,
-      pages: Math.ceil(total / limit),
-      limit
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
+      limit: parseInt(limit),
+      hasMore: skip + posts.length < total
     },
   });
 });
@@ -583,4 +662,206 @@ export const deleteReply = catchAsync(async (req, res) => {
   }
 
   res.json(post);
+});
+
+/**
+ * @route GET /api/posts/user/:userId
+ * @description Get all posts by a specific user
+ * @example
+ * GET http://localhost:5000/api/posts/user/user_id
+ */
+export const getUserPosts = catchAsync(async (req, res) => {
+  const userId = req.params.userId;
+  
+  const posts = await Post.find({ author: userId })
+    .sort({ createdAt: -1 })
+    .populate("author", "fullName profilePic")
+    .populate("likes", "fullName profilePic")
+    .populate("comments.author", "fullName profilePic")
+    .populate("destination", "name image");
+
+  res.json({
+    posts,
+    message: "Posts retrieved successfully"
+  });
+});
+
+/**
+ * @route GET /api/posts/photos/:userId
+ * @description Get all photo posts by a specific user
+ * @example
+ * GET http://localhost:5000/api/posts/photos/user_id
+ */
+export const getUserPhotos = catchAsync(async (req, res) => {
+  const userId = req.params.userId;
+  
+  const posts = await Post.find({ 
+    author: userId,
+    images: { $exists: true, $ne: [] } // Only posts with images
+  })
+    .sort({ createdAt: -1 })
+    .populate("author", "fullName profilePic")
+    .populate("likes", "fullName profilePic")
+    .populate("destination", "name image");
+
+  // Extract just the images from the posts
+  const photos = posts.flatMap(post => 
+    post.images.map(image => ({
+      _id: post._id,
+      image,
+      createdAt: post.createdAt
+    }))
+  );
+
+  res.json({
+    photos,
+    message: "Photos retrieved successfully"
+  });
+});
+
+/**
+ * @route GET /api/posts/liked/:userId
+ * @description Get all posts liked by a specific user
+ * @example
+ * GET http://localhost:5000/api/posts/liked/user_id
+ */
+export const getLikedPosts = catchAsync(async (req, res) => {
+  const userId = req.params.userId;
+  
+  const posts = await Post.find({ 
+    likes: userId 
+  })
+    .sort({ createdAt: -1 })
+    .populate("author", "fullName profilePic")
+    .populate("likes", "fullName profilePic")
+    .populate("comments.author", "fullName profilePic")
+    .populate("destination", "name image");
+
+  res.json({
+    posts,
+    message: "Liked posts retrieved successfully"
+  });
+});
+
+/**
+ * @route GET /api/posts/saved/:userId
+ * @description Get all posts saved by a specific user
+ * @example
+ * GET http://localhost:5000/api/posts/saved/user_id
+ */
+export const getSavedPosts = catchAsync(async (req, res) => {
+  const userId = req.params.userId;
+  
+  // Find the user and get the saved posts from the user's savedPosts array
+  const user = await User.findById(userId).populate({
+    path: "savedPosts",
+    populate: [
+      { path: "author", select: "fullName profilePic" },
+      { path: "likes", select: "fullName profilePic" },
+      { path: "comments.author", select: "fullName profilePic" },
+      { path: "destination", select: "name image" }
+    ]
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  res.json({
+    posts: user.savedPosts || [],
+    message: "Saved posts retrieved successfully"
+  });
+});
+
+/**
+ * @route GET /api/posts/popular
+ * @example
+ * GET http://localhost:5000/api/posts/popular?limit=5
+ */
+export const getPopularPosts = catchAsync(async (req, res) => {
+  const { limit = 5 } = req.query;
+  
+  const posts = await Post.find({ isDeleted: false, isPublished: true })
+    .sort({ views: -1 })
+    .limit(parseInt(limit))
+    .populate("author", "fullName profilePic")
+    .populate("likes", "fullName profilePic")
+    .populate("comments.author", "fullName profilePic")
+    .populate("destination", "name image");
+
+  // For each post, check if the current user has liked/saved it
+  let enhancedPosts = posts;
+  if (req.user) {
+    const user = await User.findById(req.user.id);
+    enhancedPosts = posts.map(post => {
+      const postObj = post.toObject();
+      postObj.isLiked = post.likes.some(like => like._id.toString() === req.user.id);
+      postObj.isSaved = user.savedPosts.some(savedPost => savedPost.toString() === post._id.toString());
+      return postObj;
+    });
+  }
+
+  res.json({
+    posts: enhancedPosts
+  });
+});
+
+/**
+ * @route GET /api/posts/following
+ * @example
+ * GET http://localhost:5000/api/posts/following?page=1&limit=10
+ */
+export const getFollowingPosts = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+  
+  if (!req.user) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+  
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  
+  const followingIds = user.following.map(follow => follow.toString());
+  
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  
+  const posts = await Post.find({ 
+    author: { $in: followingIds },
+    isDeleted: false, 
+    isPublished: true 
+  })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit))
+    .populate("author", "fullName profilePic")
+    .populate("likes", "fullName profilePic")
+    .populate("comments.author", "fullName profilePic")
+    .populate("destination", "name image");
+
+  // Enhance posts with user-specific data
+  const enhancedPosts = posts.map(post => {
+    const postObj = post.toObject();
+    postObj.isLiked = post.likes.some(like => like._id.toString() === req.user.id);
+    postObj.isSaved = user.savedPosts.some(savedPost => savedPost.toString() === post._id.toString());
+    return postObj;
+  });
+
+  const total = await Post.countDocuments({ 
+    author: { $in: followingIds },
+    isDeleted: false, 
+    isPublished: true 
+  });
+
+  res.json({
+    posts: enhancedPosts,
+    pagination: {
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
+      limit: parseInt(limit),
+      hasMore: skip + posts.length < total
+    },
+  });
 });

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
+import { formatRelativeTime } from "@/utils/date";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,6 +18,9 @@ import {
   UserPlus,
   UserMinus,
   Share2,
+  Image,
+  ThumbsUp,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -34,7 +37,6 @@ import { usePostsStore } from "@/store/usePostsStore";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfileStore } from "@/store/useProfileStore";
-import { error } from "console";
 
 interface PostCardProps {
   key?: string;
@@ -45,9 +47,10 @@ interface PostCardProps {
   isLiked?: boolean;
   isSaved?: boolean;
   isFollowing?: boolean;
+  compact?: boolean;
 }
 
-const PostCard = ({ post, onLike, onSave, onCopyLink }: PostCardProps) => {
+const PostCard = ({ post, onLike, onSave, onCopyLink, compact = false }: PostCardProps) => {
   const [expandedComments, setExpandedComments] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -55,7 +58,7 @@ const PostCard = ({ post, onLike, onSave, onCopyLink }: PostCardProps) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
-  const { likePost, unlikePost, deletePost, toggleSavePost } = usePostsStore();
+  const { likePost, unlikePost, deletePost, toggleSavePost, sharePost } = usePostsStore();
   const { toast } = useToast();
   const { authUser } = useAuthStore();
   const { followUser, unfollowUser, profile } = useProfileStore();
@@ -110,7 +113,7 @@ const PostCard = ({ post, onLike, onSave, onCopyLink }: PostCardProps) => {
         title: "Action failed",
         description: `Failed to ${
           currentLikeState ? "unlike" : "like"
-        } the post. Error is ${error}, Please try again.`,
+        } the post. Please try again.`,
         variant: "destructive",
       });
     }
@@ -118,13 +121,23 @@ const PostCard = ({ post, onLike, onSave, onCopyLink }: PostCardProps) => {
 
   const handleShare = async () => {
     try {
-      await navigator.share({
-        title: post.title,
-        text: post.content,
-        url: `${window.location.origin}/post/${post._id}`,
-      });
+      // Try Web Share API first
+      if (navigator.share) {
+        await navigator.share({
+          title: post.title || 'Check out this post',
+          text: post.content.substring(0, 100) + '...',
+          url: `${window.location.origin}/post/${post._id}`,
+        });
+        // Call API to record share
+        await sharePost(post._id);
+      } else {
+        // Fallback to copy link
+        handleCopyLink();
+        // Still record the share
+        await sharePost(post._id);
+      }
     } catch (error) {
-      // Fallback to copy link if Web Share API is not supported
+      // Fallback to copy link if Web Share API fails
       handleCopyLink();
     }
   };
@@ -207,202 +220,236 @@ const PostCard = ({ post, onLike, onSave, onCopyLink }: PostCardProps) => {
     }
   };
 
-  const handleSave = async () => {
-    if (!authUser) {
-      toast({
-        title: "Error",
-        description: "Please log in to save posts",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { isSaved } = await usePostsStore
-        .getState()
-        .toggleSavePost(post._id);
-      toast({
-        title: "Success",
-        description: isSaved ? "Post saved" : "Post unsaved",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update save status",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const toggleComments = () => {
-    setExpandedComments(!expandedComments);
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
-        <CardContent className="p-6">
-          <div className="">
-            <div className="flex items-center space-x-4">
-              <Link to={`/User/profile/${post.author._id}`}>
-                <Avatar className="h-10 w-10 ring-2 ring-primary/10">
+      <Card className="overflow-hidden border-primary/10 shadow-sm hover:shadow-md transition-shadow">
+        <CardContent className="p-0">
+          {/* Post Header */}
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link to={`/profile/${post.author._id}`}>
+                <Avatar className="h-10 w-10 border border-primary/10">
                   <AvatarImage src={post.author.profilePic} />
                   <AvatarFallback>
-                    {post.author.fullName?.charAt(0)}
+                    {post.author.fullName?.charAt(0) || "?"}
                   </AvatarFallback>
                 </Avatar>
               </Link>
-
-              <div className="flex-1 flex space-x-2 items-center">
-                <div>
-                  <Link to={`/User/profile/${post.author._id}`}>
-                    <h3 className="font-semibold text-base hover:text-primary transition-colors">
-                      {post.author.fullName}
-                    </h3>
-                  </Link>
-                  <p className="text-sm text-muted-foreground">
-                    {formatDistanceToNow(new Date(post.createdAt), {
-                      addSuffix: true,
-                    })}
-                  </p>
-                </div>
-
-                {authUser && authUser._id !== post.author._id && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      "h-8 px-2 text-muted-foreground hover:text-primary hover:bg-primary/10",
-                      isFollowing && "text-primary"
-                    )}
-                    onClick={handleFollow}
-                  >
-                    {isFollowing ? (
-                      <UserMinus className="h-4 w-4" />
-                    ) : (
-                      <UserPlus className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <PostMenu
-                  postId={post._id}
-                  authorId={post.author._id}
-                  onSave={handleSave}
-                  onCopyLink={handleCopyLink}
-                  onDelete={handleDelete}
-                  onEdit={handleEdit}
-                  isSaved={isSaved}
-                  isCopied={isCopied}
-                />
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <Link to={`/post/${post._id}`}>
-                <h2 className="text-xl inline-block font-semibold mb-2 hover:text-primary transition-colors">
-                  {post.title}
-                </h2>
-              </Link>
-              <p className="text-base">{post.content}</p>
-              {post.coverImage && (
-                <div className="mt-4">
-                  <img
-                    src={post.coverImage}
-                    alt="Post cover"
-                    className="w-full aspect-video object-cover rounded-lg"
-                  />
-                </div>
-              )}
-              {post.destination && (
-                <div className="mt-4 flex items-center text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4 mr-1" />
+              <div>
+                <div className="flex items-center gap-2">
                   <Link
-                    to={`/destination/${post.destination._id}`}
-                    className="hover:text-primary transition-colors"
+                    to={`/profile/${post.author._id}`}
+                    className="font-medium text-sm hover:text-primary transition-colors"
                   >
-                    {post.destination.name}
+                    {post.author.fullName}
                   </Link>
                 </div>
-              )}
-              {post.tags && post.tags.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {post.tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary">
-                      #{tag}
-                    </Badge>
-                  ))}
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>
+                    {formatRelativeTime(post.createdAt)}
+                  </span>
+                  {post.destination && (
+                    <>
+                      <span>•</span>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        <span>{post.destination.name}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
+
+            <div className="flex items-center gap-2">
+              {authUser && authUser._id !== post.author._id && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "h-8 text-xs rounded-full border border-primary/20 hover:bg-primary/5 px-3",
+                    isFollowing && "bg-primary/5 text-primary"
+                  )}
+                  onClick={handleFollow}
+                >
+                  {isFollowing ? (
+                    <>
+                      <UserMinus className="h-3 w-3 mr-1" />
+                      <span>Unfollow</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-3 w-3 mr-1" />
+                      <span>Follow</span>
+                    </>
+                  )}
+                </Button>
+              )}
+              <PostMenu
+                postId={post._id}
+                authorId={post.author._id}
+                onEdit={() => handleEdit()}
+                onDelete={() => handleDelete()}
+                onCopyLink={() => handleCopyLink && handleCopyLink(post._id)}
+                onSave={() => onSave && onSave(post._id)}
+                isSaved={isSaved}
+                isCopied={isCopied}
+              />
+            </div>
+          </div>
+
+          {/* Post Content */}
+          <div className="px-4 mb-3">
+            {post.title && (
+              <h3 className="text-base font-semibold mb-2">{post.title}</h3>
+            )}
+            <p className="text-sm whitespace-pre-wrap">{post.content}</p>
+          </div>
+
+          {/* Post Image */}
+          {post.coverImage && (
+            <div className="w-full mb-3">
+              <img
+                src={post.coverImage}
+                alt={post.title}
+                className="w-full h-64 object-cover"
+              />
+            </div>
+          )}
+
+          {/* Gallery Images */}
+          {post.gallery && post.gallery.length > 0 && (
+            <div className={`w-full ${post.gallery.length > 1 ? 'grid grid-cols-2 gap-0.5' : ''} mb-3`}>
+              {post.gallery.map((image, index) => (
+                <div 
+                  key={index} 
+                  className={cn(
+                    "overflow-hidden relative group",
+                    post.gallery.length === 1 && "aspect-video",
+                    post.gallery.length > 1 && "aspect-square",
+                    index > 3 && "hidden"
+                  )}
+                >
+                  <img
+                    src={image}
+                    alt={`Gallery image ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  {index === 3 && post.gallery.length > 4 && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-medium">
+                      <div className="flex items-center gap-1">
+                        <Image className="h-5 w-5" />
+                        <span>+{post.gallery.length - 4} more</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Post Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="px-4 mb-3 flex flex-wrap gap-2">
+              {post.tags.map((tag, index) => (
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className="bg-primary/5 hover:bg-primary/10 text-xs border-primary/10"
+                >
+                  #{tag}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {/* Post Stats */}
+          <div className="px-4 flex items-center justify-between text-xs text-muted-foreground mb-2">
+            <div className="flex items-center gap-1">
+              <Heart className={cn("h-3 w-3", isLiked && "fill-red-500 text-red-500")} />
+              <span>{post.likes.length} likes</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1">
+                <MessageCircle className="h-3 w-3" />
+                <span>{post.comments.length} comments</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Share2 className="h-3 w-3" />
+                <span>{post.shares && post.shares.length > 0 ? post.shares.length : 0} shares</span>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Post Actions */}
+          <div className="px-2 py-1 flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "flex-1 rounded-md h-9 text-xs gap-1",
+                isLiked && "text-red-500"
+              )}
+              onClick={handleLike}
+            >
+              <Heart
+                className={cn("h-4 w-4", isLiked && "fill-red-500")}
+              />
+              <span>Like</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-1 rounded-md h-9 text-xs gap-1"
+              onClick={() => setExpandedComments(!expandedComments)}
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span>Comment</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-1 rounded-md h-9 text-xs gap-1"
+              onClick={handleShare}
+            >
+              <Share2 className="h-4 w-4" />
+              <span>Share</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "flex-1 rounded-md h-9 text-xs gap-1",
+                isSaved && "text-primary"
+              )}
+              onClick={() => onSave && onSave(post._id)}
+            >
+              <Bookmark
+                className={cn("h-4 w-4", isSaved && "fill-primary")}
+              />
+              <span>Save</span>
+            </Button>
           </div>
         </CardContent>
 
-        <Separator />
-
-        <CardFooter className="p-4">
-          <div className="flex items-center space-x-4 w-full">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex-1"
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "w-full justify-start text-muted-foreground transition-all duration-200",
-                  "hover:text-red-500 hover:bg-red-500/10",
-                  isLiked && "text-red-500 bg-red-500/10"
-                )}
-                onClick={handleLike}
-              >
-                <motion.div
-                  animate={{
-                    scale: isLiked ? [1, 1.2, 1] : 1,
-                  }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Heart
-                    className={cn("h-4 w-4 mr-2", isLiked && "fill-current")}
-                  />
-                </motion.div>
-                {post.likes.length} Likes
-              </Button>
-            </motion.div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-1 justify-start text-muted-foreground hover:text-primary hover:bg-primary/10"
-              onClick={toggleComments}
-            >
-              <MessageCircle className="h-4 w-4 mr-2" />
-              {post.comments.length} Comments
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-1 justify-start text-muted-foreground hover:text-primary hover:bg-primary/10"
-              onClick={handleShare}
-            >
-              <Share2 className="h-4 w-4 mr-2" />
-              Share
-            </Button>
-          </div>
-        </CardFooter>
-
+        {/* Comments Section */}
         {expandedComments && (
-          <div className="px-4 pb-4">
-            <CommentSection postId={post._id} comments={post.comments} />
-          </div>
+          <CardFooter className="p-0 border-t">
+            <CommentSection postId={post._id} comments={post.comments || []} />
+          </CardFooter>
         )}
       </Card>
+
+      {/* Edit Post Dialog */}
       <EditPost
         post={post}
         open={editDialogOpen}

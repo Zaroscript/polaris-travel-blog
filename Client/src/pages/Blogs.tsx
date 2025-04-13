@@ -1,193 +1,101 @@
-// Import your BlogPost type
-import { BlogPost } from "@/types";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, X } from "lucide-react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Search, X, ChevronRight, Calendar, Tag, Clock, BookOpen, TrendingUp, Filter } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import { blogPosts } from "@/data/blogData";
 import BlogCard from "@/components/blog/BlogCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePostsStore } from "@/store/usePostsStore";
-
-// Define the API Post type to match your actual data structure
-interface ApiPost {
-  _id: string;
-  title: string;
-  content: string;
-  coverImage: string;
-  author: {
-    _id: string;
-    fullName: string;
-    profilePic: string;
-  };
-  gallery: string[];
-  likes: {
-    _id: string;
-    fullName: string;
-    profilePic: string;
-  }[];
-  comments: {
-    _id: string;
-    content: string;
-    author: {
-      _id: string;
-      fullName: string;
-      profilePic: string;
-    };
-    likes: string[];
-    createdAt: string;
-    replies: {
-      _id: string;
-      content: string;
-      author: string;
-      createdAt: string;
-      likes: string[];
-    }[];
-  }[];
-  tags: string[];
-  isPublished: boolean;
-  destination?: {
-    _id: string;
-    name: string;
-  };
-  shares: any[];
-  views: number;
-  isSaved: boolean;
-  isLiked: boolean;
-  isShared: boolean;
-  isDeleted: boolean;
-  isEdited: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import { Post } from "@/types/social";
+import { useToast } from "@/components/ui/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingState } from "@/components/ui/loading-state";
 
 const Blogs = () => {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredPosts, setFilteredPosts] = useState(blogPosts);
+  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [allCategories, setAllCategories] = useState<string[]>([]);
+  const [trendingPosts, setTrendingPosts] = useState<Post[]>([]);
 
-  // New state for API posts
-  const [apiPosts, setApiPosts] = useState<ApiPost[]>([]);
-  const [filteredApiPosts, setFilteredApiPosts] = useState<ApiPost[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const postsStore = usePostsStore();
+  const { posts, loading, error, fetchPosts, fetchPopularPosts } = usePostsStore();
+  const { toast } = useToast();
 
-  const {
-    posts: popularPosts,
-    loading: popularLoading,
-    error: popularError,
-    fetchPopularPosts,
-  } = usePostsStore();
-  console.log("Popular Posts:", popularPosts);
-
+  // Initial data fetch
   useEffect(() => {
-    fetchPopularPosts();
-  }, [fetchPopularPosts]);
-
-  // Fetch posts from API
-  useEffect(() => {
-    const fetchPosts = async () => {
+    const loadBlogPosts = async () => {
       try {
-        setLoading(true);
-        const response = await axios.get("http://localhost:5001/api/posts");
-
-        // Check if response contains data or posts array
-        const postsData = response.data.posts || response.data;
-        setApiPosts(Array.isArray(postsData) ? postsData : [postsData]);
-
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching posts:", err);
-        setError("Failed to load posts. Please try again later.");
-        setLoading(false);
+        // Initial post fetch
+        await fetchPosts();
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load blog posts",
+          variant: "destructive",
+        });
       }
     };
 
-    fetchPosts();
-  }, []);
+    loadBlogPosts();
+  }, [fetchPosts, toast]);
 
-  // Filter static blog posts based on search term
+  // Extract categories from posts and set trending posts
   useEffect(() => {
-    const filtered = blogPosts.filter(
-      (post) =>
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.tags.some((tag) =>
-          tag.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-    );
-    setFilteredPosts(filtered);
-  }, [searchTerm]);
+    if (posts.length > 0) {
+      // Extract all unique categories/tags from posts
+      const categories = [...new Set(posts.flatMap(post => post.tags || []))];
+      setAllCategories(categories);
 
-  // Filter API posts based on search term
+      // Set trending posts (highest likes)
+      const trending = [...posts]
+        .sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0))
+        .slice(0, 1);
+      setTrendingPosts(trending);
+
+      // Filter posts based on search and category
+      filterPosts();
+    }
+  }, [posts]);
+
+  // Filter posts when search term or category changes
   useEffect(() => {
-    if (apiPosts.length > 0) {
-      const filtered = apiPosts.filter(
+    filterPosts();
+  }, [searchTerm, activeCategory, posts]);
+
+  const filterPosts = () => {
+    if (!posts.length) return;
+    
+    let filtered = [...posts];
+    
+    if (searchTerm) {
+      filtered = filtered.filter(
         (post) =>
           post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          post.tags.some((tag) =>
+          (post.tags && post.tags.some((tag) =>
             tag.toLowerCase().includes(searchTerm.toLowerCase())
-          )
+          ))
       );
-      setFilteredApiPosts(filtered);
     }
-  }, [searchTerm, apiPosts]);
+    
+    if (activeCategory !== "all") {
+      filtered = filtered.filter(post => 
+        post.tags && post.tags.some(tag => tag.toLowerCase() === activeCategory.toLowerCase())
+      );
+    }
+    
+    setFilteredPosts(filtered);
+  };
 
   const clearSearch = () => setSearchTerm("");
-
-  // Transform API post to BlogPost format based on BlogPost.tsx requirements
-  const transformPost = (post: ApiPost): BlogPost => {
-    return {
-      id:
-        parseInt(post._id.substring(post._id.length - 6), 16) ||
-        Number(post._id.slice(-6)), // Convert string ID to a number
-      title: post.title,
-      excerpt: post.content.substring(0, 150) + "...",
-      content: post.content,
-      image: post.coverImage || "/placeholder-image.jpg",
-      date: new Date(post.createdAt).toLocaleDateString(),
-      category: post.destination?.name || "Uncategorized",
-      author: {
-        name: post.author.fullName || "Anonymous",
-        avatar:
-          post.author.profilePic ||
-          "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
-        role: "Travel Writer",
-      },
-      tags: post.tags || [],
-      likes: post.likes.length,
-      comments: post.comments.map((comment) => ({
-        id: comment._id,
-        text: comment.content,
-        user: {
-          name: comment.author.fullName,
-          avatar:
-            comment.author.profilePic ||
-            "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
-        },
-        date: comment.createdAt,
-        likes: comment.likes.length || 0,
-      })),
-      gallery: post.gallery || [],
-      readTime: `${Math.ceil(post.content.length / 1000)} min read`,
-      destination: post.destination
-        ? {
-            name: post.destination.name,
-            id: post.destination._id,
-          }
-        : undefined,
-      featured:
-        post.tags.includes("featured") ||
-        post.views > 300 ||
-        post.likes.length > 2,
-    };
+  
+  const selectCategory = (category: string) => {
+    setActiveCategory(category);
   };
 
   const staggerContainer = {
@@ -205,183 +113,236 @@ const Blogs = () => {
     show: { y: 0, opacity: 1, transition: { duration: 0.5 } },
   };
 
+  if (error) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8 text-center">
+          <p className="text-red-500 text-lg">Failed to load blog posts. Please try again later.</p>
+          <Button 
+            onClick={() => fetchPosts()} 
+            className="mt-4"
+          >
+            Retry
+          </Button>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-10"
-        >
-          <h1 className="text-4xl font-bold mb-4">Travel Stories & Tips</h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Discover travel insights, personal adventures, and practical advice
-            for your next journey.
-          </p>
-        </motion.div>
-
-        <div className="flex justify-center mb-10">
-          <div className="relative w-full max-w-md">
-            <Input
-              type="text"
-              placeholder="Search blog posts..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-10"
-            />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            {searchTerm && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6"
-                onClick={clearSearch}
+        {/* Hero Section */}
+        <section className="relative mb-16">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl -z-10" />
+          <div className="grid md:grid-cols-2 gap-8 p-8 items-center">
+            <div>
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
               >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Featured posts section - using original static data */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Featured Stories</h2>
-
-          {/* Loading state for featured stories */}
-          {popularLoading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(3)].map((_, index) => (
-                <div key={index} className="animate-pulse">
-                  <div className="rounded-lg overflow-hidden mb-3 aspect-video bg-gray-200"></div>
-                  <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Error state for featured stories */}
-          {!popularLoading && popularError && (
-            <Card className="text-center py-6 mb-4">
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Unable to load featured stories
+                <h1 className="text-4xl md:text-5xl font-bold mb-6">Travel Stories & Tips</h1>
+                <p className="text-muted-foreground text-lg mb-8 max-w-lg">
+                  Discover travel insights, personal adventures, and practical advice
+                  for your next journey from our community of global explorers.
                 </p>
-              </CardContent>
-            </Card>
-          )}
+                <div className="flex gap-4">
+                  <Button className="bg-primary-foreground text-primary hover:bg-primary hover:text-primary-foreground">
+                    Latest Stories
+                  </Button>
+                  <Button variant="outline">
+                    Travel Guides
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+            <div className="hidden md:block">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="relative"
+              >
+                <img
+                  src="/images/blog-hero.jpg"
+                  alt="Travel blogging"
+                  className="rounded-xl shadow-lg object-cover h-[400px] w-full"
+                />
+                <div className="absolute bottom-6 right-6 bg-background/80 backdrop-blur-sm p-4 rounded-lg shadow max-w-[200px]">
+                  <p className="text-sm font-medium">Join our community of travelers sharing their journeys</p>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
 
-          {/* Featured stories content */}
-          {!popularLoading && !popularError && popularPosts.length > 0 && (
+        {/* Trending Post Feature */}
+        <section className="mb-16">
+          <h2 className="text-2xl font-bold mb-6 flex items-center">
+            <TrendingUp className="mr-2 h-5 w-5 text-primary" /> Trending Now
+          </h2>
+          
+          {loading ? (
+            <div className="w-full rounded-xl overflow-hidden bg-muted/30 h-[300px] animate-pulse"></div>
+          ) : trendingPosts.length > 0 ? (
             <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              animate="show"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="group relative overflow-hidden rounded-xl"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {popularPosts.slice(0, 3).map((post) => (
-                  <motion.div
-                    variants={item}
-                    key={post._id}
-                    onClick={() => navigate(`/blog/${post._id}`)}
-                    whileHover={{ scale: 1.02 }}
-                    className="cursor-pointer"
-                  >
-                    <BlogCard post={transformPost(post)} />
-                  </motion.div>
-                ))}
-              </div>
+              <Link to={`/blog/${trendingPosts[0]._id}`}>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 rounded-xl z-10" />
+                <img 
+                  src={trendingPosts[0].coverImage} 
+                  alt={trendingPosts[0].title} 
+                  className="w-full h-[300px] object-cover rounded-xl transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute bottom-0 left-0 p-6 z-20 w-full md:w-2/3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Badge variant="secondary" className="bg-primary/80 hover:bg-primary text-white">Trending</Badge>
+                    {trendingPosts[0].tags?.slice(0, 1).map((tag, i) => (
+                      <Badge key={i} variant="outline" className="bg-background/20 hover:bg-background/30">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">{trendingPosts[0].title}</h3>
+                  <p className="text-white/80 mb-4 line-clamp-2">{trendingPosts[0].content.substring(0, 120)}...</p>
+                  <div className="flex items-center gap-3 text-white/90">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span className="text-sm">{new Date(trendingPosts[0].createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      <span className="text-sm">5 min read</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
             </motion.div>
-          )}
-
-          {/* Fallback to static if no popular posts */}
-          {!popularLoading && !popularError && popularPosts.length === 0 && (
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              animate="show"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {blogPosts
-                  .filter((post) => post.featured)
-                  .slice(0, 3)
-                  .map((post) => (
-                    <motion.div variants={item} key={post.id}>
-                      <BlogCard post={post} />
-                    </motion.div>
-                  ))}
-              </div>
-            </motion.div>
+          ) : (
+            <p className="text-center py-8 text-muted-foreground">No trending posts available</p>
           )}
         </section>
 
-        <div className="border-t my-12" />
+        {/* Blog Content Tabs + Search Bar */}
+        <section className="mb-16">
+          <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between mb-8">
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="mb-6">
+                <TabsTrigger value="all" onClick={() => selectCategory("all")}>All Posts</TabsTrigger>
+                <TabsTrigger value="travel-guides" onClick={() => selectCategory("guide")}>Travel Guides</TabsTrigger>
+                <TabsTrigger value="adventures" onClick={() => selectCategory("adventure")}>Adventures</TabsTrigger>
+                <TabsTrigger value="tips" onClick={() => selectCategory("tips")}>Travel Tips</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
+            <div className="relative w-full md:w-64">
+              <Input
+                placeholder="Search posts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pr-8"
+              />
+              {searchTerm && (
+                <button 
+                  onClick={clearSearch}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
 
-        {/* All posts section - updated to use API posts */}
-        <section>
-          <h2 className="text-2xl font-bold mb-6">
-            {searchTerm
-              ? `Search Results (${filteredApiPosts.length})`
-              : "All Blog Posts"}
-          </h2>
-
-          {/* Loading state */}
-          {loading && (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Loading posts...</p>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Card key={i} className="overflow-hidden">
+                  <div className="bg-muted h-48 animate-pulse" />
+                  <CardContent className="p-4 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : filteredPosts.length > 0 ? (
+            <motion.div 
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {filteredPosts.map((post) => (
+                <motion.div key={post._id} variants={item}>
+                  <BlogCard post={post} />
+                </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            <div className="text-center py-16">
+              <p className="text-muted-foreground mb-4">No posts found matching your search criteria.</p>
+              <Button variant="outline" onClick={clearSearch}>
+                Clear Filters
+              </Button>
             </div>
           )}
-
-          {/* Error state */}
-          {error && (
-            <Card className="text-center py-8 mb-8">
-              <CardContent>
-                <p className="text-red-500 mb-4">{error}</p>
-                <Button onClick={() => window.location.reload()}>
-                  Try Again
-                </Button>
-              </CardContent>
-            </Card>
+          
+          {!loading && filteredPosts.length > 0 && (
+            <div className="flex justify-center mt-10">
+              <Button variant="outline" className="gap-2">
+                Load More <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           )}
+        </section>
 
-          {/* No results state */}
-          {!loading && !error && filteredApiPosts.length === 0 && searchTerm ? (
-            <Card className="text-center py-12">
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  No posts found matching "{searchTerm}"
-                </p>
-                <Button variant="outline" onClick={clearSearch}>
-                  Clear Search
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            // Results from API
-            !loading &&
-            !error && (
-              <motion.div
-                variants={staggerContainer}
-                initial="hidden"
-                animate="show"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {(searchTerm ? filteredApiPosts : apiPosts).map((post) => (
-                    <motion.div
-                      variants={item}
-                      key={post._id}
-                      onClick={() => navigate(`/blog/${post._id}`)}
-                      whileHover={{ scale: 1.02 }}
-                      className="cursor-pointer"
-                    >
-                      <BlogCard post={transformPost(post)} />
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )
-          )}
+        {/* Explore Categories */}
+        {!loading && allCategories.length > 0 && (
+          <section className="mb-16">
+            <h2 className="text-2xl font-bold mb-6 flex items-center">
+              <Tag className="mr-2 h-5 w-5 text-primary" /> Explore Categories
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {allCategories.slice(0, 8).map((category, index) => (
+                <Card 
+                  key={index} 
+                  className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => selectCategory(category)}
+                >
+                  <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full min-h-[140px]">
+                    <div className={`w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 ${activeCategory === category ? 'bg-primary text-white' : ''}`}>
+                      <BookOpen className="h-6 w-6" />
+                    </div>
+                    <CardTitle className="text-sm font-medium mb-1 capitalize">{category}</CardTitle>
+                    <CardDescription className="text-xs">
+                      {filteredPosts.filter(post => post.tags?.includes(category)).length} articles
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Newsletter */}
+        <section className="mb-16 bg-muted/30 rounded-xl p-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-2xl font-bold mb-2">Subscribe to Our Newsletter</h2>
+            <p className="text-muted-foreground mb-6">
+              Get the latest travel tips, destination guides, and inspiration directly to your inbox.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <Input placeholder="Your email address" className="flex-1" />
+              <Button>Subscribe</Button>
+            </div>
+          </div>
         </section>
       </div>
     </Layout>

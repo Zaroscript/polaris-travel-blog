@@ -23,7 +23,11 @@ const destinationSchema = new mongoose.Schema(
       city: String,
       country: String,
     },
-    coverImage: [
+    coverImage: {
+      url: String,
+      caption: String,
+    },
+    images: [
       {
         url: String,
         caption: String,

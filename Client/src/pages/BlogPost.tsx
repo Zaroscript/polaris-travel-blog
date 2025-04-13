@@ -1,826 +1,239 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import axios from "axios";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import { blogPosts } from "@/data/blogData"; // Keep for fallback and related posts for now
-import { BlogPost as BlogPostType } from "@/types";
+import { Post } from "@/types/social";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Heart,
-  MessageCircle,
-  Share2,
-  Calendar,
-  Clock,
-  MapPin,
-  ChevronLeft,
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Heart, 
+  MessageCircle, 
+  Share2, 
+  Calendar, 
+  Clock, 
+  MapPin, 
+  ChevronLeft, 
   Send,
-  Loader2,
-  Reply,
-  Trash2,
+  Bookmark,
+  ThumbsUp,
+  Eye,
+  Globe,
+  Camera,
+  MoreHorizontal,
+  BookOpen,
+  Tag,
+  Loader
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatRelativeTime } from "@/utils/date";
 import { motion } from "framer-motion";
-import { toast } from "react-hot-toast";
+import { usePostsStore } from "@/store/usePostsStore";
 import { useAuthStore } from "@/store/useAuthStore";
-
-// Define API Post type
-interface ApiPost {
-  _id: string;
-  title: string;
-  content: string;
-  coverImage: string;
-  author: {
-    _id: string;
-    fullName: string;
-    profilePic: string;
-  };
-  gallery: string[];
-  likes: {
-    _id: string;
-    fullName: string;
-    profilePic: string;
-  }[];
-  comments: {
-    _id: string;
-    content: string;
-    author: {
-      _id: string;
-      fullName: string;
-      profilePic: string;
-    };
-    likes: string[];
-    createdAt: string;
-    replies: {
-      _id: string;
-      content: string;
-      author: {
-        _id: string;
-        fullName: string;
-        profilePic: string;
-      };
-      createdAt: string;
-      likes: string[];
-    }[];
-  }[];
-  tags: string[];
-  isPublished: boolean;
-  destination?: {
-    _id: string;
-    name: string;
-  };
-  createdAt: string;
-  views: number;
-}
-
-// Import the original Comment interface type
-import { Comment } from "@/types";
-
-// Define Reply Type to match structure needed
-interface ReplyType {
-  id: number;
-  text: string;
-  user: {
-    id: string;
-    name: string;
-    avatar: string;
-  };
-  date: string;
-  likes: number;
-  liked?: boolean;
-}
-
-interface CommentType extends Omit<Comment, "replies"> {
-  user: {
-    id: string;
-    name: string;
-    avatar: string;
-  };
-  liked?: boolean;
-  replies?: ReplyType[];
-  showReplyForm?: boolean;
-}
-
-interface EnhancedBlogPostType extends BlogPostType {
-  userLiked?: boolean;
-  comments: CommentType[];
-}
-
-const API_BASE_URL = "http://localhost:5001/api";
+import { useToast } from "@/components/ui/use-toast";
+import BlogCard from "@/components/blog/BlogCard";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const BlogPost = () => {
   const { id } = useParams<{ id: string }>();
-  const [post, setPost] = useState<EnhancedBlogPostType | null>(null);
-  const [relatedPosts, setRelatedPosts] = useState<BlogPostType[]>([]);
+  const navigate = useNavigate();
+  const [post, setPost] = useState<Post | null>(null);
+  const [relatedPosts, setRelatedPosts] = useState<Post[]>([]);
   const [comment, setComment] = useState("");
-  const [replyTexts, setReplyTexts] = useState<{ [key: string]: string }>({});
+  const [liked, setLiked] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
+  const [activeTab, setActiveTab] = useState("comments");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
+  const { 
+    fetchPost, 
+    posts, 
+    likePost, 
+    unlikePost, 
+    toggleSavePost, 
+    addComment,
+    fetchPosts
+  } = usePostsStore();
   const { authUser } = useAuthStore();
+  const { toast } = useToast();
 
-  const currentUser = authUser;
-  const token = localStorage.getItem("token");
-
-  const authConfig = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-
-  const transformPost = (apiPost: ApiPost): EnhancedBlogPostType => {
-    const userLiked = apiPost.likes.some(
-      (like) => currentUser && like._id === currentUser._id
-    );
-
-    return {
-      id: apiPost._id,
-      title: apiPost.title,
-      excerpt: apiPost.content.substring(0, 150) + "...",
-      content: apiPost.content,
-      image: apiPost.coverImage || "/placeholder-image.jpg",
-      date: new Date(apiPost.createdAt).toLocaleDateString(),
-      category: apiPost.destination?.name || "Uncategorized",
-      author: {
-        name: apiPost.author.fullName || "Anonymous",
-        avatar:
-          apiPost.author.profilePic ||
-          "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
-        role: "Travel Writer",
-      },
-      tags: apiPost.tags || [],
-      likes: apiPost.likes.length,
-      userLiked,
-      comments: apiPost.comments.map((comment) => ({
-        id: comment._id,
-        text: comment.content,
-        user: {
-          id: comment.author._id,
-          name: comment.author.fullName,
-          avatar:
-            comment.author.profilePic ||
-            "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
-        },
-        date: comment.createdAt,
-        likes: comment.likes.length || 0,
-        liked: currentUser ? comment.likes.includes(currentUser._id) : false,
-        replies: comment.replies.map((reply) => ({
-          id: reply._id,
-          text: reply.content,
-          user: {
-            id:
-              typeof reply.author === "string"
-                ? reply.author
-                : reply.author._id,
-            name:
-              typeof reply.author === "string" ? "User" : reply.author.fullName,
-            avatar:
-              typeof reply.author === "string"
-                ? "https://cdn-icons-gif.flaticon.com/11617/11617195.gif"
-                : reply.author.profilePic ||
-                  "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
-          },
-          date: reply.createdAt,
-          likes: reply.likes.length || 0,
-          liked: currentUser ? reply.likes.includes(currentUser._id) : false,
-        })),
-        showReplyForm: false,
-      })),
-      gallery: apiPost.gallery || [],
-      readTime: `${Math.ceil(apiPost.content.length / 1000)} min read`,
-      destination: apiPost.destination
-        ? {
-            name: apiPost.destination.name,
-            id: apiPost.destination._id,
-          }
-        : undefined,
-      featured:
-        apiPost.tags.includes("featured") ||
-        apiPost.views > 300 ||
-        apiPost.likes.length > 2,
-    };
-  };
-  function transformComment(apiComment, currentUser) {
-    return {
-      id: apiComment._id,
-      text: apiComment.content,
-      user: {
-        id: apiComment.author._id,
-        name: apiComment.author.fullName,
-        avatar:
-          apiComment.author.profilePic ||
-          "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
-      },
-      date: apiComment.createdAt,
-      likes: apiComment.likes?.length || 0,
-      liked: currentUser ? apiComment.likes?.includes(currentUser._id) : false,
-      replies:
-        apiComment.replies?.map((reply) => ({
-          id: reply._id,
-          text: reply.content,
-          user: {
-            id:
-              typeof reply.author === "string"
-                ? reply.author
-                : reply.author._id,
-            name:
-              typeof reply.author === "string" ? "User" : reply.author.fullName,
-            avatar:
-              typeof reply.author === "string"
-                ? "https://cdn-icons-gif.flaticon.com/11617/11617195.gif"
-                : reply.author.profilePic ||
-                  "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
-          },
-          date: reply.createdAt,
-          likes: reply.likes?.length || 0,
-          liked: currentUser ? reply.likes?.includes(currentUser._id) : false,
-        })) || [],
-      showReplyForm: false,
-    };
-  }
-  // Fetch post data from API
+  // Fetch the single post data
   useEffect(() => {
-    const fetchPost = async () => {
+    const loadPost = async () => {
       if (!id) return;
-
+      
       setLoading(true);
       setError(null);
-
+      
       try {
-        // Try to fetch from API first
-        const response = await axios.get(`${API_BASE_URL}/posts/${id}`);
-        const apiPost = response.data;
-
-        if (apiPost) {
-          const transformedPost = transformPost(apiPost);
-          setPost(transformedPost);
-
-          // Now fetch related posts based on tags
-          if (apiPost.tags && apiPost.tags.length > 0) {
-            try {
-              const relatedResponse = await axios.get(
-                `${API_BASE_URL}/posts?tags=${apiPost.tags.join(",")}`
-              );
-              const relatedApiPosts =
-                relatedResponse.data.posts || relatedResponse.data;
-
-              // Filter out current post and transform the rest
-              const filteredRelatedPosts = Array.isArray(relatedApiPosts)
-                ? relatedApiPosts
-                    .filter((p) => p._id !== apiPost._id)
-                    .map((p) => transformPost(p))
-                    .slice(0, 3)
-                : [];
-
-              setRelatedPosts(filteredRelatedPosts);
-            } catch (relatedErr) {
-              console.error("Error fetching related posts:", relatedErr);
-              // Fallback to static data for related posts if needed
-              fallbackToStaticRelated(id);
-            }
+        // Fetch the post data
+        const postData = await fetchPost(id);
+        setPost(postData);
+        
+        // If user is authenticated, set liked and bookmarked states
+        if (authUser) {
+          setLiked(postData.likes.some(like => like._id === authUser._id));
+          if (authUser.savedPosts) {
+            setBookmarked(authUser.savedPosts.some(saved => saved._id === postData._id));
           }
-        } else {
-          // Fallback to static data if API post is null
-          fallbackToStatic(id);
         }
+
+        // Load posts for related content
+        if (posts.length === 0) {
+          await fetchPosts();
+        }
+        
+        // Scroll to top when post loads
+        window.scrollTo(0, 0);
       } catch (err) {
         console.error("Error fetching post:", err);
-        // Fallback to static data
-        fallbackToStatic(id);
+        setError("Failed to load the blog post. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
-    // Fallback to static data if API fails
-    const fallbackToStatic = (postId: string) => {
-      const staticPost = blogPosts.find((p) => p.id.toString() === postId);
-      if (staticPost) {
-        setPost({
-          ...staticPost,
-          comments: staticPost.comments.map((c) => ({
-            ...c,
-            replies: [],
-            showReplyForm: false,
-            liked: false,
-            user: { ...c.user, id: "static-id" },
-          })),
-          userLiked: false,
-        });
-        fallbackToStaticRelated(postId);
-      } else {
-        setError("Blog post not found");
-      }
-    };
+    loadPost();
+  }, [id, fetchPost, authUser, fetchPosts]);
 
-    // Fallback for related posts
-    const fallbackToStaticRelated = (postId: string) => {
-      const staticPost = blogPosts.find((p) => p.id.toString() === postId);
-      if (staticPost) {
-        const related = blogPosts
-          .filter((p) => p.id.toString() !== postId)
-          .filter((p) => p.tags.some((tag) => staticPost.tags.includes(tag)))
-          .slice(0, 3);
-        setRelatedPosts(related);
-      }
-    };
-
-    fetchPost();
-  }, [id]);
-
-  // Handle comment submission
-  // Update the handleCommentSubmit function to correctly handle the new comment display
-
-  // Update the handleCommentSubmit function to correctly handle the new comment display
+  // Set related posts when posts or main post changes
+  useEffect(() => {
+    if (post && posts.length > 0) {
+      // Find related posts based on tags
+      const related = posts
+        .filter((p) => p._id !== post._id)
+        .filter((p) => p.tags && post.tags && p.tags.some((tag) => post.tags.includes(tag)))
+        .slice(0, 3);
+      
+      setRelatedPosts(related);
+    }
+  }, [post, posts]);
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!currentUser || !token) {
-      toast.error("You need to login to post a comment");
+    if (!authUser) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to comment on posts",
+        variant: "destructive",
+      });
       return;
     }
 
     if (comment.trim() && post) {
-      setSubmitting(true);
-
       try {
-        const response = await axios.post(
-          `${API_BASE_URL}/posts/${post.id}/comments`,
-          { content: comment },
-          authConfig
-        );
-
-        // The API returns the entire updated post
-        const updatedPost = response.data;
-
-        // Find the most recently added comment (should be the last one)
-        const comments = updatedPost.comments || [];
-        const newComment =
-          comments.length > 0 ? comments[comments.length - 1] : null;
-
-        if (newComment) {
-          // Transform the comment to match your UI structure
-          const transformedComment = transformComment(newComment, currentUser);
-
-          // Update the post state with the new comment
-          setPost((prev) => {
-            if (!prev) return prev;
-
-            return {
-              ...prev,
-              comments: [transformedComment, ...prev.comments],
-            };
-          });
-
-          toast.success("Comment posted successfully");
-          setComment("");
-        } else {
-          console.error("No comments found in response");
-          toast.error("Comment may have been posted but couldn't be displayed");
-        }
-      } catch (err) {
-        console.error("Error posting comment:", err);
-        toast.error("Failed to post comment. Please try again.");
-      } finally {
-        setSubmitting(false);
-      }
-    }
-  };
-
-  // Handle reply submission
-  const handleReplySubmit = async (commentId) => {
-    if (!currentUser || !token) {
-      toast.error("You need to login to post a reply");
-      return;
-    }
-
-    const replyText = replyTexts[commentId.toString()];
-    if (!replyText?.trim() || !post) return;
-
-    setSubmitting(true);
-
-    try {
-      // Post the reply
-      const response = await axios.post(
-        `${API_BASE_URL}/posts/${post.id}/comments/${commentId}/replies`,
-        { content: replyText },
-        authConfig
-      );
-
-      // The API returns the entire updated post
-      const updatedPost = response.data;
-      console.log("Full updated post received:", updatedPost);
-
-      if (updatedPost && updatedPost.comments) {
-        // Find the comment we just replied to
-        const updatedComment = updatedPost.comments.find(
-          (comment) => comment._id === commentId
-        );
-
-        if (
-          updatedComment &&
-          updatedComment.replies &&
-          updatedComment.replies.length > 0
-        ) {
-          // Transform the entire post to match our UI structure
-          const transformedPost = transformPost(updatedPost);
-
-          // Update the entire post state
-          setPost(transformedPost);
-
-          toast.success("Reply posted successfully");
-        } else {
-          console.error("Updated comment or replies not found in response");
-          toast.error("Reply may have been posted but couldn't be displayed");
-        }
-      } else {
-        console.error("No updated post data found in response");
-        toast.error("Failed to get updated post data");
-      }
-
-      // Clear the reply input regardless
-      setReplyTexts((prev) => ({
-        ...prev,
-        [commentId]: "",
-      }));
-    } catch (err) {
-      console.error("Error posting reply:", err);
-      toast.error("Failed to post reply. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Handle post like/unlike
-  const togglePostLike = async () => {
-    if (!currentUser || !token) {
-      toast.error("You need to login to like posts");
-      return;
-    }
-
-    if (!post) return;
-
-    try {
-      if (post.userLiked) {
-        // Unlike the post
-        await axios.delete(`${API_BASE_URL}/posts/${post.id}/like`, authConfig);
-
-        setPost((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            likes: prev.likes - 1,
-            userLiked: false,
-          };
+        await addComment(post._id, comment);
+        toast({
+          title: "Success",
+          description: "Comment added successfully",
         });
-      } else {
-        // Like the post
-        await axios.post(
-          `${API_BASE_URL}/posts/${post.id}/like`,
-          {},
-          authConfig
-        );
-
-        setPost((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            likes: prev.likes + 1,
-            userLiked: true,
-          };
+        setComment("");
+        
+        // Refresh the post to get updated comments
+        const updatedPost = await fetchPost(post._id);
+        setPost(updatedPost);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to add comment",
+          variant: "destructive",
         });
       }
-    } catch (err) {
-      console.error("Error toggling post like:", err);
-      toast.error("Failed to process your like. Please try again.");
     }
   };
 
-  // Handle comment like/unlike
-  const toggleCommentLike = async (commentId: number) => {
-    if (!currentUser || !token) {
-      toast.error("You need to login to like comments");
-      return;
-    }
-
-    if (!post) return;
-
-    // Find the comment
-    const comment = post.comments.find((c) => c.id === commentId);
-    if (!comment) return;
-
-    try {
-      if (comment.liked) {
-        // Unlike the comment
-        await axios.delete(
-          `${API_BASE_URL}/posts/${post.id}/comments/${commentId}/like`,
-          authConfig
-        );
-
-        setPost((prev) => {
-          if (!prev) return prev;
-
-          return {
-            ...prev,
-            comments: prev.comments.map((c) =>
-              c.id === commentId
-                ? { ...c, likes: c.likes - 1, liked: false }
-                : c
-            ),
-          };
-        });
-      } else {
-        // Like the comment
-        await axios.post(
-          `${API_BASE_URL}/posts/${post.id}/comments/${commentId}/like`,
-          {},
-          authConfig
-        );
-
-        setPost((prev) => {
-          if (!prev) return prev;
-
-          return {
-            ...prev,
-            comments: prev.comments.map((c) =>
-              c.id === commentId ? { ...c, likes: c.likes + 1, liked: true } : c
-            ),
-          };
-        });
-      }
-    } catch (err) {
-      console.error("Error toggling comment like:", err);
-      toast.error("Failed to process your like. Please try again.");
-    }
-  };
-
-  // Handle reply like/unlike
-  const toggleReplyLike = async (commentId: number, replyId: number) => {
-    if (!currentUser || !token) {
-      toast.error("You need to login to like replies");
-      return;
-    }
-
-    if (!post) return;
-
-    // Find the comment and reply
-    const comment = post.comments.find((c) => c.id === commentId);
-    if (!comment || !comment.replies) return;
-
-    const reply = comment.replies.find((r) => r.id === replyId);
-    if (!reply) return;
-
-    try {
-      if (reply.liked) {
-        // Unlike the reply
-        await axios.delete(
-          `${API_BASE_URL}/posts/${post.id}/comments/${commentId}/replies/${replyId}/like`,
-          authConfig
-        );
-
-        setPost((prev) => {
-          if (!prev) return prev;
-
-          return {
-            ...prev,
-            comments: prev.comments.map((c) => {
-              if (c.id === commentId) {
-                return {
-                  ...c,
-                  replies: c.replies?.map((r) =>
-                    r.id === replyId
-                      ? { ...r, likes: r.likes - 1, liked: false }
-                      : r
-                  ),
-                };
-              }
-              return c;
-            }),
-          };
-        });
-      } else {
-        // Like the reply
-        await axios.post(
-          `${API_BASE_URL}/posts/${post.id}/comments/${commentId}/replies/${replyId}/like`,
-          {},
-          authConfig
-        );
-
-        setPost((prev) => {
-          if (!prev) return prev;
-
-          return {
-            ...prev,
-            comments: prev.comments.map((c) => {
-              if (c.id === commentId) {
-                return {
-                  ...c,
-                  replies: c.replies?.map((r) =>
-                    r.id === replyId
-                      ? { ...r, likes: r.likes + 1, liked: true }
-                      : r
-                  ),
-                };
-              }
-              return c;
-            }),
-          };
-        });
-      }
-    } catch (err) {
-      console.error("Error toggling reply like:", err);
-      toast.error("Failed to process your like. Please try again.");
-    }
-  };
-
-  // Handle comment deletion
-  // Updated deleteComment function with simple toast confirmation
-  const deleteComment = async (commentId: number) => {
-    if (!currentUser || !token) {
-      toast.error("You need to login to delete comments");
-      return;
-    }
-
-    if (!post) return;
-
-    // Find the comment to check if the current user is the author
-    const comment = post.comments.find((c) => c.id === commentId);
-    if (!comment) return;
-
-    // Only allow deletion if user is the author
-    if (comment.user.id !== currentUser._id) {
-      toast.error("You can only delete your own comments");
-      return;
-    }
-
-    // Create a simple toast confirmation
-    toast(
-      (t) => (
-        <div className="flex flex-col gap-2">
-          <span>Are you sure you want to delete this comment?</span>
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={() => toast.dismiss(t.id)}
-              className="px-3 py-1 bg-gray-200 rounded text-sm"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => {
-                toast.dismiss(t.id);
-                performCommentDelete(commentId);
-              }}
-              className="px-3 py-1 bg-red-500 text-white rounded text-sm"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      ),
-      { duration: 5000 }
-    );
-  };
-
-  // Function that actually performs the deletion
-  const performCommentDelete = async (commentId: number) => {
-    try {
-      await axios.delete(
-        `${API_BASE_URL}/posts/${post.id}/comments/${commentId}`,
-        authConfig
-      );
-
-      // Remove the comment from the post state
-      setPost((prev) => {
-        if (!prev) return prev;
-
-        return {
-          ...prev,
-          comments: prev.comments.filter((c) => c.id !== commentId),
-        };
+  const handleLikePost = async () => {
+    if (!authUser) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to like posts",
+        variant: "destructive",
       });
-
-      toast.success("Comment deleted successfully");
-    } catch (err) {
-      console.error("Error deleting comment:", err);
-      toast.error("Failed to delete comment. Please try again.");
-    }
-  };
-
-  // Similar approach for reply deletion
-  const deleteReply = async (commentId: number, replyId: number) => {
-    if (!currentUser || !token) {
-      toast.error("You need to login to delete replies");
       return;
     }
 
     if (!post) return;
 
-    // Find the comment and reply
-    const comment = post.comments.find((c) => c.id === commentId);
-    if (!comment || !comment.replies) return;
-
-    const reply = comment.replies.find((r) => r.id === replyId);
-    if (!reply) return;
-
-    // Only allow deletion if user is the author
-    if (reply.user.id !== currentUser._id) {
-      toast.error("You can only delete your own replies");
+    try {
+      // Optimistically update UI
+      setLiked(!liked);
+      
+      if (liked) {
+        await unlikePost(post._id);
+      } else {
+        await likePost(post._id);
+      }
+      
+      // Refresh post data to get updated likes count
+      const updatedPost = await fetchPost(post._id);
+      setPost(updatedPost);
+    } catch (error) {
+      // Revert UI on error
+      setLiked(liked);
+      toast({
+        title: "Error",
+        description: "Failed to update like status",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleSavePost = async () => {
+    if (!authUser) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to save posts",
+        variant: "destructive",
+      });
       return;
     }
 
-    // Create a simple toast confirmation
-    toast(
-      (t) => (
-        <div className="flex flex-col gap-2">
-          <span>Are you sure you want to delete this reply?</span>
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={() => toast.dismiss(t.id)}
-              className="px-3 py-1 bg-gray-200 rounded text-sm"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => {
-                toast.dismiss(t.id);
-                performReplyDelete(commentId, replyId);
-              }}
-              className="px-3 py-1 bg-red-500 text-white rounded text-sm"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      ),
-      { duration: 5000 }
-    );
-  };
+    if (!post) return;
 
-  // Function that actually performs the reply deletion
-  const performReplyDelete = async (commentId: number, replyId: number) => {
     try {
-      await axios.delete(
-        `${API_BASE_URL}/posts/${post.id}/comments/${commentId}/replies/${replyId}`,
-        authConfig
-      );
-
-      // Remove the reply from the post state
-      setPost((prev) => {
-        if (!prev) return prev;
-
-        return {
-          ...prev,
-          comments: prev.comments.map((c) => {
-            if (c.id === commentId) {
-              return {
-                ...c,
-                replies: c.replies?.filter((r) => r.id !== replyId),
-              };
-            }
-            return c;
-          }),
-        };
+      // Optimistically update UI
+      setBookmarked(!bookmarked);
+      
+      const response = await toggleSavePost(post._id);
+      toast({
+        description: response.message,
       });
-
-      toast.success("Reply deleted successfully");
-    } catch (err) {
-      console.error("Error deleting reply:", err);
-      toast.error("Failed to delete reply. Please try again.");
+    } catch (error) {
+      // Revert UI on error
+      setBookmarked(bookmarked);
+      toast({
+        title: "Error",
+        description: "Failed to update save status",
+        variant: "destructive",
+      });
     }
   };
-  const toggleReplyForm = (commentId: number) => {
-    setPost((prev) => {
-      if (!prev) return prev;
-
-      return {
-        ...prev,
-        comments: prev.comments.map((comment) => {
-          if (comment.id === commentId) {
-            return {
-              ...comment,
-              showReplyForm: !comment.showReplyForm,
-            };
-          }
-          // Make sure we close other open reply forms
-          return {
-            ...comment,
-            showReplyForm: false,
-          };
-        }),
-      };
-    });
+  
+  const handleBack = () => {
+    navigate('/blogs');
   };
+  
+  const readTime = post ? Math.max(1, Math.ceil(post.content.split(/\s+/).length / 200)) : 0;
+
   if (loading) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-20 text-center">
-          <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" />
-          <p className="mt-4 text-lg text-muted-foreground">Loading post...</p>
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            <Skeleton className="h-8 w-3/4 mb-4" />
+            <Skeleton className="h-6 w-1/2 mb-12" />
+            <Skeleton className="h-[400px] w-full mb-8 rounded-xl" />
+            <div className="space-y-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
+          </div>
         </div>
       </Layout>
     );
@@ -830,14 +243,10 @@ const BlogPost = () => {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">Blog post not found</h1>
-          <p className="text-muted-foreground mb-6">
-            {error ||
-              "The post you're looking for doesn't exist or has been removed."}
-          </p>
-          <Link to="/blogs">
-            <Button>Back to Blogs</Button>
-          </Link>
+          <h1 className="text-2xl font-bold mb-4">
+            {error || "Blog post not found"}
+          </h1>
+          <Button onClick={handleBack}>Back to Blogs</Button>
         </div>
       </Layout>
     );
@@ -845,99 +254,114 @@ const BlogPost = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <Link
-          to="/blogs"
-          className="inline-flex items-center text-muted-foreground hover:text-primary mb-6"
+      <article className="container mx-auto px-4 py-8">
+        <Button
+          variant="ghost"
+          className="mb-6 flex items-center gap-2 text-muted-foreground hover:text-foreground"
+          onClick={handleBack}
         >
-          <ChevronLeft className="h-4 w-4 mr-2" />
+          <ChevronLeft className="h-4 w-4" />
           Back to Blogs
-        </Link>
+        </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Main Content */}
-          <motion.div
-            className="lg:col-span-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {/* Cover Image */}
-            <div className="rounded-lg overflow-hidden mb-8 aspect-video">
-              <img
-                src={post.image}
-                alt={post.title}
-                className="w-full h-full object-cover"
-              />
+        {/* Hero Section - Immersive Header */}
+        <div className="relative h-[40vh] md:h-[60vh] mb-12 rounded-xl overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-t from-black to-black/20 z-10"></div>
+          <img
+            src={post.coverImage}
+            alt={post.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute bottom-0 left-0 z-20 p-6 md:p-12 w-full md:w-3/4">
+            <div className="flex flex-wrap gap-2 mb-4">
+              {post.tags && post.tags.map((tag, idx) => (
+                <Badge key={idx} variant="secondary" className="bg-primary/80 text-white hover:bg-primary">
+                  {tag}
+                </Badge>
+              ))}
             </div>
-
-            {/* Post Header */}
-            <div className="mb-8">
-              <div className="flex flex-wrap gap-2 mb-4">
-                {post.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-
-              <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
-
-              <div className="flex items-center gap-6 text-muted-foreground mb-4">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span className="text-sm">{post.date}</span>
-                </div>
-                {post.readTime && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    <span className="text-sm">{post.readTime}</span>
-                  </div>
-                )}
-                {post.destination && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <span className="text-sm">{post.destination.name}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={post.author.avatar} />
-                  <AvatarFallback>{post.author.name[0]}</AvatarFallback>
+            <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
+              {post.title}
+            </h1>
+            {post.subtitle && (
+              <p className="text-xl text-white/80 mb-6">
+                {post.subtitle}
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-6 text-white/90">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-8 w-8 border-2 border-white">
+                  <AvatarImage src={post.author.profilePic} alt={post.author.fullName} />
+                  <AvatarFallback>{post.author.fullName?.charAt(0) || "U"}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="font-medium">{post.author.name}</div>
-                  {post.author.role && (
-                    <div className="text-sm text-muted-foreground">
-                      {post.author.role}
-                    </div>
-                  )}
+                  <div className="text-sm font-medium">By {post.author.fullName}</div>
                 </div>
               </div>
-            </div>
-
-            {/* Post Content */}
-            <div className="prose prose-lg max-w-none mb-8">
-              {post.excerpt && (
-                <p className="lead text-xl text-muted-foreground mb-6">
-                  {post.excerpt}
-                </p>
+              <div className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                <span className="text-sm">
+                  {formatRelativeTime(post.createdAt)}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span className="text-sm">{readTime} min read</span>
+              </div>
+              {post.destination && (
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  <span className="text-sm">{post.destination.name}</span>
+                </div>
               )}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Main Article Content */}
+          <div className="md:col-span-2">
+            <div className="prose prose-lg max-w-none mb-12">
               <div className="whitespace-pre-wrap">{post.content}</div>
             </div>
-
-            {/* Travel Tips */}
+            
+            {/* Gallery if available */}
+            {post.gallery && post.gallery.length > 0 && (
+              <div className="mb-12">
+                <h3 className="text-2xl font-bold mb-6 flex items-center">
+                  <Camera className="mr-2 h-5 w-5 text-primary" />
+                  Photo Gallery
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {post.gallery.map((image, index) => (
+                    <div 
+                      key={index} 
+                      className="aspect-square overflow-hidden rounded-lg relative group"
+                    >
+                      <img 
+                        src={image} 
+                        alt={`Gallery image ${index + 1}`} 
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Travel tips if available */}
             {post.travelTips && post.travelTips.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold mb-4">Travel Tips</h2>
+              <div className="mb-12 bg-muted/30 p-6 rounded-xl">
+                <h3 className="text-xl font-bold mb-4 flex items-center">
+                  <Globe className="mr-2 h-5 w-5 text-primary" />
+                  Travel Tips
+                </h3>
                 <ul className="space-y-3">
                   {post.travelTips.map((tip, index) => (
                     <li key={index} className="flex items-start gap-2">
-                      <span className="font-medium text-primary">
-                        #{index + 1}
-                      </span>
+                      <div className="bg-primary/10 text-primary font-medium h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        {index + 1}
+                      </div>
                       <p>{tip}</p>
                     </li>
                   ))}
@@ -945,344 +369,342 @@ const BlogPost = () => {
               </div>
             )}
 
-            {/* Gallery */}
-            {post.gallery && post.gallery.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold mb-4">Photo Gallery</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {post.gallery.map((image, index) => (
-                    <div
-                      key={index}
-                      className="aspect-square rounded-lg overflow-hidden"
-                    >
-                      <img
-                        src={image}
-                        alt={`Gallery image ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+            {/* Article footer */}
+            <div className="flex items-center justify-between border-t border-b py-4 mb-8">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={handleLikePost}
+                >
+                  <Heart
+                    className={`h-5 w-5 ${liked ? "fill-red-500 text-red-500" : ""}`}
+                  />
+                  <span>{post.likes.length} likes</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={() => setActiveTab("comments")}
+                >
+                  <MessageCircle className="h-5 w-5" />
+                  <span>{post.comments.length} comments</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    toast({
+                      description: "Link copied to clipboard",
+                    });
+                  }}
+                >
+                  <Share2 className="h-5 w-5" />
+                  <span>Share</span>
+                </Button>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`flex items-center gap-1 ${bookmarked ? "text-primary" : ""}`}
+                onClick={handleSavePost}
+              >
+                <Bookmark
+                  className={`h-5 w-5 ${bookmarked ? "fill-primary" : ""}`}
+                />
+                <span>{bookmarked ? "Saved" : "Save"}</span>
+              </Button>
+            </div>
+
+            {/* Comments & Discussion Section */}
+            <div className="mb-12">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="mb-6">
+                  <TabsTrigger value="comments" className="flex items-center gap-1">
+                    <MessageCircle className="h-4 w-4" />
+                    Comments ({post.comments.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="about" className="flex items-center gap-1">
+                    <Tag className="h-4 w-4" />
+                    About Author
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="comments">
+                  <div className="space-y-6">
+                    {authUser ? (
+                      <form onSubmit={handleCommentSubmit} className="space-y-4">
+                        <div className="flex items-start gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={authUser.profilePic} alt={authUser.fullName} />
+                            <AvatarFallback>{authUser.fullName?.charAt(0) || "U"}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <Textarea
+                              placeholder="Add a comment..."
+                              value={comment}
+                              onChange={(e) => setComment(e.target.value)}
+                              className="resize-none"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end">
+                          <Button
+                            type="submit"
+                            disabled={!comment.trim()}
+                            className="gap-1"
+                          >
+                            <Send className="h-4 w-4" />
+                            Post Comment
+                          </Button>
+                        </div>
+                      </form>
+                    ) : (
+                      <Card>
+                        <CardContent className="p-4 text-center">
+                          <p className="mb-4">Log in to join the conversation</p>
+                          <Link to="/login">
+                            <Button>Log In</Button>
+                          </Link>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    <Separator />
+
+                    {post.comments.length > 0 ? (
+                      <ScrollArea className="h-[400px] pr-4">
+                        <div className="space-y-6">
+                          {post.comments.map((comment, index) => (
+                            <div key={index} className="space-y-3">
+                              <div className="flex items-start gap-3">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={comment.author.profilePic} alt={comment.author.fullName} />
+                                  <AvatarFallback>{comment.author.fullName?.charAt(0) || "?"}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                  <div className="bg-muted/50 p-3 rounded-lg">
+                                    <div className="flex justify-between mb-1">
+                                      <span className="font-medium">{comment.author.fullName}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {formatRelativeTime(comment.createdAt)}
+                                      </span>
+                                    </div>
+                                    <p>{comment.content}</p>
+                                  </div>
+                                  <div className="flex items-center gap-4 mt-1 ml-1">
+                                    <button className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                                      <ThumbsUp className="h-3 w-3" />
+                                      {comment.likes.length}
+                                    </button>
+                                    <button className="text-xs text-muted-foreground hover:text-foreground">Reply</button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Replies */}
+                              {comment.replies && comment.replies.length > 0 && (
+                                <div className="ml-12 space-y-3">
+                                  {comment.replies.map((reply, replyIndex) => (
+                                    <div key={replyIndex} className="flex items-start gap-3">
+                                      <Avatar className="h-8 w-8">
+                                        <AvatarImage src={reply.author.profilePic} alt={reply.author.fullName} />
+                                        <AvatarFallback>{reply.author.fullName?.charAt(0) || "?"}</AvatarFallback>
+                                      </Avatar>
+                                      <div className="flex-1">
+                                        <div className="bg-muted/30 p-3 rounded-lg">
+                                          <div className="flex justify-between mb-1">
+                                            <span className="font-medium">{reply.author.fullName}</span>
+                                            <span className="text-xs text-muted-foreground">
+                                              {formatRelativeTime(reply.createdAt)}
+                                            </span>
+                                          </div>
+                                          <p>{reply.content}</p>
+                                        </div>
+                                        <div className="flex items-center gap-4 mt-1 ml-1">
+                                          <button className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                                            <ThumbsUp className="h-3 w-3" />
+                                            {reply.likes.length}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    ) : (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                        <p>No comments yet. Be the first to share your thoughts!</p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+                <TabsContent value="about">
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-4 mb-4">
+                        <Avatar className="h-16 w-16">
+                          <AvatarImage src={post.author.profilePic} alt={post.author.fullName} />
+                          <AvatarFallback>{post.author.fullName?.charAt(0) || "U"}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="text-xl font-bold">{post.author.fullName}</h3>
+                          <p className="text-muted-foreground">Travel Writer & Photographer</p>
+                        </div>
+                      </div>
+                      <p className="mb-6">
+                        Passionate traveler and storyteller with a love for exploring new cultures and hidden gems around the world.
+                      </p>
+                      <div className="flex justify-between">
+                        <Button variant="outline" size="sm">
+                          View Profile
+                        </Button>
+                        <Button size="sm">
+                          Follow
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+
+          {/* Right Sidebar */}
+          <div className="space-y-8">
+            {/* Article Info Card */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Article Info</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Published</span>
+                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Read time</span>
+                  <span>{readTime} min</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Comments</span>
+                  <span>{post.comments.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Likes</span>
+                  <span>{post.likes.length}</span>
+                </div>
+                {post.destination && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Location</span>
+                    <span>{post.destination.name}</span>
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter className="flex justify-between pt-0">
+                <Button variant="outline" size="sm" className="w-full" onClick={handleSavePost}>
+                  <Bookmark className={`mr-2 h-4 w-4 ${bookmarked ? "fill-primary" : ""}`} />
+                  {bookmarked ? "Saved" : "Save Article"}
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Table of Contents */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Table of Contents</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li>
+                    <a href="#introduction" className="text-muted-foreground hover:text-foreground">Introduction</a>
+                  </li>
+                  <li>
+                    <a href="#main-attractions" className="text-muted-foreground hover:text-foreground">Main Attractions</a>
+                  </li>
+                  <li>
+                    <a href="#local-cuisine" className="text-muted-foreground hover:text-foreground">Local Cuisine</a>
+                  </li>
+                  <li>
+                    <a href="#accommodation" className="text-muted-foreground hover:text-foreground">Accommodation</a>
+                  </li>
+                  <li>
+                    <a href="#travel-tips" className="text-muted-foreground hover:text-foreground">Travel Tips</a>
+                  </li>
+                  <li>
+                    <a href="#conclusion" className="text-muted-foreground hover:text-foreground">Conclusion</a>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Author Info */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">About the Author</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center text-center">
+                <Avatar className="h-20 w-20 mb-4">
+                  <AvatarImage src={post.author.profilePic} alt={post.author.fullName} />
+                  <AvatarFallback>{post.author.fullName?.charAt(0) || "U"}</AvatarFallback>
+                </Avatar>
+                <h3 className="font-bold mb-1">{post.author.fullName}</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Travel enthusiast and photographer with a passion for exploring off-the-beaten-path destinations
+                </p>
+                <Button variant="outline" size="sm" className="w-full">
+                  View Profile
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Related Articles */}
+            {relatedPosts.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-lg">Related Articles</h3>
+                  <Link to="/blogs" className="text-sm text-muted-foreground hover:text-primary">
+                    View All
+                  </Link>
+                </div>
+                <div className="space-y-4">
+                  {relatedPosts.map((relatedPost) => (
+                    <BlogCard key={relatedPost._id} post={relatedPost} />
                   ))}
                 </div>
               </div>
             )}
-
-            {/* Interaction Buttons */}
-            <div className="flex items-center gap-4 mb-8">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={
-                  post.userLiked ? "text-red-500" : "text-muted-foreground"
-                }
-                onClick={togglePostLike}
-              >
-                <Heart
-                  className={`h-5 w-5 mr-2 ${
-                    post.userLiked ? "fill-red-500" : ""
-                  }`}
-                />
-                {post.likes} Likes
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground"
-              >
-                <MessageCircle className="h-5 w-5 mr-2" />
-                {post.comments.length} Comments
-              </Button>
-            </div>
-
-            {/* Comments Section */}
-            <div className="space-y-6 relative">
-              <h2 className="text-2xl font-bold">
-                Comments ({post.comments.length})
-              </h2>
-
-              {/* Add Comment Form */}
-              <form onSubmit={handleCommentSubmit} className="space-y-4">
-                <Textarea
-                  placeholder={
-                    currentUser ? "Write a comment..." : "Login to comment"
-                  }
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  rows={3}
-                  disabled={!currentUser || submitting}
-                />
-                <Button
-                  type="submit"
-                  disabled={!comment.trim() || !currentUser || submitting}
-                >
-                  {submitting ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4 mr-2" />
-                  )}
-                  Post Comment
-                </Button>
-              </form>
-
-              {/* Comments List */}
-              <div className="space-y-6">
-                {post.comments.map((comment) => (
-                  <Card key={comment.id} className="p-4">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={comment.user.avatar} />
-                        <AvatarFallback>{comment.user.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium">
-                            {comment.user.name}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            {formatDistanceToNow(new Date(comment.date), {
-                              addSuffix: true,
-                            })}
-                          </span>
-                        </div>
-                        <p className="text-sm mb-2">{comment.text}</p>
-
-                        {/* Comment Actions */}
-                        <div className="flex items-center gap-4">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={`h-auto p-0 text-muted-foreground ${
-                              comment.liked ? "text-red-500" : ""
-                            }`}
-                            onClick={() => toggleCommentLike(comment.id)}
-                          >
-                            <Heart
-                              className={`h-4 w-4 mr-1 ${
-                                comment.liked ? "fill-red-500" : ""
-                              }`}
-                            />
-                            {comment.likes} Likes
-                          </Button>
-
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-auto p-0 text-muted-foreground"
-                            onClick={() => toggleReplyForm(comment.id)}
-                          >
-                            <Reply className="h-4 w-4 mr-1" />
-                            Reply
-                          </Button>
-
-                          {currentUser &&
-                            comment.user.id === currentUser._id && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-auto p-0 text-muted-foreground hover:text-red-500"
-                                onClick={() => deleteComment(comment.id)}
-                              >
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                Delete
-                              </Button>
-                            )}
-                        </div>
-
-                        {/* Reply Form */}
-                        {comment.showReplyForm && (
-                          <div className="mt-4 space-y-2">
-                            <Textarea
-                              placeholder="Write a reply..."
-                              value={replyTexts[comment.id.toString()] || ""}
-                              onChange={(e) =>
-                                setReplyTexts((prev) => ({
-                                  ...prev,
-                                  [comment.id.toString()]: e.target.value,
-                                }))
-                              }
-                              rows={2}
-                              disabled={submitting}
-                              className="text-sm"
-                            />
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => toggleReplyForm(comment.id)}
-                                disabled={submitting}
-                              >
-                                Cancel
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => handleReplySubmit(comment.id)}
-                                disabled={
-                                  !replyTexts[comment.id.toString()]?.trim() ||
-                                  submitting
-                                }
-                              >
-                                {submitting ? (
-                                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                                ) : (
-                                  <Send className="h-3 w-3 mr-2" />
-                                )}
-                                Reply
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Replies */}
-                        {comment.replies && comment.replies.length > 0 && (
-                          <div className="mt-4 pl-4 border-l-2 border-muted">
-                            <div className="space-y-4">
-                              {comment.replies.map((reply) => (
-                                <div key={reply.id} className="pt-2">
-                                  <div className="flex items-start gap-3">
-                                    <Avatar className="h-6 w-6">
-                                      <AvatarImage src={reply.user.avatar} />
-                                      <AvatarFallback>
-                                        {reply.user.name[0]}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1">
-                                      <div className="flex items-center justify-between mb-1">
-                                        <span className="font-medium text-sm">
-                                          {reply.user.name}
-                                        </span>
-                                        <span className="text-xs text-muted-foreground">
-                                          {formatDistanceToNow(
-                                            new Date(reply.date),
-                                            {
-                                              addSuffix: true,
-                                            }
-                                          )}
-                                        </span>
-                                      </div>
-                                      <p className="text-sm mb-2">
-                                        {reply.text}
-                                      </p>
-
-                                      {/* Reply Actions */}
-                                      <div className="flex items-center gap-4">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className={`h-auto p-0 text-muted-foreground ${
-                                            reply.liked ? "text-red-500" : ""
-                                          }`}
-                                          onClick={() =>
-                                            toggleReplyLike(
-                                              comment.id,
-                                              reply.id
-                                            )
-                                          }
-                                        >
-                                          <Heart
-                                            className={`h-3 w-3 mr-1 ${
-                                              reply.liked ? "fill-red-500" : ""
-                                            }`}
-                                          />
-                                          {reply.likes} Likes
-                                        </Button>
-
-                                        {currentUser &&
-                                          reply.user.id === currentUser._id && (
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-auto p-0 text-muted-foreground hover:text-red-500"
-                                              onClick={() =>
-                                                deleteReply(
-                                                  comment.id,
-                                                  reply.id
-                                                )
-                                              }
-                                            >
-                                              <Trash2 className="h-3 w-3 mr-1" />
-                                              Delete
-                                            </Button>
-                                          )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-
-                {post.comments.length === 0 && (
-                  <div className="text-center py-8">
-                    <MessageCircle className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-muted-foreground">
-                      No comments yet. Be the first to comment!
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Sidebar */}
-          <div className="lg:col-span-4">
-            <div className="sticky top-24 space-y-6">
-              {/* Author Card */}
-              <Card className="p-6">
-                <h3 className="font-bold text-lg mb-4">About the Author</h3>
-                <div className="flex items-start gap-4">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage src={post.author.avatar} />
-                    <AvatarFallback>{post.author.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-medium">{post.author.name}</div>
-                    {post.author.role && (
-                      <div className="text-sm text-muted-foreground mb-2">
-                        {post.author.role}
-                      </div>
-                    )}
-                    <p className="text-sm text-muted-foreground">
-                      An avid traveler sharing experiences and insights from
-                      around the world.
-                    </p>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Related Posts */}
-              {relatedPosts.length > 0 && (
-                <Card className="p-6">
-                  <h3 className="font-bold text-lg mb-4">Related Posts</h3>
-                  <div className="space-y-4">
-                    {relatedPosts.map((relatedPost) => (
-                      <Link
-                        key={relatedPost.id}
-                        to={`/blog/${relatedPost.id}`}
-                        className="block group"
-                      >
-                        <div className="aspect-video rounded-lg overflow-hidden mb-2">
-                          <img
-                            src={relatedPost.image}
-                            alt={relatedPost.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                        <h4 className="font-medium group-hover:text-primary transition-colors line-clamp-2">
-                          {relatedPost.title}
-                        </h4>
-                      </Link>
-                    ))}
-                  </div>
-                </Card>
-              )}
-            </div>
           </div>
         </div>
-      </div>
+
+        {/* More from Polaris */}
+        <section className="mt-16">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold flex items-center">
+              <BookOpen className="mr-2 h-5 w-5 text-primary" />
+              More from Polaris
+            </h2>
+            <Link to="/blogs" className="text-muted-foreground hover:text-primary flex items-center gap-1">
+              View All <ChevronLeft className="h-4 w-4 rotate-180" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {posts.slice(0, 3).map((morePosts) => (
+              morePosts._id !== post._id && (
+                <BlogCard key={morePosts._id} post={morePosts} />
+              )
+            ))}
+          </div>
+        </section>
+      </article>
     </Layout>
   );
 };

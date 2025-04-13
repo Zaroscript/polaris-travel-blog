@@ -35,7 +35,7 @@ export const createDestination = catchAsync(async (req, res) => {
 });
 
 export const getDestinations = catchAsync(async (req, res) => {
-  const { search, address, city, country } = req.query;
+  const { search, address, city, country, category, region, sort, limit = 10, page = 1 } = req.query;
 
   const query = {};
 
@@ -43,6 +43,9 @@ export const getDestinations = catchAsync(async (req, res) => {
     query.$or = [
       { name: { $regex: search, $options: "i" } },
       { description: { $regex: search, $options: "i" } },
+      { "location.country": { $regex: search, $options: "i" } },
+      { "location.city": { $regex: search, $options: "i" } },
+      { tags: { $in: [new RegExp(search, 'i')] } }
     ];
   }
 
@@ -55,12 +58,47 @@ export const getDestinations = catchAsync(async (req, res) => {
   }
 
   if (country) {
-    query["location.country"] = country;
+    query["location.country"] = { $regex: country, $options: "i" };
   }
 
+  if (category) {
+    query.tags = { $in: [category] };
+  }
+
+  if (region) {
+    // Map regions to countries or continents
+    const regionMapping = {
+      'europe': ['France', 'Italy', 'Spain', 'Greece', 'Germany', 'United Kingdom', 'Netherlands', 'Portugal', 'Switzerland'],
+      'asia': ['Japan', 'Thailand', 'Vietnam', 'Indonesia', 'India', 'China', 'Singapore', 'Malaysia'],
+      'americas': ['USA', 'Canada', 'Mexico', 'Brazil', 'Argentina', 'Peru', 'Costa Rica'],
+      'africa': ['Morocco', 'Egypt', 'South Africa', 'Kenya', 'Tanzania'],
+      'oceania': ['Australia', 'New Zealand', 'Fiji']
+    };
+
+    if (regionMapping[region.toLowerCase()]) {
+      query["location.country"] = { $in: regionMapping[region.toLowerCase()] };
+    }
+  }
+
+  // Sorting options
+  let sortOption = { createdAt: -1 }; // Default sort
+  
+  if (sort === 'rating') {
+    sortOption = { rating: -1 };
+  } else if (sort === 'popularity') {
+    sortOption = { views: -1 };
+  } else if (sort === 'alphabetical') {
+    sortOption = { name: 1 };
+  }
+
+  // Pagination
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+
   const destinations = await Destination.find(query)
-    .sort({ createdAt: -1 })
-    .populate("reviews.author", "name profileImage");
+    .sort(sortOption)
+    .skip(skip)
+    .limit(parseInt(limit))
+    .populate("reviews.author", "fullName profilePic");
 
   const total = await Destination.countDocuments(query);
 
@@ -68,6 +106,9 @@ export const getDestinations = catchAsync(async (req, res) => {
     destinations,
     pagination: {
       total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
+      limit: parseInt(limit)
     },
   });
 });
