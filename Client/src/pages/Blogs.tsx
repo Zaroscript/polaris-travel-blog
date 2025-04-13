@@ -12,6 +12,7 @@ import BlogCard from "@/components/blog/BlogCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { usePostsStore } from "@/store/usePostsStore";
 
 // Define the API Post type to match your actual data structure
 interface ApiPost {
@@ -75,6 +76,19 @@ const Blogs = () => {
   const [filteredApiPosts, setFilteredApiPosts] = useState<ApiPost[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const postsStore = usePostsStore();
+
+  const {
+    posts: popularPosts,
+    loading: popularLoading,
+    error: popularError,
+    fetchPopularPosts,
+  } = usePostsStore();
+  console.log("Popular Posts:", popularPosts);
+
+  useEffect(() => {
+    fetchPopularPosts();
+  }, [fetchPopularPosts]);
 
   // Fetch posts from API
   useEffect(() => {
@@ -233,22 +247,73 @@ const Blogs = () => {
         {/* Featured posts section - using original static data */}
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Featured Stories</h2>
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="show"
-          >
+
+          {/* Loading state for featured stories */}
+          {popularLoading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {blogPosts
-                .filter((post) => post.featured)
-                .slice(0, 3)
-                .map((post) => (
-                  <motion.div variants={item} key={post.id}>
-                    <BlogCard post={post} />
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="animate-pulse">
+                  <div className="rounded-lg overflow-hidden mb-3 aspect-video bg-gray-200"></div>
+                  <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Error state for featured stories */}
+          {!popularLoading && popularError && (
+            <Card className="text-center py-6 mb-4">
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Unable to load featured stories
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Featured stories content */}
+          {!popularLoading && !popularError && popularPosts.length > 0 && (
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {popularPosts.slice(0, 3).map((post) => (
+                  <motion.div
+                    variants={item}
+                    key={post._id}
+                    onClick={() => navigate(`/blog/${post._id}`)}
+                    whileHover={{ scale: 1.02 }}
+                    className="cursor-pointer"
+                  >
+                    <BlogCard post={transformPost(post)} />
                   </motion.div>
                 ))}
-            </div>
-          </motion.div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Fallback to static if no popular posts */}
+          {!popularLoading && !popularError && popularPosts.length === 0 && (
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {blogPosts
+                  .filter((post) => post.featured)
+                  .slice(0, 3)
+                  .map((post) => (
+                    <motion.div variants={item} key={post.id}>
+                      <BlogCard post={post} />
+                    </motion.div>
+                  ))}
+              </div>
+            </motion.div>
+          )}
         </section>
 
         <div className="border-t my-12" />

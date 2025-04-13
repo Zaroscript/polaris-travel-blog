@@ -19,9 +19,13 @@ import {
   ChevronLeft,
   Send,
   Loader2,
+  Reply,
+  Trash2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
+import { toast } from "react-hot-toast";
+import { useAuthStore } from "@/store/useAuthStore";
 
 // Define API Post type
 interface ApiPost {
@@ -53,7 +57,11 @@ interface ApiPost {
     replies: {
       _id: string;
       content: string;
-      author: string;
+      author: {
+        _id: string;
+        fullName: string;
+        profilePic: string;
+      };
       createdAt: string;
       likes: string[];
     }[];
@@ -68,21 +76,69 @@ interface ApiPost {
   views: number;
 }
 
+// Import the original Comment interface type
+import { Comment } from "@/types";
+
+// Define Reply Type to match structure needed
+interface ReplyType {
+  id: number;
+  text: string;
+  user: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
+  date: string;
+  likes: number;
+  liked?: boolean;
+}
+
+interface CommentType extends Omit<Comment, "replies"> {
+  user: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
+  liked?: boolean;
+  replies?: ReplyType[];
+  showReplyForm?: boolean;
+}
+
+interface EnhancedBlogPostType extends BlogPostType {
+  userLiked?: boolean;
+  comments: CommentType[];
+}
+
+const API_BASE_URL = "http://localhost:5001/api";
+
 const BlogPost = () => {
   const { id } = useParams<{ id: string }>();
-  const [post, setPost] = useState<BlogPostType | null>(null);
+  const [post, setPost] = useState<EnhancedBlogPostType | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<BlogPostType[]>([]);
   const [comment, setComment] = useState("");
-  const [liked, setLiked] = useState(false);
+  const [replyTexts, setReplyTexts] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Convert API post to BlogPost format
-  const transformPost = (apiPost: ApiPost): BlogPostType => {
+  const { authUser } = useAuthStore();
+
+  const currentUser = authUser;
+  const token = localStorage.getItem("token");
+
+  const authConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  const transformPost = (apiPost: ApiPost): EnhancedBlogPostType => {
+    const userLiked = apiPost.likes.some(
+      (like) => currentUser && like._id === currentUser._id
+    );
+
     return {
-      id:
-        parseInt(apiPost._id.substring(apiPost._id.length - 6), 16) ||
-        Number(apiPost._id.slice(-6)),
+      id: apiPost._id,
       title: apiPost.title,
       excerpt: apiPost.content.substring(0, 150) + "...",
       content: apiPost.content,
@@ -91,20 +147,48 @@ const BlogPost = () => {
       category: apiPost.destination?.name || "Uncategorized",
       author: {
         name: apiPost.author.fullName || "Anonymous",
-        avatar: apiPost.author.profilePic || "/user-placeholder.png",
+        avatar:
+          apiPost.author.profilePic ||
+          "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
         role: "Travel Writer",
       },
       tags: apiPost.tags || [],
       likes: apiPost.likes.length,
+      userLiked,
       comments: apiPost.comments.map((comment) => ({
         id: comment._id,
         text: comment.content,
         user: {
+          id: comment.author._id,
           name: comment.author.fullName,
-          avatar: comment.author.profilePic || "/user-placeholder.png",
+          avatar:
+            comment.author.profilePic ||
+            "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
         },
         date: comment.createdAt,
         likes: comment.likes.length || 0,
+        liked: currentUser ? comment.likes.includes(currentUser._id) : false,
+        replies: comment.replies.map((reply) => ({
+          id: reply._id,
+          text: reply.content,
+          user: {
+            id:
+              typeof reply.author === "string"
+                ? reply.author
+                : reply.author._id,
+            name:
+              typeof reply.author === "string" ? "User" : reply.author.fullName,
+            avatar:
+              typeof reply.author === "string"
+                ? "https://cdn-icons-gif.flaticon.com/11617/11617195.gif"
+                : reply.author.profilePic ||
+                  "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
+          },
+          date: reply.createdAt,
+          likes: reply.likes.length || 0,
+          liked: currentUser ? reply.likes.includes(currentUser._id) : false,
+        })),
+        showReplyForm: false,
       })),
       gallery: apiPost.gallery || [],
       readTime: `${Math.ceil(apiPost.content.length / 1000)} min read`,
@@ -120,7 +204,44 @@ const BlogPost = () => {
         apiPost.likes.length > 2,
     };
   };
-
+  function transformComment(apiComment, currentUser) {
+    return {
+      id: apiComment._id,
+      text: apiComment.content,
+      user: {
+        id: apiComment.author._id,
+        name: apiComment.author.fullName,
+        avatar:
+          apiComment.author.profilePic ||
+          "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
+      },
+      date: apiComment.createdAt,
+      likes: apiComment.likes?.length || 0,
+      liked: currentUser ? apiComment.likes?.includes(currentUser._id) : false,
+      replies:
+        apiComment.replies?.map((reply) => ({
+          id: reply._id,
+          text: reply.content,
+          user: {
+            id:
+              typeof reply.author === "string"
+                ? reply.author
+                : reply.author._id,
+            name:
+              typeof reply.author === "string" ? "User" : reply.author.fullName,
+            avatar:
+              typeof reply.author === "string"
+                ? "https://cdn-icons-gif.flaticon.com/11617/11617195.gif"
+                : reply.author.profilePic ||
+                  "https://cdn-icons-gif.flaticon.com/11617/11617195.gif",
+          },
+          date: reply.createdAt,
+          likes: reply.likes?.length || 0,
+          liked: currentUser ? reply.likes?.includes(currentUser._id) : false,
+        })) || [],
+      showReplyForm: false,
+    };
+  }
   // Fetch post data from API
   useEffect(() => {
     const fetchPost = async () => {
@@ -131,9 +252,7 @@ const BlogPost = () => {
 
       try {
         // Try to fetch from API first
-        const response = await axios.get(
-          `http://localhost:5001/api/posts/${id}`
-        );
+        const response = await axios.get(`${API_BASE_URL}/posts/${id}`);
         const apiPost = response.data;
 
         if (apiPost) {
@@ -144,7 +263,7 @@ const BlogPost = () => {
           if (apiPost.tags && apiPost.tags.length > 0) {
             try {
               const relatedResponse = await axios.get(
-                `http://localhost:5001/api/posts?tags=${apiPost.tags.join(",")}`
+                `${API_BASE_URL}/posts?tags=${apiPost.tags.join(",")}`
               );
               const relatedApiPosts =
                 relatedResponse.data.posts || relatedResponse.data;
@@ -181,7 +300,17 @@ const BlogPost = () => {
     const fallbackToStatic = (postId: string) => {
       const staticPost = blogPosts.find((p) => p.id.toString() === postId);
       if (staticPost) {
-        setPost(staticPost);
+        setPost({
+          ...staticPost,
+          comments: staticPost.comments.map((c) => ({
+            ...c,
+            replies: [],
+            showReplyForm: false,
+            liked: false,
+            user: { ...c.user, id: "static-id" },
+          })),
+          userLiked: false,
+        });
         fallbackToStaticRelated(postId);
       } else {
         setError("Blog post not found");
@@ -203,22 +332,489 @@ const BlogPost = () => {
     fetchPost();
   }, [id]);
 
-  const handleCommentSubmit = (e: React.FormEvent) => {
+  // Handle comment submission
+  // Update the handleCommentSubmit function to correctly handle the new comment display
+
+  // Update the handleCommentSubmit function to correctly handle the new comment display
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!currentUser || !token) {
+      toast.error("You need to login to post a comment");
+      return;
+    }
+
     if (comment.trim() && post) {
-      console.log(`Comment on post ${post.id}: ${comment}`);
-      // Here you would add API call to submit comment
-      // axios.post(`http://localhost:5001/api/posts/${post.id}/comments`, { content: comment });
-      setComment("");
+      setSubmitting(true);
+
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/posts/${post.id}/comments`,
+          { content: comment },
+          authConfig
+        );
+
+        // The API returns the entire updated post
+        const updatedPost = response.data;
+
+        // Find the most recently added comment (should be the last one)
+        const comments = updatedPost.comments || [];
+        const newComment =
+          comments.length > 0 ? comments[comments.length - 1] : null;
+
+        if (newComment) {
+          // Transform the comment to match your UI structure
+          const transformedComment = transformComment(newComment, currentUser);
+
+          // Update the post state with the new comment
+          setPost((prev) => {
+            if (!prev) return prev;
+
+            return {
+              ...prev,
+              comments: [transformedComment, ...prev.comments],
+            };
+          });
+
+          toast.success("Comment posted successfully");
+          setComment("");
+        } else {
+          console.error("No comments found in response");
+          toast.error("Comment may have been posted but couldn't be displayed");
+        }
+      } catch (err) {
+        console.error("Error posting comment:", err);
+        toast.error("Failed to post comment. Please try again.");
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
-  const toggleLike = () => {
-    setLiked(!liked);
-    // Here you would add API call to toggle like
-    // axios.post(`http://localhost:5001/api/posts/${post.id}/like`);
+  // Handle reply submission
+  const handleReplySubmit = async (commentId) => {
+    if (!currentUser || !token) {
+      toast.error("You need to login to post a reply");
+      return;
+    }
+
+    const replyText = replyTexts[commentId.toString()];
+    if (!replyText?.trim() || !post) return;
+
+    setSubmitting(true);
+
+    try {
+      // Post the reply
+      const response = await axios.post(
+        `${API_BASE_URL}/posts/${post.id}/comments/${commentId}/replies`,
+        { content: replyText },
+        authConfig
+      );
+
+      // The API returns the entire updated post
+      const updatedPost = response.data;
+      console.log("Full updated post received:", updatedPost);
+
+      if (updatedPost && updatedPost.comments) {
+        // Find the comment we just replied to
+        const updatedComment = updatedPost.comments.find(
+          (comment) => comment._id === commentId
+        );
+
+        if (
+          updatedComment &&
+          updatedComment.replies &&
+          updatedComment.replies.length > 0
+        ) {
+          // Transform the entire post to match our UI structure
+          const transformedPost = transformPost(updatedPost);
+
+          // Update the entire post state
+          setPost(transformedPost);
+
+          toast.success("Reply posted successfully");
+        } else {
+          console.error("Updated comment or replies not found in response");
+          toast.error("Reply may have been posted but couldn't be displayed");
+        }
+      } else {
+        console.error("No updated post data found in response");
+        toast.error("Failed to get updated post data");
+      }
+
+      // Clear the reply input regardless
+      setReplyTexts((prev) => ({
+        ...prev,
+        [commentId]: "",
+      }));
+    } catch (err) {
+      console.error("Error posting reply:", err);
+      toast.error("Failed to post reply. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  // Handle post like/unlike
+  const togglePostLike = async () => {
+    if (!currentUser || !token) {
+      toast.error("You need to login to like posts");
+      return;
+    }
+
+    if (!post) return;
+
+    try {
+      if (post.userLiked) {
+        // Unlike the post
+        await axios.delete(`${API_BASE_URL}/posts/${post.id}/like`, authConfig);
+
+        setPost((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            likes: prev.likes - 1,
+            userLiked: false,
+          };
+        });
+      } else {
+        // Like the post
+        await axios.post(
+          `${API_BASE_URL}/posts/${post.id}/like`,
+          {},
+          authConfig
+        );
+
+        setPost((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            likes: prev.likes + 1,
+            userLiked: true,
+          };
+        });
+      }
+    } catch (err) {
+      console.error("Error toggling post like:", err);
+      toast.error("Failed to process your like. Please try again.");
+    }
+  };
+
+  // Handle comment like/unlike
+  const toggleCommentLike = async (commentId: number) => {
+    if (!currentUser || !token) {
+      toast.error("You need to login to like comments");
+      return;
+    }
+
+    if (!post) return;
+
+    // Find the comment
+    const comment = post.comments.find((c) => c.id === commentId);
+    if (!comment) return;
+
+    try {
+      if (comment.liked) {
+        // Unlike the comment
+        await axios.delete(
+          `${API_BASE_URL}/posts/${post.id}/comments/${commentId}/like`,
+          authConfig
+        );
+
+        setPost((prev) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            comments: prev.comments.map((c) =>
+              c.id === commentId
+                ? { ...c, likes: c.likes - 1, liked: false }
+                : c
+            ),
+          };
+        });
+      } else {
+        // Like the comment
+        await axios.post(
+          `${API_BASE_URL}/posts/${post.id}/comments/${commentId}/like`,
+          {},
+          authConfig
+        );
+
+        setPost((prev) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            comments: prev.comments.map((c) =>
+              c.id === commentId ? { ...c, likes: c.likes + 1, liked: true } : c
+            ),
+          };
+        });
+      }
+    } catch (err) {
+      console.error("Error toggling comment like:", err);
+      toast.error("Failed to process your like. Please try again.");
+    }
+  };
+
+  // Handle reply like/unlike
+  const toggleReplyLike = async (commentId: number, replyId: number) => {
+    if (!currentUser || !token) {
+      toast.error("You need to login to like replies");
+      return;
+    }
+
+    if (!post) return;
+
+    // Find the comment and reply
+    const comment = post.comments.find((c) => c.id === commentId);
+    if (!comment || !comment.replies) return;
+
+    const reply = comment.replies.find((r) => r.id === replyId);
+    if (!reply) return;
+
+    try {
+      if (reply.liked) {
+        // Unlike the reply
+        await axios.delete(
+          `${API_BASE_URL}/posts/${post.id}/comments/${commentId}/replies/${replyId}/like`,
+          authConfig
+        );
+
+        setPost((prev) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            comments: prev.comments.map((c) => {
+              if (c.id === commentId) {
+                return {
+                  ...c,
+                  replies: c.replies?.map((r) =>
+                    r.id === replyId
+                      ? { ...r, likes: r.likes - 1, liked: false }
+                      : r
+                  ),
+                };
+              }
+              return c;
+            }),
+          };
+        });
+      } else {
+        // Like the reply
+        await axios.post(
+          `${API_BASE_URL}/posts/${post.id}/comments/${commentId}/replies/${replyId}/like`,
+          {},
+          authConfig
+        );
+
+        setPost((prev) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            comments: prev.comments.map((c) => {
+              if (c.id === commentId) {
+                return {
+                  ...c,
+                  replies: c.replies?.map((r) =>
+                    r.id === replyId
+                      ? { ...r, likes: r.likes + 1, liked: true }
+                      : r
+                  ),
+                };
+              }
+              return c;
+            }),
+          };
+        });
+      }
+    } catch (err) {
+      console.error("Error toggling reply like:", err);
+      toast.error("Failed to process your like. Please try again.");
+    }
+  };
+
+  // Handle comment deletion
+  // Updated deleteComment function with simple toast confirmation
+  const deleteComment = async (commentId: number) => {
+    if (!currentUser || !token) {
+      toast.error("You need to login to delete comments");
+      return;
+    }
+
+    if (!post) return;
+
+    // Find the comment to check if the current user is the author
+    const comment = post.comments.find((c) => c.id === commentId);
+    if (!comment) return;
+
+    // Only allow deletion if user is the author
+    if (comment.user.id !== currentUser._id) {
+      toast.error("You can only delete your own comments");
+      return;
+    }
+
+    // Create a simple toast confirmation
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <span>Are you sure you want to delete this comment?</span>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1 bg-gray-200 rounded text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+                performCommentDelete(commentId);
+              }}
+              className="px-3 py-1 bg-red-500 text-white rounded text-sm"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 5000 }
+    );
+  };
+
+  // Function that actually performs the deletion
+  const performCommentDelete = async (commentId: number) => {
+    try {
+      await axios.delete(
+        `${API_BASE_URL}/posts/${post.id}/comments/${commentId}`,
+        authConfig
+      );
+
+      // Remove the comment from the post state
+      setPost((prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          comments: prev.comments.filter((c) => c.id !== commentId),
+        };
+      });
+
+      toast.success("Comment deleted successfully");
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+      toast.error("Failed to delete comment. Please try again.");
+    }
+  };
+
+  // Similar approach for reply deletion
+  const deleteReply = async (commentId: number, replyId: number) => {
+    if (!currentUser || !token) {
+      toast.error("You need to login to delete replies");
+      return;
+    }
+
+    if (!post) return;
+
+    // Find the comment and reply
+    const comment = post.comments.find((c) => c.id === commentId);
+    if (!comment || !comment.replies) return;
+
+    const reply = comment.replies.find((r) => r.id === replyId);
+    if (!reply) return;
+
+    // Only allow deletion if user is the author
+    if (reply.user.id !== currentUser._id) {
+      toast.error("You can only delete your own replies");
+      return;
+    }
+
+    // Create a simple toast confirmation
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <span>Are you sure you want to delete this reply?</span>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1 bg-gray-200 rounded text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+                performReplyDelete(commentId, replyId);
+              }}
+              className="px-3 py-1 bg-red-500 text-white rounded text-sm"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 5000 }
+    );
+  };
+
+  // Function that actually performs the reply deletion
+  const performReplyDelete = async (commentId: number, replyId: number) => {
+    try {
+      await axios.delete(
+        `${API_BASE_URL}/posts/${post.id}/comments/${commentId}/replies/${replyId}`,
+        authConfig
+      );
+
+      // Remove the reply from the post state
+      setPost((prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          comments: prev.comments.map((c) => {
+            if (c.id === commentId) {
+              return {
+                ...c,
+                replies: c.replies?.filter((r) => r.id !== replyId),
+              };
+            }
+            return c;
+          }),
+        };
+      });
+
+      toast.success("Reply deleted successfully");
+    } catch (err) {
+      console.error("Error deleting reply:", err);
+      toast.error("Failed to delete reply. Please try again.");
+    }
+  };
+  const toggleReplyForm = (commentId: number) => {
+    setPost((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        comments: prev.comments.map((comment) => {
+          if (comment.id === commentId) {
+            return {
+              ...comment,
+              showReplyForm: !comment.showReplyForm,
+            };
+          }
+          // Make sure we close other open reply forms
+          return {
+            ...comment,
+            showReplyForm: false,
+          };
+        }),
+      };
+    });
+  };
   if (loading) {
     return (
       <Layout>
@@ -370,32 +966,22 @@ const BlogPost = () => {
               </div>
             )}
 
-            {/* Mentions */}
-            {post.mentions && post.mentions.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold mb-4">Mentioned Users</h2>
-                <div className="flex flex-wrap gap-2">
-                  {post.mentions.map((mention, index) => (
-                    <Badge key={index} variant="outline">
-                      @{mention}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Interaction Buttons */}
             <div className="flex items-center gap-4 mb-8">
               <Button
                 variant="ghost"
                 size="sm"
-                className={liked ? "text-red-500" : "text-muted-foreground"}
-                onClick={toggleLike}
+                className={
+                  post.userLiked ? "text-red-500" : "text-muted-foreground"
+                }
+                onClick={togglePostLike}
               >
                 <Heart
-                  className={`h-5 w-5 mr-2 ${liked ? "fill-red-500" : ""}`}
+                  className={`h-5 w-5 mr-2 ${
+                    post.userLiked ? "fill-red-500" : ""
+                  }`}
                 />
-                {post.likes + (liked ? 1 : 0)} Likes
+                {post.likes} Likes
               </Button>
               <Button
                 variant="ghost"
@@ -405,36 +991,40 @@ const BlogPost = () => {
                 <MessageCircle className="h-5 w-5 mr-2" />
                 {post.comments.length} Comments
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground"
-              >
-                <Share2 className="h-5 w-5 mr-2" />
-                Share
-              </Button>
             </div>
 
             {/* Comments Section */}
-            <div className="space-y-6">
+            <div className="space-y-6 relative">
               <h2 className="text-2xl font-bold">
                 Comments ({post.comments.length})
               </h2>
 
+              {/* Add Comment Form */}
               <form onSubmit={handleCommentSubmit} className="space-y-4">
                 <Textarea
-                  placeholder="Write a comment..."
+                  placeholder={
+                    currentUser ? "Write a comment..." : "Login to comment"
+                  }
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   rows={3}
+                  disabled={!currentUser || submitting}
                 />
-                <Button type="submit" disabled={!comment.trim()}>
-                  <Send className="h-4 w-4 mr-2" />
+                <Button
+                  type="submit"
+                  disabled={!comment.trim() || !currentUser || submitting}
+                >
+                  {submitting ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
                   Post Comment
                 </Button>
               </form>
 
-              <div className="space-y-4">
+              {/* Comments List */}
+              <div className="space-y-6">
                 {post.comments.map((comment) => (
                   <Card key={comment.id} className="p-4">
                     <div className="flex items-start gap-3">
@@ -453,19 +1043,186 @@ const BlogPost = () => {
                             })}
                           </span>
                         </div>
-                        <p className="text-sm">{comment.text}</p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="mt-2 h-auto p-0 text-muted-foreground hover:text-red-500"
-                        >
-                          <Heart className="h-4 w-4 mr-1" />
-                          {comment.likes} Likes
-                        </Button>
+                        <p className="text-sm mb-2">{comment.text}</p>
+
+                        {/* Comment Actions */}
+                        <div className="flex items-center gap-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={`h-auto p-0 text-muted-foreground ${
+                              comment.liked ? "text-red-500" : ""
+                            }`}
+                            onClick={() => toggleCommentLike(comment.id)}
+                          >
+                            <Heart
+                              className={`h-4 w-4 mr-1 ${
+                                comment.liked ? "fill-red-500" : ""
+                              }`}
+                            />
+                            {comment.likes} Likes
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-0 text-muted-foreground"
+                            onClick={() => toggleReplyForm(comment.id)}
+                          >
+                            <Reply className="h-4 w-4 mr-1" />
+                            Reply
+                          </Button>
+
+                          {currentUser &&
+                            comment.user.id === currentUser._id && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto p-0 text-muted-foreground hover:text-red-500"
+                                onClick={() => deleteComment(comment.id)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
+                            )}
+                        </div>
+
+                        {/* Reply Form */}
+                        {comment.showReplyForm && (
+                          <div className="mt-4 space-y-2">
+                            <Textarea
+                              placeholder="Write a reply..."
+                              value={replyTexts[comment.id.toString()] || ""}
+                              onChange={(e) =>
+                                setReplyTexts((prev) => ({
+                                  ...prev,
+                                  [comment.id.toString()]: e.target.value,
+                                }))
+                              }
+                              rows={2}
+                              disabled={submitting}
+                              className="text-sm"
+                            />
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => toggleReplyForm(comment.id)}
+                                disabled={submitting}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleReplySubmit(comment.id)}
+                                disabled={
+                                  !replyTexts[comment.id.toString()]?.trim() ||
+                                  submitting
+                                }
+                              >
+                                {submitting ? (
+                                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                                ) : (
+                                  <Send className="h-3 w-3 mr-2" />
+                                )}
+                                Reply
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Replies */}
+                        {comment.replies && comment.replies.length > 0 && (
+                          <div className="mt-4 pl-4 border-l-2 border-muted">
+                            <div className="space-y-4">
+                              {comment.replies.map((reply) => (
+                                <div key={reply.id} className="pt-2">
+                                  <div className="flex items-start gap-3">
+                                    <Avatar className="h-6 w-6">
+                                      <AvatarImage src={reply.user.avatar} />
+                                      <AvatarFallback>
+                                        {reply.user.name[0]}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="font-medium text-sm">
+                                          {reply.user.name}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {formatDistanceToNow(
+                                            new Date(reply.date),
+                                            {
+                                              addSuffix: true,
+                                            }
+                                          )}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm mb-2">
+                                        {reply.text}
+                                      </p>
+
+                                      {/* Reply Actions */}
+                                      <div className="flex items-center gap-4">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className={`h-auto p-0 text-muted-foreground ${
+                                            reply.liked ? "text-red-500" : ""
+                                          }`}
+                                          onClick={() =>
+                                            toggleReplyLike(
+                                              comment.id,
+                                              reply.id
+                                            )
+                                          }
+                                        >
+                                          <Heart
+                                            className={`h-3 w-3 mr-1 ${
+                                              reply.liked ? "fill-red-500" : ""
+                                            }`}
+                                          />
+                                          {reply.likes} Likes
+                                        </Button>
+
+                                        {currentUser &&
+                                          reply.user.id === currentUser._id && (
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-auto p-0 text-muted-foreground hover:text-red-500"
+                                              onClick={() =>
+                                                deleteReply(
+                                                  comment.id,
+                                                  reply.id
+                                                )
+                                              }
+                                            >
+                                              <Trash2 className="h-3 w-3 mr-1" />
+                                              Delete
+                                            </Button>
+                                          )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </Card>
                 ))}
+
+                {post.comments.length === 0 && (
+                  <div className="text-center py-8">
+                    <MessageCircle className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-muted-foreground">
+                      No comments yet. Be the first to comment!
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
