@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import axios from "axios";
 import Layout from "@/components/layout/Layout";
-import { blogPosts } from "@/data/blogData";
+import { blogPosts } from "@/data/blogData"; // Keep for fallback and related posts for now
 import { BlogPost as BlogPostType } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Heart,
   MessageCircle,
@@ -18,9 +18,55 @@ import {
   MapPin,
   ChevronLeft,
   Send,
+  Loader2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
+
+// Define API Post type
+interface ApiPost {
+  _id: string;
+  title: string;
+  content: string;
+  coverImage: string;
+  author: {
+    _id: string;
+    fullName: string;
+    profilePic: string;
+  };
+  gallery: string[];
+  likes: {
+    _id: string;
+    fullName: string;
+    profilePic: string;
+  }[];
+  comments: {
+    _id: string;
+    content: string;
+    author: {
+      _id: string;
+      fullName: string;
+      profilePic: string;
+    };
+    likes: string[];
+    createdAt: string;
+    replies: {
+      _id: string;
+      content: string;
+      author: string;
+      createdAt: string;
+      likes: string[];
+    }[];
+  }[];
+  tags: string[];
+  isPublished: boolean;
+  destination?: {
+    _id: string;
+    name: string;
+  };
+  createdAt: string;
+  views: number;
+}
 
 const BlogPost = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,39 +74,171 @@ const BlogPost = () => {
   const [relatedPosts, setRelatedPosts] = useState<BlogPostType[]>([]);
   const [comment, setComment] = useState("");
   const [liked, setLiked] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Convert API post to BlogPost format
+  const transformPost = (apiPost: ApiPost): BlogPostType => {
+    return {
+      id:
+        parseInt(apiPost._id.substring(apiPost._id.length - 6), 16) ||
+        Number(apiPost._id.slice(-6)),
+      title: apiPost.title,
+      excerpt: apiPost.content.substring(0, 150) + "...",
+      content: apiPost.content,
+      image: apiPost.coverImage || "/placeholder-image.jpg",
+      date: new Date(apiPost.createdAt).toLocaleDateString(),
+      category: apiPost.destination?.name || "Uncategorized",
+      author: {
+        name: apiPost.author.fullName || "Anonymous",
+        avatar: apiPost.author.profilePic || "/user-placeholder.png",
+        role: "Travel Writer",
+      },
+      tags: apiPost.tags || [],
+      likes: apiPost.likes.length,
+      comments: apiPost.comments.map((comment) => ({
+        id: comment._id,
+        text: comment.content,
+        user: {
+          name: comment.author.fullName,
+          avatar: comment.author.profilePic || "/user-placeholder.png",
+        },
+        date: comment.createdAt,
+        likes: comment.likes.length || 0,
+      })),
+      gallery: apiPost.gallery || [],
+      readTime: `${Math.ceil(apiPost.content.length / 1000)} min read`,
+      destination: apiPost.destination
+        ? {
+            name: apiPost.destination.name,
+            id: apiPost.destination._id,
+          }
+        : undefined,
+      featured:
+        apiPost.tags.includes("featured") ||
+        apiPost.views > 300 ||
+        apiPost.likes.length > 2,
+    };
+  };
+
+  // Fetch post data from API
   useEffect(() => {
-    if (id) {
-      const foundPost = blogPosts.find((p) => p.id.toString() === id);
-      setPost(foundPost || null);
+    const fetchPost = async () => {
+      if (!id) return;
 
-      if (foundPost) {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Try to fetch from API first
+        const response = await axios.get(
+          `http://localhost:5001/api/posts/${id}`
+        );
+        const apiPost = response.data;
+
+        if (apiPost) {
+          const transformedPost = transformPost(apiPost);
+          setPost(transformedPost);
+
+          // Now fetch related posts based on tags
+          if (apiPost.tags && apiPost.tags.length > 0) {
+            try {
+              const relatedResponse = await axios.get(
+                `http://localhost:5001/api/posts?tags=${apiPost.tags.join(",")}`
+              );
+              const relatedApiPosts =
+                relatedResponse.data.posts || relatedResponse.data;
+
+              // Filter out current post and transform the rest
+              const filteredRelatedPosts = Array.isArray(relatedApiPosts)
+                ? relatedApiPosts
+                    .filter((p) => p._id !== apiPost._id)
+                    .map((p) => transformPost(p))
+                    .slice(0, 3)
+                : [];
+
+              setRelatedPosts(filteredRelatedPosts);
+            } catch (relatedErr) {
+              console.error("Error fetching related posts:", relatedErr);
+              // Fallback to static data for related posts if needed
+              fallbackToStaticRelated(id);
+            }
+          }
+        } else {
+          // Fallback to static data if API post is null
+          fallbackToStatic(id);
+        }
+      } catch (err) {
+        console.error("Error fetching post:", err);
+        // Fallback to static data
+        fallbackToStatic(id);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Fallback to static data if API fails
+    const fallbackToStatic = (postId: string) => {
+      const staticPost = blogPosts.find((p) => p.id.toString() === postId);
+      if (staticPost) {
+        setPost(staticPost);
+        fallbackToStaticRelated(postId);
+      } else {
+        setError("Blog post not found");
+      }
+    };
+
+    // Fallback for related posts
+    const fallbackToStaticRelated = (postId: string) => {
+      const staticPost = blogPosts.find((p) => p.id.toString() === postId);
+      if (staticPost) {
         const related = blogPosts
-          .filter((p) => p.id.toString() !== id)
-          .filter((p) => p.tags.some((tag) => foundPost.tags.includes(tag)))
+          .filter((p) => p.id.toString() !== postId)
+          .filter((p) => p.tags.some((tag) => staticPost.tags.includes(tag)))
           .slice(0, 3);
         setRelatedPosts(related);
       }
-    }
+    };
+
+    fetchPost();
   }, [id]);
 
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (comment.trim() && post) {
       console.log(`Comment on post ${post.id}: ${comment}`);
+      // Here you would add API call to submit comment
+      // axios.post(`http://localhost:5001/api/posts/${post.id}/comments`, { content: comment });
       setComment("");
     }
   };
 
   const toggleLike = () => {
     setLiked(!liked);
+    // Here you would add API call to toggle like
+    // axios.post(`http://localhost:5001/api/posts/${post.id}/like`);
   };
 
-  if (!post) {
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-20 text-center">
+          <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" />
+          <p className="mt-4 text-lg text-muted-foreground">Loading post...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error || !post) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-8 text-center">
           <h1 className="text-2xl font-bold mb-4">Blog post not found</h1>
+          <p className="text-muted-foreground mb-6">
+            {error ||
+              "The post you're looking for doesn't exist or has been removed."}
+          </p>
           <Link to="/blogs">
             <Button>Back to Blogs</Button>
           </Link>
