@@ -21,6 +21,10 @@ export interface Destination {
     city: string;
     country: string;
   };
+  coverImage: {
+    url: string;
+    caption: string;
+  };
   images: Array<{
     url: string;
     caption: string;
@@ -62,7 +66,12 @@ export interface DestinationsState {
   currentDestination: Destination | null;
   loading: boolean;
   error: string | null;
+  popularDestinations: Destination[];
+  trendingDestinations: Destination[];
+  isLoading: boolean;
   fetchDestinations: (params?: DestinationFilters) => Promise<void>;
+  fetchPopularDestinations: (limit?: number) => Promise<void>;
+  fetchTrendingDestinations: (limit?: number) => Promise<void>;
   fetchDestination: (id: string) => Promise<void>;
   createDestination: (destinationData: Partial<Destination>) => Promise<void>;
   updateDestination: (

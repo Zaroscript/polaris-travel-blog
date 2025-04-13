@@ -11,8 +11,8 @@ export interface Post {
   };
   likes: {
     _id: string;
-    fullName: string;
-    profilePic: string;
+    fullName?: string;
+    profilePic?: string;
   }[];
   tags: string[];
   comments: Comment[];
@@ -31,6 +31,12 @@ export interface Post {
   isDeleted?: boolean;
   isEdited?: boolean;
   editedAt?: string;
+  file?: File | File[]; // For file upload handling
+  shares?: {
+    _id: string;
+    fullName?: string;
+    profilePic?: string;
+  }[];
 }
 
 export interface Comment {
@@ -43,11 +49,13 @@ export interface Comment {
   };
   likes: {
     _id: string;
-    fullName: string;
-    profilePic: string;
+    fullName?: string;
+    profilePic?: string;
   }[];
   createdAt: string;
   replies: Reply[];
+  isLoading?: boolean; // Added for optimistic UI updates
+  isLiked?: boolean;
 }
 
 export interface Reply {
@@ -60,10 +68,12 @@ export interface Reply {
   };
   likes: {
     _id: string;
-    fullName: string;
-    profilePic: string;
+    fullName?: string;
+    profilePic?: string;
   }[];
   createdAt: string;
+  isLoading?: boolean; // Added for optimistic UI updates
+  isLiked?: boolean;
 }
 
 export interface SuggestedConnection {
@@ -83,6 +93,7 @@ export interface PostCardProps {
   isSaved?: boolean;
   isCopied?: boolean;
   isFollowing?: boolean;
+  compact?: boolean;
 }
 
 export interface RightSidebarProps {
@@ -97,6 +108,7 @@ export interface MinimalProfile {
   fullName: string;
   profilePic: string;
   location?: string;
+  coverImage?: string;
 }
 
 export interface Profile {
@@ -109,18 +121,18 @@ export interface Profile {
   birthDate: string;
   profilePic: string;
   coverImage: string;
-  visitedDestinations: { _id: string; name: string; image: string }[];
-  interests: [];
-  following: { _id: string; fullName: string; profilePic: string }[];
-  followers: { _id: string; fullName: string; profilePic: string }[];
+  visitedDestinations: Destination[];
+  interests: string[];
+  following: MinimalProfile[];
+  followers: MinimalProfile[];
   savedPosts: { _id: string; title: string; coverImage: string }[];
   followersCount?: number;
   followingCount?: number;
   postsCount?: number;
   accountSettings: {
-    connections: { _id: string; fullName: string; profilePic: string }[];
-    following: { _id: string; fullName: string; profilePic: string }[];
-    followers: { _id: string; fullName: string; profilePic: string }[];
+    connections: MinimalProfile[];
+    following: MinimalProfile[];
+    followers: MinimalProfile[];
     savedPosts: { _id: string; title: string; coverImage: string }[];
     posts: { _id: string; title: string; coverImage: string }[];
     isVerified: boolean;
@@ -131,6 +143,24 @@ export interface Profile {
   token?: string;
 }
 
+// Profile user with focused properties for the ProfileUser component
+export interface ProfileUser extends Omit<Profile, 'visitedDestinations'> {
+  visitedDestinations?: Destination[];
+}
+
+export interface Destination {
+  _id: string;
+  name: string;
+  country: string;
+  image: string;
+  description?: string;
+  latitude?: number;
+  longitude?: number;
+  visitDate?: string;
+  rating?: number;
+  notes?: string;
+}
+
 export interface Pagination {
   total: number;
   page: number;
@@ -139,16 +169,33 @@ export interface Pagination {
   hasMore: boolean;
 }
 
+export type PostFilter = "all" | "following" | "saved" | "liked" | "trending" | "latest" | "popular" | string;
+
+export type PostSort = "recent" | "popular" | "oldest" | string;
+
 export interface PostsState {
   posts: Post[];
   loading: boolean;
   error: string | null;
-  fetchPosts: (page?: number, limit?: number, search?: string) => Promise<void>;
+  hasMore: boolean;
+  currentPage: number;
+  activeFilter: PostFilter;
+  activeSort: PostSort;
+  searchQuery: string;
+  resetFilters: () => void;
+  fetchPosts: (
+    page?: number, 
+    filter?: PostFilter, 
+    sort?: PostSort, 
+    search?: string, 
+    append?: boolean
+  ) => Promise<{ posts: Post[]; hasMore: boolean }>;
+  loadMorePosts: () => Promise<void>;
   fetchPost: (id: string) => Promise<Post>;
-  createPost: (postData: Partial<Post>) => Promise<Post>;
-  updatePost: (id: string, postData: Partial<Post>) => Promise<Post>;
+  createPost: (postData: Partial<Post> & { file?: File | File[] }) => Promise<Post>;
+  updatePost: (id: string, postData: Partial<Post> & { file?: File | File[] }) => Promise<Post>;
   deletePost: (id: string) => Promise<void>;
-  likePost: (id: string) => Promise<void>;
+  likePost: (id: string) => Promise<{ isLiked: boolean; message: string }>;
   unlikePost: (id: string) => Promise<void>;
   addComment: (postId: string, content: string) => Promise<Comment>;
   likeComment: (postId: string, commentId: string) => Promise<void>;
@@ -177,20 +224,25 @@ export interface PostsState {
   toggleSavePost: (
     id: string
   ) => Promise<{ message: string; isSaved: boolean }>;
-  fetchPopularPosts: () => void;
-  fetchFollowingPosts: () => void;
+  sharePost: (id: string) => Promise<void>;
+  fetchPopularPosts: () => Promise<Post[]>;
+  fetchFollowingPosts: () => Promise<Post[]>;
+  fetchSavedPosts: () => Promise<Post[]>;
+  fetchLikedPosts: () => Promise<Post[]>;
+  fetchUserPhotos: (userId?: string) => Promise<string[]>;
+  fetchUserPosts: (userId: string) => Promise<Post[]>;
 }
 
 export interface ProfileState {
-  profile: Profile | null;
+  profile: ProfileUser | null;
   posts: Post[];
   followers: MinimalProfile[];
   following: MinimalProfile[];
   loading: boolean;
   error: string | null;
-  fetchProfile: (userId: string) => Promise<Profile>;
+  fetchProfile: (userId: string) => Promise<ProfileUser>;
   fetchUserPosts: (userId: string) => Promise<void>;
-  fetchSuggestedUsers: (userId: string) => Promise<Profile[]>;
+  fetchSuggestedUsers: (userId: string) => Promise<ProfileUser[]>;
   fetchFollowers: (
     userId: string,
     page?: number,
@@ -203,8 +255,8 @@ export interface ProfileState {
   ) => Promise<void>;
   updateProfile: (
     userId: string,
-    profileData: Partial<Profile>
-  ) => Promise<Profile>;
+    profileData: Partial<ProfileUser>
+  ) => Promise<ProfileUser>;
   followUser: (userId: string) => Promise<{
     following: boolean;
     followingCount: number;
@@ -219,4 +271,45 @@ export interface ProfileState {
   }>;
   blockUser: (userId: string) => Promise<void>;
   reportUser: (userId: string, reason: string) => Promise<void>;
+}
+
+// Hook return types for better type safety
+export interface UsePostsReturn {
+  posts: Post[];
+  loading: boolean;
+  error: string | null;
+  fetchPosts: (page?: number, limit?: number, search?: string) => Promise<void>;
+  fetchUserPosts: (userId: string) => Promise<Post[]>;
+  fetchSavedPosts: () => Promise<Post[]>;
+  fetchLikedPosts: () => Promise<Post[]>;
+  fetchUserPhotos: (userId?: string) => Promise<string[]>;
+  likePost: (id: string) => Promise<{ isLiked: boolean; message: string }>;
+  savePost: (id: string) => Promise<{ message: string; isSaved: boolean }>;
+  createPost: (postData: Partial<Post>) => Promise<Post>;
+  updatePost: (id: string, postData: Partial<Post>) => Promise<Post>;
+  deletePost: (id: string) => Promise<void>;
+  addComment: (postId: string, content: string) => Promise<Comment>;
+}
+
+export interface UseProfileReturn {
+  profile: ProfileUser | null;
+  loading: boolean;
+  error: string | null;
+  fetchProfile: (userId: string) => Promise<ProfileUser>;
+  fetchFollowing: (userId: string, page?: number, limit?: number) => Promise<void>;
+  fetchFollowers: (userId: string, page?: number, limit?: number) => Promise<void>;
+  followUser: (userId: string) => Promise<{
+    following: boolean;
+    followingCount: number;
+    followerCount: number;
+    message: string;
+  }>;
+  unfollowUser: (userId: string) => Promise<{
+    following: boolean;
+    followingCount: number;
+    followerCount: number;
+    message: string;
+  }>;
+  updateProfile: (userId: string, profileData: Partial<ProfileUser>) => Promise<ProfileUser>;
+  isCurrentUserFollowing: (followerId: string) => boolean;
 }

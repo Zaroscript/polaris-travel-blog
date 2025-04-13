@@ -1,4 +1,3 @@
-import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
@@ -13,16 +12,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Post } from "@/types/social";
-import useProfileStore from "@/store/useProfileStore";
+import { useProfileStore } from "@/store/useProfileStore";
+import { formatRelativeTime } from "@/utils/date";
+import { useState, useEffect } from "react";
 
 interface PostHeaderProps {
   post: Post;
-  onFollow: (userId: string) => void;
-  onSave: (postId: string) => void;
-  onCopyLink: (postId: string) => void;
-  isFollowing: boolean;
-  isSaved: boolean;
-  isCopied: boolean;
+  onFollow?: (userId: string) => void;
+  onSave?: (postId: string) => void;
+  onCopyLink?: (postId: string) => void;
+  isFollowing?: boolean;
+  isSaved?: boolean;
+  isCopied?: boolean;
 }
 
 const PostHeader = ({
@@ -35,42 +36,59 @@ const PostHeader = ({
   isCopied,
 }: PostHeaderProps) => {
   const { authUser } = useAuthStore();
-  const { getProfile } = useProfileStore();
-  const user = getProfile(post.authorId);
+  const { fetchProfile } = useProfileStore();
+  const [user, setUser] = useState(post.author);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const profile = await fetchProfile(post.author._id);
+        if (profile) {
+          setUser(profile);
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      }
+    };
+    fetchUserProfile();
+  }, [post.author._id, fetchProfile]);
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-4">
         <Avatar className="h-10 w-10 ring-2 ring-primary/10">
-          <AvatarImage src={user?.profileImage} />
-          <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
+          <AvatarImage src={user.profilePic} />
+          <AvatarFallback>{user.fullName?.charAt(0) || "U"}</AvatarFallback>
         </Avatar>
 
         <div className="flex-1 flex space-x-2 items-center">
           <div>
-            <h3 className="font-semibold text-base">{user?.name}</h3>
+            <h3 className="font-semibold text-base">{user.fullName}</h3>
             <p className="text-sm text-muted-foreground">
-              {formatDistanceToNow(new Date(post.createdAt), {
-                addSuffix: true,
-              })}
+              {formatRelativeTime(post.createdAt)}
             </p>
           </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "h-8 px-2 text-muted-foreground hover:text-primary hover:bg-primary/10",
-              isFollowing && "text-primary"
-            )}
-            onClick={() => onFollow(post.authorId)}
-          >
-            {isFollowing ? (
-              <UserMinus className="h-4 w-4" />
-            ) : (
-              <UserPlus className="h-4 w-4" />
-            )}
-          </Button>
+          {authUser && onFollow && authUser._id !== user._id && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className={cn(
+                "h-8 px-2 text-muted-foreground hover:text-primary hover:bg-primary/10",
+                isFollowing && "text-primary"
+              )}
+              onClick={() => onFollow && onFollow(user._id)}
+            >
+              {isFollowing ? (
+                <UserMinus className="h-4 w-4" />
+              ) : (
+                <UserPlus className="h-4 w-4" />
+              )}
+              <span className="ml-1">
+                {isFollowing ? "Following" : "Follow"}
+              </span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -93,13 +111,13 @@ const PostHeader = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onSave(post.id)}>
+            <DropdownMenuItem onClick={() => onSave && onSave(post._id)}>
               {isSaved ? "Unsave" : "Save"}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onCopyLink(post.id)}>
+            <DropdownMenuItem onClick={() => onCopyLink && onCopyLink(post._id)}>
               {isCopied ? "Copied!" : "Copy link"}
             </DropdownMenuItem>
-            {user?.id === authUser?.id && (
+            {user._id === authUser?._id && (
               <DropdownMenuItem className="text-destructive">
                 Delete
               </DropdownMenuItem>

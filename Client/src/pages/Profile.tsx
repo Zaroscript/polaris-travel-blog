@@ -1,36 +1,42 @@
-import { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
-import {
-  MapPin,
-  Globe,
-  Calendar,
-  Mail,
-  Heart,
-  Users,
-  Camera,
-  Map,
-} from "lucide-react";
-import Layout from "@/components/layout/Layout";
-import ProfileHeader from "@/components/social/ProfileHeader";
-import PostCard from "@/components/social/PostCard";
-import CreatePost from "@/components/social/CreatePost";
-import DestinationMap from "@/components/destination/DestinationMap";
-import { useProfileStore } from "@/store/useProfileStore";
-import { usePostsStore } from "@/store/usePostsStore";
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useParams } from "react-router-dom";
+import Layout from "@/components/layout/Layout";
+import { useToast } from "@/components/ui/use-toast";
+import { Card } from "@/components/ui/card";
+import CreatePost from "@/components/social/CreatePost";
+import { ErrorState } from "@/components/ui/error-state";
+import { LoadingState } from "@/components/ui/loading-state";
+import { useProfile } from "@/hooks/use-profile";
+import { usePosts } from "@/hooks/use-posts";
+import {
+  ProfileContainer,
+  ProfileHeader,
+  ProfilePosts,
+  ProfileFollowers,
+  ProfileMap,
+} from "@/components/profile";
 
+/**
+ * Profile - Main profile page component that handles user profiles and content tabs
+ */
 const Profile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { authUser } = useAuthStore();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("posts");
-  const { authUser } = useAuthStore();
+  const [tabsLoading, setTabsLoading] = useState({
+    posts: false,
+    following: false,
+    followers: false,
+    map: false,
+    saved: false,
+    liked: false,
+    photos: false
+  });
+
+  // Use custom hooks for profile and posts
   const {
     profile,
     loading: profileLoading,
@@ -40,308 +46,193 @@ const Profile = () => {
     fetchFollowers,
     followUser,
     unfollowUser,
-  } = useProfileStore();
+    isCurrentUserFollowing,
+  } = useProfile();
+
   const {
     posts,
     loading: postsLoading,
     error: postsError,
-    fetchPosts,
-    likePost,
-    toggleSavePost,
-  } = usePostsStore();
+    fetchUserPosts,
+    fetchSavedPosts,
+    fetchLikedPosts,
+    fetchUserPhotos,
+  } = usePosts();
+
+  // Check if this is the current user's profile
   const isOwnProfile = authUser?._id === id;
+
+  // Check if the current auth user is following the profile user
   const isFollowing = profile?.followers?.some(follower => follower._id === authUser?._id) || false;
 
+  // Handle follow user action
+  const handleFollow = async () => {
+    if (!id) return;
+    try {
+      await followUser(id);
+      toast({
+        title: "Success",
+        description: `You are now following this user`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to follow user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle unfollow user action
+  const handleUnfollow = async () => {
+    if (!id) return;
+    try {
+      await unfollowUser(id);
+      toast({
+        title: "Success",
+        description: `You have unfollowed this user`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to unfollow user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Load data based on active tab
+  const loadTabData = useCallback(async (tab: string) => {
+    if (!id) return;
+
+    // Only set loading for the current tab
+    setTabsLoading(prev => ({ ...prev, [tab]: true }));
+
+    try {
+      if (tab === "following" && id) {
+        await fetchFollowing(id);
+      } else if (tab === "followers" && id) {
+        await fetchFollowers(id);
+      } else if (tab === "posts") {
+        await fetchUserPosts(id);
+      } else if (tab === "saved" && isOwnProfile) {
+        await fetchSavedPosts();
+      } else if (tab === "liked" && isOwnProfile) {
+        await fetchLikedPosts();
+      } else if (tab === "photos") {
+        await fetchUserPhotos(id);
+      }
+    } finally {
+      setTabsLoading(prev => ({ ...prev, [tab]: false }));
+    }
+  }, [id, isOwnProfile, fetchFollowing, fetchFollowers, fetchUserPosts, fetchSavedPosts, fetchLikedPosts, fetchUserPhotos]);
+
+  // Fetch initial profile data
   useEffect(() => {
     if (id) {
       fetchProfile(id);
-      fetchPosts();
     }
-  }, [id, fetchProfile, fetchPosts]);
+  }, [id, fetchProfile]);
 
   useEffect(() => {
-    if (id) {
-      if (activeTab === "following") {
-        fetchFollowing(id);
-      } else if (activeTab === "followers") {
-        fetchFollowers(id);
-      }
-    }
-  }, [id, activeTab, fetchFollowing, fetchFollowers]);
+    loadTabData(activeTab);
+  }, [activeTab, loadTabData]);
 
-  return (
-    <Layout>
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col">
-        <div className="container py-6 flex-1">
-          <ProfileHeader
-            coverImage={profile?.coverImage}
-            profileImage={profile?.profilePic}
-            name={profile?.fullName}
-            location={profile?.location}
-            age={profile?.birthDate}
-            email={profile?.email}
-            isOwnProfile={isOwnProfile}
-            isFollowing={isFollowing}
-            followersCount={profile?.followers?.length || 0}
-            followingCount={profile?.following?.length || 0}
-            postsCount={profile?.postsCount || 0}
-            onEditProfile={() => navigate('/user/settings')}
-            onBlockUser={() => {
-              toast({
-                title: "User Blocked",
-                description: "You will no longer see content from this user.",
-              });
-            }}
-            onReportUser={() => {
-              toast({
-                title: "User Reported",
-                description: "Thank you for your report. We will review it shortly.",
-              });
-            }}
-            onFollow={async () => {
-              try {
-                await followUser(id!);
-                toast({
-                  title: "Success",
-                  description: `You are now following ${profile?.fullName}`,
-                });
-              } catch (error) {
-                toast({
-                  title: "Error",
-                  description: "Failed to follow user",
-                  variant: "destructive",
-                });
-              }
-            }}
-            onUnfollow={async () => {
-              try {
-                await unfollowUser(id!);
-                toast({
-                  title: "Success",
-                  description: `You have unfollowed ${profile?.fullName}`,
-                });
-              } catch (error) {
-                toast({
-                  title: "Error",
-                  description: "Failed to unfollow user",
-                  variant: "destructive",
-                });
-              }
-            }}
-            onChat={() => {
-              navigate(`/chat`);
-            }}
+  // Handle tab change
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
+
+  // Display loading state if profile is loading
+  if (profileLoading) {
+    return (
+      <Layout>
+        <div className="container py-8">
+          <LoadingState 
+            variant="profile" 
+            size="lg"
+            text="Loading traveler profile..."
+            className="py-12"
           />
+        </div>
+      </Layout>
+    );
+  }
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-            {/* Left Column - About Section */}
-            <div className="lg:col-span-1 space-y-6">
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4">About</h2>
-                <p className="text-muted-foreground mb-6">{profile?.about}</p>
-
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">
-                      {profile?.location}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">
-                      {profile?.birthDate} years old
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">
-                      {profile?.email}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <h3 className="font-semibold mb-3">Interests</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {profile?.interests?.map((interest, index) => (
-                      <Badge key={index} variant="secondary">
-                        {interest}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Memories</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  {profile?.visitedDestinations?.map((destination) => (
-                    <div
-                      key={destination._id}
-                      className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
-                    >
-                      <img
-                        src={destination.image}
-                        alt={destination.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors">
-                        <div className="absolute bottom-0 left-0 right-0 p-4">
-                          <h3 className="text-white font-semibold">
-                            {destination.name}
-                          </h3>
-                          <p className="text-white/80 text-sm">
-                            {destination.name}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-
-            {/* Right Column - Posts and Following/Followers */}
-            <div className="lg:col-span-2">
-              <Tabs
-                defaultValue="posts"
-                className="w-full h-full flex flex-col"
-                onValueChange={setActiveTab}
-              >
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="posts">
-                    <Camera className="h-4 w-4 mr-2" />
-                    Posts
-                  </TabsTrigger>
-                  <TabsTrigger value="following">
-                    <Heart className="h-4 w-4 mr-2" />
-                    Following
-                  </TabsTrigger>
-                  <TabsTrigger value="followers">
-                    <Users className="h-4 w-4 mr-2" />
-                    Followers
-                  </TabsTrigger>
-                  <TabsTrigger value="map">
-                    <Map className="h-4 w-4 mr-2" />
-                    Travel Map
-                  </TabsTrigger>
-                </TabsList>
-
-                <ScrollArea className="flex-1 mt-6">
-                  <TabsContent value="posts" className="space-y-6">
-                    {isOwnProfile && <CreatePost />}
-
-                    {posts
-                      .filter((post) => post.author._id === id)
-                      .map((post) => (
-                        <PostCard
-                          key={post._id}
-                          post={post}
-                          onLike={async (postId) => {
-                            try {
-                              await likePost(postId);
-                              toast({
-                                title: "Success",
-                                description: "Post liked successfully",
-                              });
-                            } catch (error) {
-                              toast({
-                                title: "Error",
-                                description: "Failed to like post",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
-                          onSave={async (postId) => {
-                            try {
-                              await toggleSavePost(postId);
-                              toast({
-                                title: "Success",
-                                description: "Post saved successfully",
-                              });
-                            } catch (error) {
-                              toast({
-                                title: "Error",
-                                description: "Failed to save post",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
-                          onCopyLink={(postId) => {
-                            const url = `${window.location.origin}/post/${postId}`;
-                            navigator.clipboard.writeText(url);
-                            toast({
-                              title: "Success",
-                              description: "Link copied to clipboard",
-                            });
-                          }}
-                          isLiked={post.isLiked}
-                          isSaved={post.isSaved}
-                          isFollowing={isFollowing}
-                        />
-                      ))}
-                  </TabsContent>
-
-                  <TabsContent value="following" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {profile?.following?.map((user) => (
-                        <Card key={user._id} className="p-4">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={user.profilePic}
-                              alt={user.fullName}
-                              className="w-12 h-12 rounded-full"
-                            />
-                            <div>
-                              <h3 className="font-medium">{user.fullName}</h3>
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="followers" className="space-y-6">
-                    {profile?.followers?.length === 0 ? (
-                      <Card className="p-6 text-center">
-                        <p className="text-muted-foreground">
-                          No followers yet
-                        </p>
-                      </Card>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {profile?.followers?.map((user) => (
-                          <Card key={user._id} className="p-4">
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={user.profilePic}
-                                alt={user.fullName}
-                                className="w-12 h-12 rounded-full"
-                              />
-                              <div>
-                                <h3 className="font-medium">{user.fullName}</h3>
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="map" className="space-y-6">
-                    <Card className="p-6">
-                      <h2 className="text-xl font-semibold mb-4">Travel Map</h2>
-                      <div className="h-[400px] rounded-lg overflow-hidden">
-                        {/* <DestinationMap  /> */}
-                      </div>
-                    </Card>
-                  </TabsContent>
-                </ScrollArea>
-              </Tabs>
-            </div>
+  // If profile error, show error message
+  if (profileError) {
+    return (
+      <Layout>
+        <div className="container py-8 text-center">
+          <div className="max-w-md mx-auto">
+            <ErrorState
+              title="Error Loading Profile"
+              description="We encountered an error while trying to load this profile. Please try again later."
+              onBack={() => navigate(-1)}
+            />
           </div>
         </div>
+      </Layout>
+    );
+  }
+
+  // Main render
+  return (
+    <Layout>
+      <div className="container py-8">
+        <ProfileHeader 
+          profile={profile} 
+          isOwnProfile={isOwnProfile} 
+        />
+
+        <ProfileContainer
+          profile={profile}
+          isOwnProfile={isOwnProfile}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          isFollowing={isFollowing}
+          onFollow={handleFollow}
+          onUnfollow={handleUnfollow}
+        >
+          <div className="space-y-6">
+            {/* Create Post (only for own profile and posts tab) */}
+            {isOwnProfile && activeTab === "posts" && (
+              <Card className="overflow-hidden border-dashed border-2 bg-muted/40 p-4">
+                <CreatePost />
+              </Card>
+            )}
+
+            {/* Tab Content */}
+            {activeTab === "posts" && (
+              <ProfilePosts 
+                userId={id || ''} 
+                isOwnProfile={isOwnProfile}
+                profileName={profile?.fullName}
+              />
+            )}
+
+            {activeTab === "followers" && (
+              <ProfileFollowers 
+                followers={profile?.followers || []} 
+                loading={tabsLoading.followers}
+                isOwnProfile={isOwnProfile}
+                onFollow={handleFollow}
+                onUnfollow={handleUnfollow}
+                isFollowing={isCurrentUserFollowing}
+              />
+            )}
+
+            {activeTab === "map" && (
+              <ProfileMap 
+                destinations={profile?.visitedDestinations} 
+                loading={tabsLoading.map}
+                isOwnProfile={isOwnProfile}
+              />
+            )}
+
+            {/* Other tabs will be implemented similarly */}
+          </div>
+        </ProfileContainer>
       </div>
     </Layout>
   );

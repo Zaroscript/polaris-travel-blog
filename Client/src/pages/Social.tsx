@@ -4,19 +4,26 @@ import { useProfileStore } from "@/store/useProfileStore";
 import PostCard from "@/components/social/PostCard";
 import CreatePost from "@/components/social/CreatePost";
 import { Button } from "@/components/ui/button";
-import { Loader, Plus } from "lucide-react";
+import { Loader, Plus, UserCircle, Compass, Sparkles, Filter, Globe, Search, Bell } from "lucide-react";
 import Layout from "../components/layout/Layout";
 import SocialSidebar from "@/components/social/SocialSidebar";
 import RightSidebar from "@/components/social/RightSidebar";
 import { newsItems } from "@/constants";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useToast } from "@/components/ui/use-toast";
-import { Profile } from "@/types/social";
+import { Profile, ProfileUser } from "@/types/social";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LoadingState } from "@/components/ui/loading-state";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator"; 
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
 
 const Social = () => {
-  const [suggestedUsers, setSuggestedUsers] = useState<Profile[]>([]);
+  const [suggestedUsers, setSuggestedUsers] = useState<ProfileUser[]>([]);
   const [activeTab, setActiveTab] = useState("recent");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleLike = async (postId: string) => {
     if (!authUser?._id) {
@@ -99,7 +106,6 @@ const Social = () => {
   };
 
   const {
-
     posts,
     loading: postsLoading,
     error: postsError,
@@ -181,32 +187,111 @@ const Social = () => {
   const loading = postsLoading || profileLoading;
   const error = postsError || profileError;
 
-  if (loading && !posts.length) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader className="size-10 animate-spin" />
-      </div>
-    );
-  }
-
   if (error) {
     return <div className="text-red-500 text-center p-4">Error: {error}</div>;
   }
 
+  const filteredPosts = searchQuery
+    ? posts.filter(
+        (post) =>
+          post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          post.author.fullName?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : posts;
+
   return (
     <Layout>
-      <div className="container flex min-h-[calc(100vh-65px)] bg-background">
+      {/* Hero Section */}
+      <div className="w-full bg-gradient-to-r from-primary/10 to-primary/5 py-8 px-6 mb-6">
+        <div className="container max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="mb-6 md:mb-0">
+              <h1 className="text-3xl md:text-4xl font-bold mb-3">Polaris Social</h1>
+              <p className="text-muted-foreground max-w-md">
+                Connect with fellow travelers, share your experiences, and discover new destinations
+              </p>
+            </div>
+            <div className="flex space-x-3">
+              <Button variant="outline" className="gap-2">
+                <UserCircle className="h-4 w-4" />
+                <span>My Profile</span>
+              </Button>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                <span>Create Post</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container flex max-w-6xl mx-auto px-4 min-h-[calc(100vh-65px)]">
         {/* Left Sidebar */}
         <SocialSidebar />
 
         {/* Main Content */}
-        <div className="flex-1 min-w-0">
-          <div className="max-w-2xl mx-auto py-6 px-4">
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold">Social Feed</h1>
-            </div>
+        <motion.div 
+          className="flex-1 min-w-0 px-0 md:px-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="max-w-2xl mx-auto">
+            {/* Search and Filters */}
+            <Card className="mb-6 shadow-sm border-primary/10">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search posts, people, or topics..."
+                      className="pl-8 bg-background"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <Button variant="outline" size="icon">
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-            <CreatePost />
+            {/* Post Creation Card */}
+            <Card className="mb-6 border border-primary/10 shadow-sm overflow-hidden">
+              <CardContent className="p-0">
+                <CreatePost />
+              </CardContent>
+            </Card>
+
+            {/* Trending Topics */}
+            <div className="mb-6 overflow-auto pb-2">
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="px-3 py-1 border-primary/30 hover:bg-primary/5 cursor-pointer">
+                  <Sparkles className="h-3 w-3 mr-1 text-primary" />
+                  <span>Trending</span>
+                </Badge>
+                <Badge variant="outline" className="px-3 py-1 border-primary/30 hover:bg-primary/5 cursor-pointer">
+                  <Compass className="h-3 w-3 mr-1 text-primary" />
+                  <span>Adventure</span>
+                </Badge>
+                <Badge variant="outline" className="px-3 py-1 border-primary/30 hover:bg-primary/5 cursor-pointer">
+                  <Globe className="h-3 w-3 mr-1 text-primary" />
+                  <span>Europe</span>
+                </Badge>
+                <Badge variant="outline" className="px-3 py-1 border-primary/30 hover:bg-primary/5 cursor-pointer">
+                  <Bell className="h-3 w-3 mr-1 text-primary" />
+                  <span>Events</span>
+                </Badge>
+                <Badge variant="outline" className="px-3 py-1 border-primary/30 hover:bg-primary/5 cursor-pointer">
+                  <span>#backpacking</span>
+                </Badge>
+                <Badge variant="outline" className="px-3 py-1 border-primary/30 hover:bg-primary/5 cursor-pointer">
+                  <span>#foodie</span>
+                </Badge>
+              </div>
+            </div>
 
             {/* Tabs */}
             <Tabs
@@ -214,53 +299,58 @@ const Social = () => {
               onValueChange={setActiveTab}
               className="mb-6"
             >
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="recent">Recent Posts</TabsTrigger>
-                <TabsTrigger value="popular">Popular Posts</TabsTrigger>
-                <TabsTrigger value="following">Following Posts</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3 p-1 h-12">
+                <TabsTrigger value="recent" className="rounded-md data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
+                  Recent Posts
+                </TabsTrigger>
+                <TabsTrigger value="popular" className="rounded-md data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
+                  Popular Posts
+                </TabsTrigger>
+                <TabsTrigger value="following" className="rounded-md data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
+                  Following
+                </TabsTrigger>
               </TabsList>
-              <TabsContent value="recent" className="mt-4">
-                <div className="grid grid-cols-1 gap-6">
-                  {posts.map((post) => (
-                    <PostCard
-                      key={post._id}
-                      post={post}
-                      onLike={handleLike}
-                      onSave={handleSave}
-                      onCopyLink={handleCopyLink}
-                    />
-                  ))}
-                </div>
-              </TabsContent>
-              <TabsContent value="popular" className="mt-4">
-                <div className="grid grid-cols-1 gap-6">
-                  {posts.map((post) => (
-                    <PostCard
-                      key={post._id}
-                      post={post}
-                      onLike={handleLike}
-                      onSave={handleSave}
-                      onCopyLink={handleCopyLink}
-                    />
-                  ))}
-                </div>
-              </TabsContent>
-              <TabsContent value="following" className="mt-4">
-                <div className="grid grid-cols-1 gap-6">
-                  {posts.map((post) => (
-                    <PostCard
-                      key={post._id}
-                      post={post}
-                      onLike={handleLike}
-                      onSave={handleSave}
-                      onCopyLink={handleCopyLink}
-                    />
-                  ))}
-                </div>
-              </TabsContent>
+
+              <div className="mt-6">
+                {loading && !filteredPosts.length ? (
+                  <div className="py-12 flex justify-center items-center">
+                    <LoadingState text="Loading posts..." />
+                  </div>
+                ) : (
+                  <>
+                    {filteredPosts.length === 0 ? (
+                      <div className="text-center py-12 bg-muted/20 rounded-lg">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/30 mb-4">
+                          <Loader className="h-8 w-8 text-muted-foreground animate-spin" />
+                        </div>
+                        <h3 className="text-xl font-semibold mb-2">No posts found</h3>
+                        <p className="text-muted-foreground mb-4">
+                          {searchQuery ? "Try a different search term" : "Be the first to create a post!"}
+                        </p>
+                        <Button >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create Post
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-6">
+                        {filteredPosts.map((post) => (
+                          <PostCard
+                            key={post._id}
+                            post={post}
+                            onLike={handleLike}
+                            onSave={handleSave}
+                            onCopyLink={handleCopyLink}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </Tabs>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right Sidebar */}
         <RightSidebar

@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePostsStore } from "@/store/usePostsStore";
 import { useProfileStore } from "@/store/useProfileStore";
-import { formatDistanceToNow } from "date-fns";
+import { formatRelativeTime } from "@/utils/date";
 import { MessageCircle, Send, Reply } from "lucide-react";
 import { CiHeart } from "react-icons/ci";
 import { FaHeart } from "react-icons/fa";
@@ -281,9 +281,12 @@ const CommentSection = ({ postId, comments }: CommentSectionProps) => {
 
       <div className="space-y-6">
         {localComments.map((comment) => {
-          const isLiked = comment.likes?.some(
-            (like) => like._id === authUser?._id
-          );
+          if (!comment) return null;
+          const isLiked = comment?.likes
+            ? comment.likes.some(
+                (like) => like && like._id === authUser?._id
+              )
+            : false;
 
           return (
             <div key={comment._id} className="bg-secondary/10 rounded-lg p-4">
@@ -301,9 +304,7 @@ const CommentSection = ({ postId, comments }: CommentSectionProps) => {
                         {comment.author.fullName || "Anonymous"}
                       </span>
                       <span className="text-sm text-muted-foreground ml-2">
-                        {formatDistanceToNow(new Date(comment.createdAt), {
-                          addSuffix: true,
-                        })}
+                        {formatRelativeTime(comment.createdAt)}
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -390,9 +391,12 @@ const CommentSection = ({ postId, comments }: CommentSectionProps) => {
                   {comment.replies && comment.replies.length > 0 && (
                     <div className="mt-4 space-y-4">
                       {comment.replies.map((reply) => {
-                        const isReplyLiked = reply.likes?.some(
-                          (like) => like._id === authUser?._id
-                        );
+                        if (!reply) return null;
+                        const isReplyLiked = reply?.likes
+                          ? reply.likes.some(
+                              (like) => like && like._id === authUser?._id
+                            )
+                          : false;
 
                         return (
                           <div
@@ -413,12 +417,7 @@ const CommentSection = ({ postId, comments }: CommentSectionProps) => {
                                       {reply.author.fullName || "Anonymous"}
                                     </span>
                                     <span className="text-xs text-muted-foreground ml-2">
-                                      {formatDistanceToNow(
-                                        new Date(reply.createdAt),
-                                        {
-                                          addSuffix: true,
-                                        }
-                                      )}
+                                      {formatRelativeTime(reply.createdAt)}
                                     </span>
                                   </div>
                                   <div className="flex items-center space-x-2">

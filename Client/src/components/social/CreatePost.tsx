@@ -146,7 +146,7 @@ const CreatePost = () => {
         <div className="w-full mb-4 p-4 bg-card rounded-lg shadow-sm cursor-pointer hover:bg-accent transition-colors">
           <div className="flex items-center gap-3">
             <Avatar className="size-10">
-              <AvatarImage src={authUser?.profilePic} />
+              <AvatarImage src={authUser?.profilePic} className="object-cover" />
               <AvatarFallback>{authUser?.fullName?.[0]}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
