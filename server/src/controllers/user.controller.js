@@ -5,10 +5,7 @@ import { uploadImage } from "../lib/uploadImage.js"; // Importing the uploadImag
 
 // get all users
 export const getAllUsers = catchAsync(async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
   const search = req.query.search || "";
-  const skip = (page - 1) * limit;
 
   const query = search
     ? {
@@ -21,8 +18,6 @@ export const getAllUsers = catchAsync(async (req, res) => {
 
   const users = await User.find(query)
     .select("-password -role")
-    .skip(skip)
-    .limit(limit)
     .sort({ createdAt: -1 });
 
   const total = await User.countDocuments(query);
@@ -31,9 +26,6 @@ export const getAllUsers = catchAsync(async (req, res) => {
     users,
     pagination: {
       total,
-      page,
-      pages: Math.ceil(total / limit),
-      limit,
     },
   });
 });
@@ -245,7 +237,6 @@ export const getUserPosts = catchAsync(async (req, res) => {
     }),
   };
 
-  const skip = (page - 1) * limit;
 
   const posts = await Post.find(query)
     .sort({ createdAt: -1 })

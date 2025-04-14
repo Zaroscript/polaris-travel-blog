@@ -4,6 +4,7 @@ export interface Post {
   subtitle?: string;
   content: string;
   coverImage: string;
+  images?: string[];
   author: {
     _id: string;
     fullName: string;
@@ -115,6 +116,7 @@ export interface Profile {
   _id: string;
   fullName: string;
   email: string;
+  userType: string;
   role: string;
   location: string;
   about: string;
@@ -141,11 +143,17 @@ export interface Profile {
   posts: { _id: string; title: string; coverImage: string }[];
   isVerified: boolean;
   token?: string;
+  // Added for traveler features
+  travelerType?: string;
+  countriesVisited?: number;
 }
 
 // Profile user with focused properties for the ProfileUser component
 export interface ProfileUser extends Omit<Profile, 'visitedDestinations'> {
   visitedDestinations?: Destination[];
+  // For traveler card display
+  travelerType?: string;
+  countriesVisited?: number;
 }
 
 export interface Destination {
@@ -184,12 +192,15 @@ export interface PostsState {
   searchQuery: string;
   resetFilters: () => void;
   fetchPosts: (
-    page?: number, 
-    filter?: PostFilter, 
-    sort?: PostSort, 
-    search?: string, 
+    page?: number,
+    filter?: PostFilter,
+    sort?: PostSort,
+    search?: string,
     append?: boolean
-  ) => Promise<{ posts: Post[]; hasMore: boolean }>;
+  ) => Promise<{
+    posts: Post[];
+    pagination: Pagination;
+  }>;
   loadMorePosts: () => Promise<void>;
   fetchPost: (id: string) => Promise<Post>;
   createPost: (postData: Partial<Post> & { file?: File | File[] }) => Promise<Post>;
@@ -243,6 +254,7 @@ export interface ProfileState {
   fetchProfile: (userId: string) => Promise<ProfileUser>;
   fetchUserPosts: (userId: string) => Promise<void>;
   fetchSuggestedUsers: (userId: string) => Promise<ProfileUser[]>;
+  fetchAllTravelers: (category?: string, currentUserId?: string) => Promise<ProfileUser[]>;
   fetchFollowers: (
     userId: string,
     page?: number,

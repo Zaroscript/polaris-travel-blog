@@ -166,7 +166,7 @@ const Destinations = () => {
             </p>
             
             {/* Search Form */}
-            <form onSubmit={handleSearch} className="flex gap-2 bg-white/10 backdrop-blur-md p-1 rounded-full border border-white/20">
+            <form onSubmit={handleSearch} className="flex items-center gap-2 bg-white/10 backdrop-blur-md p-1 rounded-full border border-white/20">
               <Input
                 type="text"
                 placeholder="Search destinations, countries, or experiences..."
@@ -183,16 +183,16 @@ const Destinations = () => {
             {/* Quick stats */}
             <div className="flex gap-6 mt-8">
               <div className="flex flex-col">
-                <span className="text-3xl font-bold text-white">50+</span>
-                <span className="text-white/80 text-sm">Destinations</span>
+                <span className="text-3xl font-bold text-primary">50+</span>
+                <span className="text-primary/80 text-sm">Destinations</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-3xl font-bold text-white">100+</span>
-                <span className="text-white/80 text-sm">Activities</span>
+                <span className="text-3xl font-bold text-primary">100+</span>
+                <span className="text-primary/80 text-sm">Activities</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-3xl font-bold text-white">10k+</span>
-                <span className="text-white/80 text-sm">Happy Travelers</span>
+                <span className="text-3xl font-bold text-primary">10k+</span>
+                <span className="text-primary/80 text-sm">Happy Travelers</span>
               </div>
             </div>
           </motion.div>
@@ -462,7 +462,12 @@ const Destinations = () => {
                 CURATED COLLECTIONS
                 <span className="inline-block h-1 w-6 bg-primary"></span>
               </div>
-              <h2 className="text-4xl font-bold mb-4">Travel Inspiration</h2>
+              <h2 className="text-4xl font-bold mb-4 flex items-center justify-center">
+                Travel Inspiration
+                <Badge variant="outline" className="ml-3 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100 border-yellow-300 dark:border-yellow-800">
+                  Coming Soon
+                </Badge>
+              </h2>
               <p className="text-lg text-muted-foreground mb-8">
                 Discover carefully curated travel collections to inspire your next journey
               </p>
@@ -498,7 +503,8 @@ const Destinations = () => {
                   <p className="text-muted-foreground mb-4">
                     Discover the best beach destinations and coastal retreats for your summer vacation
                   </p>
-                  <Button variant="link" className="px-0 flex items-center gap-1">
+                  <Button variant="link" className="px-0 flex items-center gap-1" onClick={() => navigate("/coming-soon")}>
+
                     View Destinations <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </CardContent>
@@ -522,7 +528,7 @@ const Destinations = () => {
                   <p className="text-muted-foreground mb-4">
                     Explore lesser-known destinations that offer unique experiences away from the crowds
                   </p>
-                  <Button variant="link" className="px-0 flex items-center gap-1">
+                  <Button variant="link" className="px-0 flex items-center gap-1" onClick={() => navigate("/coming-soon")}>
                     View Destinations <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </CardContent>
@@ -546,7 +552,7 @@ const Destinations = () => {
                   <p className="text-muted-foreground mb-4">
                     Thrilling experiences from mountain climbing to deep sea diving and beyond
                   </p>
-                  <Button variant="link" className="px-0 flex items-center gap-1">
+                  <Button variant="link" className="px-0 flex items-center gap-1" onClick={() => navigate("/coming-soon")}>
                     View Destinations <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </CardContent>
