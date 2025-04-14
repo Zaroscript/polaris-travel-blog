@@ -10,7 +10,7 @@ type SidebarProps = {
 const Sidebar: React.FC<SidebarProps> = ({ activePath }) => {
   return (
     <nav className="space-y-2 px-4 py-6">
-      <Link to="notification">
+      <Link to="/user/settings">
         <Button
           variant="ghost"
           className={cn(
@@ -23,12 +23,12 @@ const Sidebar: React.FC<SidebarProps> = ({ activePath }) => {
         </Button>
       </Link>
 
-      <Link to="/notification">
+      <Link to="/user/settings/notification">
         <Button
           variant="ghost"
           className={cn(
             "w-full justify-start gap-2 text-base font-medium",
-            activePath === "/settings/notification" &&
+            activePath === "/user/settings/notification" &&
               "bg-primary/10 text-primary"
           )}
         >
