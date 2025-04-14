@@ -16,7 +16,11 @@ const execPromise = promisify(exec);
 const runSeed = async (seedFile) => {
   try {
     console.log(`Running ${seedFile}...`);
-    const { stdout, stderr } = await execPromise(`node ${path.join(__dirname, seedFile)}`);
+    
+    // const { stdout, stderr } = await execPromise(`node ${path.join(__dirname, seedFile)}`);
+    const seedPath = path.join(__dirname, seedFile);
+    const { stdout, stderr } = await execPromise(`node "${seedPath}"`);
+
     if (stderr) {
       console.error(`Error in ${seedFile}:`, stderr);
     } else {
