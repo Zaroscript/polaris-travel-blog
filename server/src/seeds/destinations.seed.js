@@ -18,34 +18,14 @@ const destinations = [
       country: "France",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34",
+      url: "https://as2.ftcdn.net/v2/jpg/02/06/81/61/1000_F_206816115_Ze6kdKXpjJYgvfq6YxI1Pu36KZoqbHM1.jpg",
       caption: "Eiffel Tower with Paris cityscape",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a",
-        caption: "Eiffel Tower at sunset"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1522093007474-d86e9bf7ba6f",
-        caption: "Notre-Dame Cathedral"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1520939817895-060bdaf4fe1b",
+        url: "https://www.cuddlynest.com/blog/wp-content/uploads/2024/03/arc-de-triomphe-history.jpg",
         caption: "Arc de Triomphe"
       },
-      {
-        url: "https://images.unsplash.com/photo-1568797629192-536885f3583f",
-        caption: "Louvre Museum and Pyramid"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1508050919630-b135583b8a76",
-        caption: "Charming Parisian cafe"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34",
-        caption: "Paris skyline at dusk"
-      }
     ],
     rating: 4.8,
     reviews: [
@@ -97,30 +77,18 @@ const destinations = [
       country: "Japan",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1536098561742-ca998e48cbcc",
+      url: "https://media.istockphoto.com/id/1131743616/photo/aerial-view-of-tokyo-cityscape-with-fuji-mountain-in-japan.jpg?s=612x612&w=0&k=20&c=0QcSwnyzP__YpBewnQ6_-OZkn0XDtq-mXyvLSSakjZE=",
       caption: "Tokyo Skyline",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26",
-        caption: "Shibuya Crossing"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e",
+        url: "https://cdn.cheapoguides.com/wp-content/uploads/sites/2/2020/05/sensoji-temple-iStock-1083328636-1024x600.jpg",
         caption: "Sensoji Temple"
       },
       {
-        url: "https://images.unsplash.com/photo-1493997181344-712f2f19d87a",
+        url: "https://www.gotokyo.org/en/story/guide/hanami-guide/images/sg009_1376_202.jpg",
         caption: "Cherry Blossoms in Tokyo"
       },
-      {
-        url: "https://images.unsplash.com/photo-1536098561742-ca998e48cbcc",
-        caption: "Tokyo Tower at night"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26",
-        caption: "Street food in Tokyo"
-      }
     ],
     rating: 4.7,
     reviews: [
@@ -172,30 +140,18 @@ const destinations = [
       country: "Greece",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff",
+      url: "https://www.thireasuites.com/blog/user/pages/01.home/05.santorini-blue-domes/santorini-blue-domes01b.jpg",
       caption: "Blue domes of Oia",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1561628898-2062d8ce0729",
+        url: "https://media.istockphoto.com/id/541132240/photo/oia-at-sunset.jpg?s=612x612&w=0&k=20&c=kql4X3tMkOmYsa4PX45WK7-vHzpOk__IeAaHiz4VfyA=",
         caption: "Sunset in Santorini"
       },
       {
-        url: "https://images.unsplash.com/photo-1555688505-a42a848cf8df",
-        caption: "Santorini coastline"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1536625994371-2ecb9eddccc6",
+        url: "https://www.ankor.gr/wp-content/uploads/2019/06/santorini-red-beach-1.jpg",
         caption: "Red Beach"
       },
-      {
-        url: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff",
-        caption: "Oia village at sunset"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1555688505-a42a848cf8df",
-        caption: "Santorini beach view"
-      }
     ],
     rating: 4.9,
     reviews: [
@@ -236,81 +192,6 @@ const destinations = [
     },
   },
   {
-    name: "Bali, Indonesia",
-    description:
-      "Known as the Island of the Gods, Bali enchants with its dramatic volcanic landscapes, lush rice terraces, stunning beaches, and vibrant spiritual culture. This Indonesian paradise offers a perfect blend of relaxation, adventure, and cultural immersion.",
-    location: {
-      type: "Point",
-      coordinates: [115.1889, -8.4095],
-      address: "Bali",
-      city: "Denpasar",
-      country: "Indonesia",
-    },
-    coverImage: {
-      url: "https://images.unsplash.com/photo-1573790387438-4da905039392",
-      caption: "Rice terraces in Ubud",
-    },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1537996194471-e8c2327f4e0e",
-        caption: "Temple by the lake"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2",
-        caption: "Bali beaches"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1555400038-63f5ba517a47",
-        caption: "Waterfall in Bali"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1573790387438-4da905039392",
-        caption: "Bali rice fields"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2",
-        caption: "Bali sunset"
-      }
-    ],
-    rating: 4.7,
-    reviews: [
-      {
-        author: "65f7d5e7f2bc5d5c6a4b3f93",
-        rating: 5,
-        content: "Magical Bali! From stunning temples to lush landscapes, it's truly a paradise. The warmth of the locals made our trip even more special.",
-        createdAt: new Date("2025-04-05")
-      },
-      {
-        author: "65f7d5e7f2bc5d5c6a4b3f91",
-        rating: 4.5,
-        content: "Beautiful beaches and amazing food. The spiritual atmosphere is unique. Recommend staying in Ubud for a few days to experience authentic Bali culture.",
-        createdAt: new Date("2025-03-12")
-      },
-      {
-        author: "65f7d5e7f2bc5d5c6a4b3f92",
-        rating: 4,
-        content: "Great destination for both relaxation and adventure. Some tourist areas are crowded, but it's easy to find quiet spots if you venture out.",
-        createdAt: new Date("2025-01-30")
-      }
-    ],
-    tags: ["beaches", "spiritual", "nature", "adventure", "culture", "wellness"],
-    thingsToDo: [
-      "Visit sacred temples like Uluwatu and Tanah Lot",
-      "Explore Ubud's monkey forest and rice terraces",
-      "Relax on Kuta, Seminyak, or Nusa Dua beaches",
-      "Hike Mount Batur for sunrise",
-      "Take a Balinese cooking class",
-      "Experience traditional dance performances",
-      "Visit the Tegallalang Rice Terraces",
-      "Surf in Canggu or Uluwatu",
-      "Spa treatments and yoga retreats"
-    ],
-    bestTimeToVisit: {
-      from: "April",
-      to: "October",
-    },
-  },
-  {
     name: "Barcelona, Spain",
     description:
       "A vibrant Mediterranean city famous for Antoni Gaudí's whimsical architecture, lively culture, beautiful beaches, and delicious Catalan cuisine. Barcelona blends cosmopolitan urban experiences with easy access to nature, from coastal walks and surf beaches to nearby national parks, all under the famously blue Australian skies.",
@@ -322,20 +203,12 @@ const destinations = [
       country: "Spain",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1583422409516-2895a77efded",
+      url: "https://cdn.britannica.com/15/194815-050-08B5E7D1/Nativity-facade-Sagrada-Familia-cathedral-Barcelona-Spain.jpg",
       caption: "Sagrada Familia",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4",
-        caption: "Park Güell"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1523531294919-4bcd7c65e216",
-        caption: "Barcelona Beach"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1509840841025-8ca42a06a826",
+        url: "https://thingstodoinbarcelona.com/wp-content/uploads/f-la-rambla-panoramic.jpg",
         caption: "La Rambla"
       }
     ],
@@ -389,22 +262,14 @@ const destinations = [
       country: "Japan",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e",
+      url: "https://gaijinpot.scdn3.secure.raxcdn.com/app/uploads/sites/6/2016/05/Philosophers-Path.jpg",
       caption: "Cherry Blossoms in Kyoto",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1493997181344-712f2f19d87a",
+        url: "https://dskyoto.s3.amazonaws.com/gallery/full/8514/5559/7797/08-20131216_FushimiInari_Mainspot-307.jpg",
         caption: "Fushimi Inari Shrine"
       },
-      {
-        url: "https://images.unsplash.com/photo-1528360983277-0c3cb6fa808d",
-        caption: "Kinkaku-ji (Golden Pavilion)"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d",
-        caption: "Arashiyama Bamboo Grove"
-      }
     ],
     rating: 4.9,
     reviews: [
@@ -456,34 +321,22 @@ const destinations = [
       country: "United States",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1496442226666-8d504e8d37d8",
+      url: "https://media.tacdn.com/media/attractions-splice-spp-674x446/15/59/36/95.jpg",
       caption: "New York Skyline"
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1534270804882-a3cd7c5a6650",
+        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Global_Citizen_Festival_Central_Park_New_York_City_from_NYonAir_%2815351915006%29.jpg/800px-Global_Citizen_Festival_Central_Park_New_York_City_from_NYonAir_%2815351915006%29.jpg",
         caption: "Central Park"
       },
       {
-        url: "https://images.unsplash.com/photo-1581005781786-27bbe53b7d56",
-        caption: "Brooklyn Bridge"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1564658724721-b648af45ca4d",
+        url: "https://www.exp1.com/wp-content/uploads/sites/7/2020/06/Times-Square-1-1.jpg",
         caption: "Times Square"
       },
       {
-        url: "https://images.unsplash.com/photo-1518391846015-55a9cc003b25",
+        url: "https://cdn.britannica.com/82/183382-050-D832EC3A/Detail-head-crown-Statue-of-Liberty-New.jpg",
         caption: "Statue of Liberty"
       },
-      {
-        url: "https://images.unsplash.com/photo-1485871983421-1e5952736ba8",
-        caption: "Empire State Building"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1485872299829-c673f5194813",
-        caption: "Manhattan Skyline at night"
-      }
     ],
     rating: 4.7,
     reviews: [
@@ -524,81 +377,6 @@ const destinations = [
     },
   },
   {
-    name: "Cape Town, South Africa",
-    description:
-      "A stunning coastal city where dramatic mountains meet the ocean, offering a perfect blend of urban sophistication, natural beauty, and rich cultural history. Cape Town combines outdoor adventures, from hiking Table Mountain to penguin encounters, with world-class dining, vibrant markets, and profound historical sites.",
-    location: {
-      type: "Point",
-      coordinates: [18.4241, -33.9249],
-      address: "Cape Town",
-      city: "Cape Town",
-      country: "South Africa",
-    },
-    coverImage: {
-      url: "https://images.unsplash.com/photo-1580060839134-75a5edca2e99",
-      caption: "Table Mountain"
-    },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1528370967721-0ed2d070f4e9",
-        caption: "Boulders Beach Penguins"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1547190998-1fbecd04cd9c",
-        caption: "Cape Point"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1642748531578-de633a64af1f",
-        caption: "Bo-Kaap Colorful Houses"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1520250497590-4509e771c1c4",
-        caption: "Kirstenbosch Botanical Gardens"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1547190998-1fbecd04cd9c",
-        caption: "Chapman's Peak Drive"
-      }
-    ],
-    rating: 4.8,
-    reviews: [
-      {
-        author: "65f7d5e7f2bc5d5c6a4b3f91",
-        rating: 5,
-        content: "Cape Town exceeded all expectations! The landscapes are breathtaking, and the mix of cultures makes it feel like several destinations in one. Don't miss the wine regions just outside the city.",
-        createdAt: new Date("2025-04-02")
-      },
-      {
-        author: "65f7d5e7f2bc5d5c6a4b3f93",
-        rating: 4.5,
-        content: "One of the most beautiful cities I've visited. Table Mountain views are incredible, and the beaches are stunning. Robben Island was a moving experience everyone should have.",
-        createdAt: new Date("2025-03-15")
-      },
-      {
-        author: "65f7d5e7f2bc5d5c6a4b3f92",
-        rating: 5,
-        content: "Amazing city with something for everyone - hiking, beaches, wildlife, wine tasting, and rich history. The food scene is fantastic and surprisingly affordable.",
-        createdAt: new Date("2025-02-26")
-      }
-    ],
-    tags: ["nature", "beaches", "mountains", "wildlife", "cultural", "wine", "history"],
-    thingsToDo: [
-      "Hike or take the cable car up Table Mountain",
-      "Visit Cape Point and the Cape of Good Hope",
-      "See the penguins at Boulders Beach",
-      "Take the ferry to Robben Island",
-      "Explore the Victoria & Alfred Waterfront",
-      "Visit the colorful Bo-Kaap neighborhood",
-      "Go wine tasting in Stellenbosch",
-      "Visit Kirstenbosch Botanical Gardens",
-      "Take a drive along Chapman's Peak"
-    ],
-    bestTimeToVisit: {
-      from: "October",
-      to: "April",
-    },
-  },
-  {
     name: "Marrakech, Morocco",
     description:
       "An ancient imperial city that dazzles visitors with its maze-like medina, vibrant souks, ornate palaces, and rich sensory experiences. Marrakech offers a bewitching blend of traditional Moroccan culture and architecture with modern luxury, from its historic riads to contemporary art galleries and designer boutiques.",
@@ -610,28 +388,20 @@ const destinations = [
       country: "Morocco",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1597212618440-806262de4f6c",
+      url: "https://upload.wikimedia.org/wikipedia/commons/7/79/Djemaa_el_Fna.jpg",
       caption: "Jemaa el-Fnaa Market"
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1539020140153-e8c2327f4e0e",
-        caption: "Majorelle Garden"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1594614271360-0ed2d070f4e9",
+        url: "https://upload.wikimedia.org/wikipedia/commons/f/fc/Bahia_Palace_large_court.jpg",
         caption: "Bahia Palace"
       },
       {
-        url: "https://images.unsplash.com/photo-1561642769-373656ddb2ac",
+        url: "https://www.story-rabat.com/wp-content/uploads/2024/04/Moroccan-spices.webp",
         caption: "Moroccan Spices"
       },
       {
-        url: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2",
-        caption: "Traditional Moroccan Riad"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2",
+        url: "https://media-cdn.tripadvisor.com/media/photo-s/12/70/66/5a/view-of-the-atlas-mountains.jpg",
         caption: "Atlas Mountains view"
       }
     ],
@@ -685,30 +455,14 @@ const destinations = [
       country: "Australia",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1508009603885-50cf7c8dd0d5",
+      url: "https://miro.medium.com/v2/resize:fit:1400/1*83jfdXDadli-xA3Ppv1qyg.jpeg",
       caption: "Sydney Opera House and Harbour"
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1548997169-6e399b6d27e9",
-        caption: "Copacabana Beach"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1546268060-2592fda517a47",
-        caption: "Sydney Harbour Bridge"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1523428096881-5bd71ffdb2d0",
+        url: "https://www.washingtonwine.org/wp-content/uploads/2021/05/The-Rocks-District_1-scaled.jpg",
         caption: "The Rocks District"
       },
-      {
-        url: "https://images.unsplash.com/photo-1518391846015-55a9cc003b25",
-        caption: "Manly Beach"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1485871983421-1e5952736ba8",
-        caption: "Blue Mountains"
-      }
     ],
     rating: 4.8,
     reviews: [
@@ -760,30 +514,14 @@ const destinations = [
       country: "Brazil",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1483729558449-6b5048b1c1fc",
+      url: "https://cdn.britannica.com/54/150754-050-5B93A950/statue-Christ-the-Redeemer-Rio-de-Janeiro.jpg",
       caption: "Christ the Redeemer and Rio Skyline",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1548997169-6e399b6d27e9",
+        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Praia_de_Copacabana_-_Rio_de_Janeiro%2C_Brasil.jpg/800px-Praia_de_Copacabana_-_Rio_de_Janeiro%2C_Brasil.jpg",
         caption: "Copacabana Beach"
       },
-      {
-        url: "https://images.unsplash.com/photo-1554768707-a470b9964682",
-        caption: "Sugarloaf Mountain"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1564658724721-b648af45ca4d",
-        caption: "Selaron Steps"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1518391846015-55a9cc003b25",
-        caption: "Ipanema Beach"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1485871983421-1e5952736ba8",
-        caption: "Tijuca Forest"
-      }
     ],
     rating: 4.6,
     reviews: [
@@ -835,21 +573,13 @@ const destinations = [
       country: "Czech Republic",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1592906209472-a36b1f3782ef",
+      url: "https://images.squarespace-cdn.com/content/v1/5cd57d59ca525b7e9eae595c/1559933314094-9G3N0X3SE3ZYXNANDPIF/_MG_2882.jpg",
       caption: "Prague Castle and Charles Bridge",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1541849546738-65ddcdfd017b",
+        url: "https://cdn.praguecitytourism.city/2024/03/13101933/01-stm-radnice-0288ret-m.jpg",
         caption: "Old Town Square"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1569399080931-02ed52793273",
-        caption: "Astronomical Clock"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1592367896873-5aabfd279737",
-        caption: "Dancing House"
       }
     ],
     rating: 4.8,
@@ -902,20 +632,16 @@ const destinations = [
       country: "Thailand",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1508009603885-50cf7c8dd0d5",
+      url: "https://static.wixstatic.com/media/2cc94a_f41bf7cbf0d34a2faaf7f0e27aabb3b3~mv2.jpg/v1/fill/w_640,h_480,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/2cc94a_f41bf7cbf0d34a2faaf7f0e27aabb3b3~mv2.jpg",
       caption: "Grand Palace",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1598970605070-a8fd1c313361",
+        url: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhu4YkkapGaVVFdaRXfZypzqcekONZ2bNNd4orvZDpq3xY9q5Vo6SAbKbZfYTjcJ8AI-ZqrSRcj_Yi2LoxPmHmCm3DS8N8K6Z9Qn6tRs1xzkjSf7FVAUoHhRKBdnQGAt_cUVOj32a2lSxp6xmyUvwcRA-DM2mzZDrcn7SDHwuNRds7ejMSg4TmFjVJKig/s1600/Wat%20Arun-14.jpg",
         caption: "Wat Arun Temple"
       },
       {
-        url: "https://images.unsplash.com/photo-1559608568-ac925a41f899",
-        caption: "Bangkok Skyline"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a",
+        url: "https://www.pelago.com/img/products/TH-Thailand/thaka-thailand-s-most-authentic-floating-market/f0467b85-d8cc-422c-8d95-804d12735568_thaka-thailand-s-most-authentic-floating-market.jpg",
         caption: "Floating Market"
       }
     ],
@@ -969,20 +695,16 @@ const destinations = [
       country: "Italy",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1531572753322-ad063cecc140",
+      url: "https://www.worldhistory.org/img/c/p/1200x900/950.jpg",
       caption: "Colosseum",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-155992828-ca4dbe41d294",
+        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Basilica_di_San_Pietro_in_Vaticano_September_2015-1a.jpg/1200px-Basilica_di_San_Pietro_in_Vaticano_September_2015-1a.jpg",
         caption: "Vatican and St. Peter's Basilica"
       },
       {
-        url: "https://images.unsplash.com/photo-1525874684015-58379d421a52",
-        caption: "Trevi Fountain"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1560179406-1c6c69e6ad45",
+        url: "https://cdn.britannica.com/77/187677-138-73F32D16/buildings-Rome-Roman-Forum.jpg?w=800&h=450&c=crop",
         caption: "Roman Forum"
       }
     ],
@@ -1036,29 +758,21 @@ const destinations = [
       country: "New Zealand",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1589196728602-5b21d35d65e9",
+      url: "https://upload.wikimedia.org/wikipedia/commons/8/86/The_Remarkables_%281126885451%29.jpg",
       caption: "Queenstown with The Remarkables mountain range",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b",
+        url: "https://assets.simpleviewinc.com/simpleview/image/upload/c_fill,h_929,q_75,w_1400/v1/clients/queenstownnz/Queenstown_Aerial_Winter_Views_2008_18_1__b5d88790-e1fa-49aa-9c93-b5eb83d6001c.jpg",
         caption: "Mountain views near Queenstown"
       },
       {
-        url: "https://images.unsplash.com/photo-1531301677242-05b9c1ad37a8",
+        url: "https://media.tacdn.com/media/attractions-splice-spp-674x446/12/63/c8/93.jpg",
         caption: "Milford Sound day trip"
       },
       {
-        url: "https://images.unsplash.com/photo-1535430069278-549d819fa886",
+        url: "https://redballoon.com.au/dw/image/v2/BCRD_PRD/on/demandware.static/-/Sites-rb-nz-catalog/default/images/products/AJH806-M/movycd4sksdzvh9vd6el.jpg?sw=540&sh=302&q=70",
         caption: "Bungy jumping in Queenstown"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1507699622108-4be3abd695ad",
-        caption: "Autumn colors in Arrowtown near Queenstown"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1515259387367-2c6c122bf145",
-        caption: "Hiking in Queenstown"
       }
     ],
     rating: 4.9,
@@ -1111,30 +825,14 @@ const destinations = [
       country: "Turkey",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1527838832700-5059252407fa",
+      url: "https://hagiasophiaturkey.com/wp-content/uploads/2023/04/Blue-Mosque-and-Hagia-Sophia-Small-Group-Tour-7-1024x683.jpg",
       caption: "Blue Mosque and Hagia Sophia",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b",
+        url: "https://cdn-gaecj.nitrocdn.com/JMwuRIbFKRytZpZBQQGkRvqmTfGyKhHA/assets/images/optimized/rev-2ccb7ab/turkeytravelplanner.com/wp-content/uploads/2022/06/Shopping-in-Turkey-What-to-Buy-scaled.jpg",
         caption: "Inside the Grand Bazaar"
       },
-      {
-        url: "https://images.unsplash.com/photo-1564565562150-46e25eb31626",
-        caption: "Interior of Hagia Sophia"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b",
-        caption: "Turkish cuisine and tea"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1599394022918-6c2776530abb",
-        caption: "Colorful streets of Istanbul"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1647594931749-9f39a3247a99",
-        caption: "Bosphorus cruise view"
-      }
     ],
     rating: 4.8,
     reviews: [
@@ -1186,29 +884,17 @@ const destinations = [
       country: "Croatia",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1555990536-2d0c9498e13e",
+      url: "https://www.myluxoria.com/storage/app/uploads/public/5d4/342/cb7/5d4342cb779ec155545882.jpg",
       caption: "Dubrovnik Old Town and Adriatic Sea",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1508787428419-f2391863deee",
+        url: "https://twoupriders.com/wp-content/uploads/2016/05/Dubrovnik-Croatia_0121.jpg",
         caption: "View from the City Walls"
       },
       {
-        url: "https://images.unsplash.com/photo-1514729439985-8ca42a06a966",
-        caption: "Lokrum Island near Dubrovnik"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1555990538-94ec37f9d3c0",
+        url: "https://mindfulmermaid.com/wp-content/uploads/2018/06/Banje-Beach-Dubrovnik-Croatia-1024x691.jpg",
         caption: "Dubrovnik beaches"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1596396289005-0689c239dc54",
-        caption: "Sunset over Dubrovnik"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1542295669297-4d352b042bca",
-        caption: "Game of Thrones filming location"
       }
     ],
     rating: 4.7,
@@ -1261,29 +947,17 @@ const destinations = [
       country: "Peru",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1526392060635-1782f1c5f971",
+      url: "https://www.daveshowalter.com/images/large/machu-classic.jpg",
       caption: "Classic Machu Picchu View",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1517105274840-437c83485e6c",
+        url: "https://www.boletomachupicchu.com/gutblt/wp-content/uploads/2022/12/terrazas-andenes-agricolas-machu-picchu.jpg",
         caption: "Terraces of Machu Picchu"
       },
       {
-        url: "https://images.unsplash.com/photo-1553253837-2fb1c6b3aca3",
-        caption: "Inca Trail to Machu Picchu"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1631771017444-fda9b88ad2bc",
+        url: "https://www.arroway-textures.ch/wp-content/uploads/2024/12/stonework-1v2_update.jpg",
         caption: "Detailed stonework"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1580943943067-2f30e9d00b48",
-        caption: "Sacred Valley landscape"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1562982228-38728932de8a",
-        caption: "Mountain peaks surrounding Machu Picchu"
       }
     ],
     rating: 4.9,
@@ -1336,29 +1010,13 @@ const destinations = [
       country: "United Arab Emirates",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1512453979798-6b5048b1c1fc",
+      url: "https://www.visitdubai.com/-/media/images/leisure/campaigns/accessible-dubai/pod-itinerary/pod-itinerary-1-day-burj-khalifa.jpg?rev=d6e57669e03c456e896a22d6d2340d59&cx=0.5&cy=0.5",
       caption: "Dubai Skyline with Burj Khalifa",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1582672223566-503571de7a1d",
+        url: "https://www.dayoutdubai.ae/blog/wp-content/uploads/2019/12/1-1.jpg",
         caption: "Dubai Mall and Fountains"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1568659777876-f77db15e74bb",
-        caption: "Traditional Dubai Creek area"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1513622470522-26c3c8a854bc",
-        caption: "Desert safari experience"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1549944850-84e00be4203b",
-        caption: "Dubai Marina at night"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1570748042380-4395a9317611",
-        caption: "Burj Al Arab luxury hotel"
       }
     ],
     rating: 4.8,
@@ -1411,29 +1069,21 @@ const destinations = [
       country: "French Polynesia",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1598954554961-c2f16ac3245c",
+      url: "https://farandawayadventures.com/wp-content/uploads/2024/03/e029cc68thumbnail.jpeg",
       caption: "Overwater bungalows in Bora Bora",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1627321896786-df3280796c95",
+        url: "https://www.tropicalsnorkeling.com/wp-content/uploads/2022/04/coral-triangle-snorkeling-reef-fish.jpg",
         caption: "Snorkeling in coral reefs"
       },
       {
-        url: "https://images.unsplash.com/photo-1501426026826-3b6fa6167081",
+        url: "https://www.dreamdestinations.in/wp-content/uploads/2024/06/inner-banner-img01.jpg",
         caption: "Sunset views over Mount Otemanu"
       },
       {
-        url: "https://images.unsplash.com/photo-1551366782-3b6fa6167081",
+        url: "https://www.travelandleisure.com/thmb/3tWYJuG9aRBu-ByiH5eNaqkEjG0=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/navagio-shipwreck-beach-zakynthos-greece-WHITESAND1017-79e2467bf28e4553abf09dc9e312d7d9.jpg",
         caption: "Pristine white sand beaches"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1573848855919-90a87ecc00fe",
-        caption: "Tropical drinks on the beach"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1620219365994-f451bdb5f226",
-        caption: "Luxury resort experience"
       }
     ],
     rating: 4.9,
@@ -1486,29 +1136,13 @@ const destinations = [
       country: "Jordan",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1563177118-a2594fd4cf49",
+      url: "https://madainproject.com/content/media/collect/khazneh_82378.jpg",
       caption: "The Treasury (Al-Khazneh)",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1571115764595-644a1f56a55c",
+        url: "https://www.insightvacations.com/wp-content/uploads/2025/02/Large-Petra-1021850730-1.jpg",
         caption: "Rose-colored cliffs of Petra"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1580834341580-8c17a3a630ca",
-        caption: "Royal Tombs"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1579606032821-4e6b5034f4b3",
-        caption: "View from above Petra"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1638967806286-936e6283bda7",
-        caption: "Local Bedouin culture"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1565332179425-7d5c867c9f9f",
-        caption: "Camel rides in Petra"
       }
     ],
     rating: 4.8,
@@ -1561,29 +1195,17 @@ const destinations = [
       country: "Japan",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1545569107-1782f1c5f971",
+      url: "https://gaijinpot.scdn3.secure.raxcdn.com/app/uploads/sites/6/2016/05/kinkakuji-kyoto-golden-pavilion-1024x576.jpg",
       caption: "Kinkaku-ji (Golden Pavilion)",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1493780474015-ba834fd0ce2f",
+        url: "https://photos.smugmug.com/i-hFcX6RC/0/1c58ee68/L/famous-bamboo-grove-arashiyama-L.jpg",
         caption: "Arashiyama Bamboo Grove"
       },
       {
-        url: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e",
+        url: "https://kyoto.travel/en/nt8q320000004ac3-img/33.jpg",
         caption: "Spring blossoms in Kyoto"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1528360983277-13d401cdc186",
-        caption: "Traditional tea ceremony"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1600077163342-13b9689b996b",
-        caption: "Kiyomizu-dera Temple"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1553292770-c3d98516d119",
-        caption: "Traditional Kyoto street"
       }
     ],
     rating: 4.8,
@@ -1636,28 +1258,24 @@ const destinations = [
       country: "Tanzania",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1607355739828-0bf365440db5",
+      url: "https://www.lakemanyaranationalparks.com/wp-content/uploads/2022/03/32118265865_a2e4b2fc21_b.jpg",
       caption: "Lion on the Serengeti plains",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1612296727710-d6b0b6f1f1a7",
+        url: "https://www.serengeti.com/assets/img/wildlife-spectacle-great-migration-tanzania.jpg",
         caption: "Great Migration of wildebeest"
       },
       {
-        url: "https://images.unsplash.com/photo-1612296727710-d6b0b6f1f1a7",
+        url: "https://media.istockphoto.com/id/2148595463/photo/african-elephant-in-wilderness-at-sunset.jpg?s=612x612&w=0&k=20&c=WmZfQYFpQOKTIyB95U6NQ6h8WQM-Pjp9TCMvF63-Xf4=",
         caption: "Elephants at sunset"
       },
       {
-        url: "https://images.unsplash.com/photo-1612296727710-d6b0b6f1f1a7",
+        url: "https://cheetah.org/canada/wp-content/uploads/sites/5/2021/01/RunningCheetah_1000-563.jpg",
         caption: "Cheetah on the hunt"
       },
       {
-        url: "https://images.unsplash.com/photo-1612296727710-d6b0b6f1f1a7",
-        caption: "Baobab tree at sunset"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1612296727710-d6b0b6f1f1a7",
+        url: "https://yellowzebrasafaris.com/media/15462/kmb-271.jpg?rxy=0.5066666666666667%2C0.3165680473372781&width=2048&height=1024&format=jpg&v=1dab8c4183af9f0",
         caption: "Hot air balloon safari"
       }
     ],
@@ -1711,41 +1329,21 @@ const destinations = [
       country: "Italy",
     },
     coverImage: {
-      url: "https://images.unsplash.com/photo-1534113414509-0eec2bfb493f",
+      url: "https://cdn.getyourguide.com/img/tour/645a63ac81921.jpeg/146.jpg",
       caption: "Grand Canal with gondolas",
     },
     images: [
       {
-        url: "https://images.unsplash.com/photo-1605185189315-82ffe395be4f",
+        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Piazza_San_Marco_%28Venice%29_at_night-msu-2021-6449-.jpg/800px-Piazza_San_Marco_%28Venice%29_at_night-msu-2021-6449-.jpg",
         caption: "St. Mark's Square"
       },
       {
-        url: "https://images.unsplash.com/photo-1523531294919-4bcd7c65e216",
+        url: "https://csengineermag.com/wp-content/uploads/2022/11/AdobeStock_232079420.jpeg",
         caption: "Rialto Bridge"
       },
       {
-        url: "https://images.unsplash.com/photo-1523906921802-b5d2d899e93b",
+        url: "https://www.homeinitaly.com/_data/magazine/articles/2020-12-burano-the-most-colorful-island-of-italy/burano-the-most-colorful-island-of-italy-5.jpeg",
         caption: "Colorful houses of Burano"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1514890536905-0fb85a2ec412",
-        caption: "Gondola ride through small canals"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1518730518541-d0843268c287",
-        caption: "St. Mark's Basilica interior"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1518557985416-234d0a61cb92",
-        caption: "Venetian masks"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1525874684015-58379d421a52",
-        caption: "Venice at dusk"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1552832230-c0197dd311b5",
-        caption: "Murano glass art"
       }
     ],
     rating: 4.7,
@@ -1784,6 +1382,420 @@ const destinations = [
     bestTimeToVisit: {
       from: "April",
       to: "May",
+    },
+  },
+  {
+    name: "Amsterdam, Netherlands",
+    description:
+      "A charming city of canals, historic architecture, and world-class museums, known for its artistic heritage, elaborate canal system, and narrow houses with gabled facades. Amsterdam's bicycle-friendly streets, vibrant cultural scene, and progressive atmosphere make it a unique European destination where history meets modern living.",
+    location: {
+      type: "Point",
+      coordinates: [4.8952, 52.3702],
+      address: "Amsterdam",
+      city: "Amsterdam",
+      country: "Netherlands",
+    },
+    coverImage: {
+      url: "https://i.pinimg.com/736x/f3/8e/65/f38e655034f2f3ba707b0596d2d2cc8e.jpg",
+      caption: "Amsterdam canals at sunset",
+    },
+    images: [
+      {
+        url: "https://wallpapers.com/images/hd/amsterdam-canal-houses-reflection-w0771pr973vlx2qu.jpg",
+        caption: "Canal houses reflection"
+      },
+      {
+        url: "https://media.istockphoto.com/id/621815458/photo/the-rijksmuseum-and-i-amsterdam-sign-long-exposure.jpg?s=612x612&w=0&k=20&c=YywFawjEQILtpgyzr_UHhZePjNloG-ycZL3N56zIFto=",
+        caption: "Rijksmuseum and I Amsterdam sign"
+      },
+      {
+        url: "https://www.annefrank.org/media/filer_public_thumbnails/filer_public/55/fa/55fa0123-0597-4803-bf21-a7a45ff00ea7/draaikast_ctoala20180613_185.jpg__2160x926_q85_crop_subject_location-2828%2C1814_subsampling-2_upscale.jpg",
+        caption: "Anne Frank House"
+      },
+      {
+        url: "https://www.amsterdamobile.com/images/easyblog_articles/205/20220524_134734.jpg",
+        caption: "Bloemenmarkt flower market"
+      }
+    ],
+    rating: 4.6,
+    reviews: [
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f91",
+        rating: 5,
+        content: "Amsterdam is a beautiful city with so much character. The canals are stunning, especially at night when they're lit up. Renting a bike is the best way to explore like a local!",
+        createdAt: new Date("2025-03-15")
+      },
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f92",
+        rating: 4.5,
+        content: "The museums are world-class, especially the Van Gogh Museum and Rijksmuseum. The city is very walkable and the public transport is excellent. Don't miss the Jordaan neighborhood for authentic Dutch charm.",
+        createdAt: new Date("2025-02-20")
+      },
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f93",
+        rating: 4.5,
+        content: "Amazing city with a great mix of history and modern culture. The canal cruise is a must-do, and the food scene is surprisingly diverse. Visit in spring for the tulips and better weather.",
+        createdAt: new Date("2025-01-10")
+      }
+    ],
+    tags: ["canals", "museums", "bicycles", "art", "history", "architecture", "culture"],
+    thingsToDo: [
+      "Take a canal cruise",
+      "Visit the Van Gogh Museum",
+      "Explore the Rijksmuseum",
+      "Tour the Anne Frank House",
+      "Rent a bicycle and explore",
+      "Visit the Bloemenmarkt",
+      "Explore the Jordaan neighborhood",
+      "See the Royal Palace on Dam Square",
+      "Visit the Albert Cuyp Market"
+    ],
+    bestTimeToVisit: {
+      from: "April",
+      to: "September",
+    },
+  },
+  {
+    name: "Maldives",
+    description:
+      "A tropical paradise in the Indian Ocean, known for its crystal-clear waters, white sandy beaches, and luxurious overwater bungalows. The Maldives is a collection of 26 atolls featuring stunning coral reefs, abundant marine life, and some of the world's most exclusive resorts, making it the ultimate destination for relaxation, romance, and underwater adventures.",
+    location: {
+      type: "Point",
+      coordinates: [73.2207, 3.2028],
+      address: "Maldives",
+      city: "Malé",
+      country: "Maldives",
+    },
+    coverImage: {
+      url: "https://www.thetimes.com/imageserver/image/%2Fmethode%2Ftimes%2Fprod%2Fweb%2Fbin%2F3ed37434-ce45-478d-bd3e-34ce46e134e6.jpg?crop=1800%2C1199%2C0%2C0",
+      caption: "Overwater bungalows in Maldives",
+    },
+    images: [
+      {
+        url: "https://preview.redd.it/hvmnaxj0nmo91.jpg?width=750&format=pjpg&auto=webp&s=1a4644ff786f041ca8e4beef232831b9c59e6fc0",
+        caption: "Crystal clear waters"
+      },
+      {
+        url: "https://media.istockphoto.com/id/1170804921/photo/turtle-closeup-with-school-of-fish.jpg?s=612x612&w=0&k=20&c=0l3Sw_Lx-9PVHjR963pvt9A6-p7sxwMe-xm9LnwxAgw=",
+        caption: "Underwater marine life"
+      },
+      {
+        url: "https://images.pexels.com/photos/635279/pexels-photo-635279.jpeg?cs=srgb&dl=pexels-bella-white-201200-635279.jpg&fm=jpg",
+        caption: "Sunset over the ocean"
+      },
+      {
+        url: "https://amusementlogic.es/wp-content/uploads/2022/05/NEWSLETTER-2022-05-LUXURY-SPA-JULIA-ROSADO-1920x1080-1.jpeg",
+        caption: "Luxury resort spa"
+      }
+    ],
+    rating: 4.9,
+    reviews: [
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f91",
+        rating: 5,
+        content: "The Maldives is paradise on earth! The water is so clear you can see the fish from your overwater bungalow. The snorkeling is incredible, and the service at the resorts is impeccable.",
+        createdAt: new Date("2025-04-01")
+      },
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f92",
+        rating: 5,
+        content: "Perfect for a honeymoon or romantic getaway. The beaches are pristine, and the marine life is amazing. The sunset views from our overwater villa were unforgettable.",
+        createdAt: new Date("2025-03-10")
+      },
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f93",
+        rating: 4.5,
+        content: "Absolutely stunning destination, but be prepared for the high prices. The underwater restaurant experience was worth every penny though. The coral reefs are some of the best I've seen.",
+        createdAt: new Date("2025-02-15")
+      }
+    ],
+    tags: ["luxury", "beaches", "snorkeling", "romantic", "islands", "resorts", "honeymoon"],
+    thingsToDo: [
+      "Stay in an overwater bungalow",
+      "Go snorkeling or diving in coral reefs",
+      "Enjoy a private beach dinner",
+      "Visit an underwater restaurant",
+      "Take a sunset cruise",
+      "Try water sports like paddleboarding",
+      "Relax at a luxury spa",
+      "Take a seaplane tour of the atolls",
+      "Visit a local island to experience Maldivian culture"
+    ],
+    bestTimeToVisit: {
+      from: "November",
+      to: "April",
+    },
+  },
+  {
+    name: "Vancouver, Canada",
+    description:
+      "A vibrant coastal city surrounded by mountains and ocean, known for its stunning natural beauty, diverse culture, and outdoor lifestyle. Vancouver combines urban sophistication with easy access to nature, offering visitors world-class dining, cultural attractions, and outdoor adventures from skiing to whale watching, all within a spectacular setting.",
+    location: {
+      type: "Point",
+      coordinates: [-123.1207, 49.2827],
+      address: "Vancouver",
+      city: "Vancouver",
+      country: "Canada",
+    },
+    coverImage: {
+      url: "https://media.istockphoto.com/id/504657339/photo/vancouver-skyline.jpg?s=612x612&w=0&k=20&c=Ey_m9A9K0jOGzJK0TxPFOLGI6wfo340QMAwMHPyESyY=",
+      caption: "Vancouver skyline with mountains",
+    },
+    images: [
+      {
+        url: "https://www.andrewswalks.co.uk/wp-content/uploads/Siwash-Rock-Vancouver-Seawall.jpg",
+        caption: "Stanley Park seawall"
+      },
+      {
+        url: "https://media.tacdn.com/media/attractions-splice-spp-674x446/14/1a/ca/68.jpg",
+        caption: "Capilano Suspension Bridge"
+      },
+      {
+        url: "https://granvilleisland.com/wp-content/uploads/2022/03/img_0639-scaled.jpg",
+        caption: "Granville Island market"
+      }
+    ],
+    rating: 4.7,
+    reviews: [
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f91",
+        rating: 5,
+        content: "Vancouver is an amazing city with the perfect mix of urban and natural attractions. Stanley Park is beautiful, and the food scene is incredible, especially the Asian cuisine.",
+        createdAt: new Date("2025-03-20")
+      },
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f92",
+        rating: 4.5,
+        content: "Great city for outdoor enthusiasts. We loved biking around Stanley Park and hiking in the nearby mountains. The public transportation is excellent, making it easy to explore.",
+        createdAt: new Date("2025-02-15")
+      },
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f93",
+        rating: 4.5,
+        content: "Beautiful city with stunning views of mountains and ocean. Granville Island is a must-visit for food lovers. The weather can be rainy, but that's part of the Pacific Northwest charm.",
+        createdAt: new Date("2025-01-10")
+      }
+    ],
+    tags: ["mountains", "ocean", "outdoor", "food", "culture", "urban", "nature"],
+    thingsToDo: [
+      "Explore Stanley Park",
+      "Visit Granville Island",
+      "Walk across Capilano Suspension Bridge",
+      "Take a whale watching tour",
+      "Visit the Vancouver Aquarium",
+      "Explore Gastown",
+      "Ski or snowboard at nearby mountains",
+      "Visit the Museum of Anthropology",
+      "Take a day trip to Whistler"
+    ],
+    bestTimeToVisit: {
+      from: "June",
+      to: "September",
+    },
+  },
+  {
+    name: "Seoul, South Korea",
+    description:
+      "A dynamic metropolis where ancient palaces and temples stand alongside cutting-edge technology and K-pop culture. Seoul offers a fascinating blend of traditional Korean heritage and modern innovation, with its vibrant street markets, world-class shopping, delicious cuisine, and rich history creating an unforgettable urban experience.",
+    location: {
+      type: "Point",
+      coordinates: [126.9780, 37.5665],
+      address: "Seoul",
+      city: "Seoul",
+      country: "South Korea",
+    },
+    coverImage: {
+      url: "https://media.istockphoto.com/id/479194337/photo/seoul-skyline.jpg?s=612x612&w=0&k=20&c=2915AXGJqsfwIZ1FDzmx5T_bi76IG8esptFG5vTVnIc=",
+      caption: "Seoul skyline with N Seoul Tower",
+    },
+    images: [
+      {
+        url: "https://s39023.pcdn.co/wp-content/uploads/2023/08/Gyeongbokgung-Palace-in-Seoul.jpg.optimal.jpg",
+        caption: "Gyeongbokgung Palace"
+      },
+      {
+        url: "https://media.tacdn.com/media/attractions-splice-spp-674x446/0b/39/b3/15.jpg",
+        caption: "Myeongdong shopping district"
+      },
+      {
+        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Bukchon_Hanok_Village_01.jpg/1200px-Bukchon_Hanok_Village_01.jpg",
+        caption: "Bukchon Hanok Village"
+      },
+      {
+        url: "https://www.agoda.com/wp-content/uploads/2019/03/N-Seoul-Tower-Namsan-Cable-Car.jpg",
+        caption: "Namsan Seoul Tower"
+      }
+    ],
+    rating: 4.6,
+    reviews: [
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f91",
+        rating: 5,
+        content: "Seoul is an amazing city with so much to offer! The food is incredible, especially the street food in Myeongdong. The palaces are beautiful, and the shopping is world-class.",
+        createdAt: new Date("2025-03-25")
+      },
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f92",
+        rating: 4.5,
+        content: "Great mix of traditional and modern culture. The subway system is excellent and easy to use. Don't miss the traditional hanbok experience at Gyeongbokgung Palace.",
+        createdAt: new Date("2025-02-18")
+      },
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f93",
+        rating: 4.5,
+        content: "Fascinating city with amazing food and shopping. The nightlife in Hongdae is incredible. Visit during cherry blossom season for an extra special experience.",
+        createdAt: new Date("2025-01-15")
+      }
+    ],
+    tags: ["culture", "food", "shopping", "history", "technology", "nightlife", "kpop"],
+    thingsToDo: [
+      "Visit Gyeongbokgung Palace",
+      "Explore Bukchon Hanok Village",
+      "Shop in Myeongdong",
+      "Visit N Seoul Tower",
+      "Try Korean BBQ and street food",
+      "Explore Insadong for traditional crafts",
+      "Visit the DMZ",
+      "Experience a traditional tea ceremony",
+      "Explore Hongdae nightlife"
+    ],
+    bestTimeToVisit: {
+      from: "April",
+      to: "June",
+    },
+  },
+  {
+    name: "Santorini, Greece",
+    description:
+      "A stunning island in the Aegean Sea, famous for its white-washed buildings, blue-domed churches, and breathtaking sunsets. Santorini's dramatic cliffs, volcanic beaches, and charming villages offer visitors a perfect blend of natural beauty, Greek culture, and luxury accommodations, making it one of the most romantic and picturesque destinations in the world.",
+    location: {
+      type: "Point",
+      coordinates: [25.4615, 36.3932],
+      address: "Santorini",
+      city: "Thira",
+      country: "Greece",
+    },
+    coverImage: {
+      url: "https://santorinibesttours.com/sites/default/files/top-attractions/oia/oia-village-castle.jpg",
+      caption: "Oia village at sunset",
+    },
+    images: [
+      {
+        url: "https://www.antoperla.com/blog/user/pages/01.home/13.santorini-blue-domes-churches/Santorini-Blue-Domes.jpg",
+        caption: "Blue domed churches"
+      },
+      {
+        url: "https://mybestplace.com/uploads/2020/07/Red-Sand-Beach-Galapagos-2.jpg",
+        caption: "Red Beach"
+      },
+      {
+        url: "https://www.greektravel.com/greekislands/santorini/hotel-volcano-view.jpg",
+        caption: "Caldera views"
+      }
+    ],
+    rating: 4.8,
+    reviews: [
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f91",
+        rating: 5,
+        content: "Santorini is absolutely magical! The sunsets in Oia are breathtaking, and the views of the caldera are unforgettable. The food and wine are amazing too.",
+        createdAt: new Date("2025-04-05")
+      },
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f92",
+        rating: 4.5,
+        content: "Beautiful island with stunning views everywhere you look. The beaches are unique with their volcanic sand. Try to visit in shoulder season to avoid the crowds.",
+        createdAt: new Date("2025-03-15")
+      },
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f93",
+        rating: 5,
+        content: "Perfect for a romantic getaway. The luxury hotels with caldera views are worth the splurge. Don't miss the wine tasting - Santorini wines are unique and delicious.",
+        createdAt: new Date("2025-02-20")
+      }
+    ],
+    tags: ["romantic", "beaches", "sunset", "architecture", "wine", "islands", "luxury"],
+    thingsToDo: [
+      "Watch the sunset in Oia",
+      "Visit the Red Beach",
+      "Take a boat tour of the caldera",
+      "Explore ancient Akrotiri",
+      "Visit a winery",
+      "Swim in the hot springs",
+      "Explore Fira town",
+      "Visit the black sand beaches",
+      "Take a cooking class"
+    ],
+    bestTimeToVisit: {
+      from: "May",
+      to: "September",
+    },
+  },
+  {
+    name: "Reykjavik, Iceland",
+    description:
+      "The world's northernmost capital city, known for its stunning natural wonders, geothermal pools, and vibrant cultural scene. Reykjavik serves as the perfect base for exploring Iceland's dramatic landscapes, from the famous Blue Lagoon to the Northern Lights, while offering visitors a unique blend of Nordic charm and modern amenities.",
+    location: {
+      type: "Point",
+      coordinates: [-21.9426, 64.1466],
+      address: "Reykjavik",
+      city: "Reykjavik",
+      country: "Iceland",
+    },
+    coverImage: {
+      url: "https://live.staticflickr.com/8370/8487341482_af40e471ca_b.jpg",
+      caption: "Reykjavik cityscape with Hallgrímskirkja",
+    },
+    images: [
+      {
+        url: "https://allthingsiceland.com/wp-content/uploads/2024/02/hallgrimskirkja-church-t-night.jpg",
+        caption: "Hallgrímskirkja church"
+      },
+      {
+        url: "https://images.prismic.io/perlan/046cecbc-1bb8-4065-b249-73bbc226fa1e_13439-157-2613.png?auto=compress,format",
+        caption: "Northern Lights over Reykjavik"
+      },
+      {
+        url: "https://images.ctfassets.net/a68ipajj4t9l/67aqJovtK54hUZppdObklq/93ec87cffb8eb3c02149643c9afca977/blue_lagoon_header-2.jpg?w=1200&q=60",
+        caption: "Blue Lagoon"
+      }
+    ],
+    rating: 4.7,
+    reviews: [
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f91",
+        rating: 5,
+        content: "Reykjavik is an amazing city with so much character! The Northern Lights were breathtaking, and the Blue Lagoon was the perfect way to relax. The food scene is surprisingly diverse and delicious.",
+        createdAt: new Date("2025-03-15")
+      },
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f92",
+        rating: 4.5,
+        content: "Great base for exploring Iceland's natural wonders. The city itself is charming with its colorful houses and friendly locals. Don't miss the hot dogs at Bæjarins Beztu Pylsur!",
+        createdAt: new Date("2025-02-20")
+      },
+      {
+        author: "65f7d5e7f2bc5d5c6a4b3f93",
+        rating: 4.5,
+        content: "Fascinating city with a great mix of culture and nature. The geothermal pools are amazing, and the nightlife is surprisingly vibrant. Visit in winter for the Northern Lights or summer for the midnight sun.",
+        createdAt: new Date("2025-01-10")
+      }
+    ],
+    tags: ["northern lights", "geothermal", "nature", "culture", "adventure", "winter", "summer"],
+    thingsToDo: [
+      "Visit the Blue Lagoon",
+      "See the Northern Lights",
+      "Explore Hallgrímskirkja church",
+      "Visit Harpa Concert Hall",
+      "Take a Golden Circle tour",
+      "Try Icelandic hot dogs",
+      "Visit the National Museum",
+      "Explore the Old Harbor",
+      "Take a whale watching tour"
+    ],
+    bestTimeToVisit: {
+      from: "September",
+      to: "March",
     },
   }
 ];
