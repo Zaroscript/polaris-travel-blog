@@ -17,8 +17,6 @@ export const usePostsStore = create<PostsState>((set, get) => ({
   // Reset pagination and filters
   resetFilters: () => {
     set({ 
-      currentPage: 1, 
-      hasMore: true, 
       activeFilter: "all",
       activeSort: "recent",
       searchQuery: ""
@@ -45,7 +43,7 @@ export const usePostsStore = create<PostsState>((set, get) => ({
     try {
       const params = new URLSearchParams();
       params.append("page", page.toString());
-      params.append("limit", "10");
+      params.append("limit", "6");
       
       if (filter && filter !== "all") {
         params.append("filter", filter);
@@ -63,8 +61,9 @@ export const usePostsStore = create<PostsState>((set, get) => ({
       
       set(state => ({
         posts: append ? [...state.posts, ...response.data.posts] : response.data.posts,
-        hasMore: response.data.hasMore,
+        hasMore: response.data.pagination.hasMore,
         loading: false,
+        currentPage: page
       }));
 
       return response.data;
@@ -204,49 +203,60 @@ export const usePostsStore = create<PostsState>((set, get) => ({
   // Like a post
   likePost: async (postId: string) => {
     try {
-      const post = get().posts.find(p => p._id === postId);
+      const authStore = useAuthStore.getState();
+      const userId = authStore.authUser?._id;
+      
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
       
       // Optimistically update the UI
-      if (post) {
-        const authStore = useAuthStore.getState();
-        const userId = authStore.authUser?._id;
-        
+      set(state => ({
+        posts: state.posts.map(p => {
+          if (p._id === postId) {
+            // Check if user has already liked the post
+            const alreadyLiked = p.likes.some(like => like._id === userId);
+            
+            if (!alreadyLiked) {
+              return {
+                ...p,
+                likes: [
+                  ...p.likes, 
+                  { 
+                    _id: userId, 
+                    fullName: authStore.authUser?.fullName || "",
+                    profilePic: authStore.authUser?.profilePic || ""
+                  }
+                ]
+              };
+            }
+          }
+          return p;
+        })
+      }));
+      
+      // Make API call
+      const response = await axiosInstance.post(`/posts/${postId}/like`);
+      return response.data;
+    } catch (error) {
+      // If the request fails, revert the optimistic update
+      const authStore = useAuthStore.getState();
+      const userId = authStore.authUser?._id;
+      
+      if (userId) {
         set(state => ({
           posts: state.posts.map(p => {
             if (p._id === postId) {
-              // Check if user has already liked the post
-              const alreadyLiked = p.likes.some(like => like._id === userId);
-              
-              if (!alreadyLiked && userId) {
-                return {
-                  ...p,
-                  likes: [
-                    ...p.likes, 
-                    { 
-                      _id: userId, 
-                      fullName: authStore.authUser?.fullName || "",
-                      profilePic: authStore.authUser?.profilePic || ""
-                    }
-                  ],
-                  isLiked: true
-                };
-              } else if (alreadyLiked) {
-                return {
-                  ...p,
-                  likes: p.likes.filter(like => like._id !== userId),
-                  isLiked: false
-                };
-              }
+              return {
+                ...p,
+                likes: p.likes.filter(like => like._id !== userId)
+              };
             }
             return p;
           })
         }));
       }
       
-      const response = await axiosInstance.post(`/posts/${postId}/like`);
-      return response.data;
-    } catch (error) {
-      // If the request fails, revert the optimistic update
       set({ error: "Failed to like post" });
       throw error;
     }
@@ -255,31 +265,64 @@ export const usePostsStore = create<PostsState>((set, get) => ({
   // Unlike a post
   unlikePost: async (postId: string) => {
     try {
-      const post = get().posts.find(p => p._id === postId);
+      const authStore = useAuthStore.getState();
+      const userId = authStore.authUser?._id;
       
-      // Optimistically update the UI
-      if (post) {
-        const authStore = useAuthStore.getState();
-        const userId = authStore.authUser?._id;
-        
-        set(state => ({
-          posts: state.posts.map(p => {
-            if (p._id === postId) {
-              return {
-                ...p,
-                likes: p.likes.filter(like => like._id !== userId),
-                isLiked: false
-              };
-            }
-            return p;
-          })
-        }));
+      if (!userId) {
+        throw new Error("User not authenticated");
       }
       
+      // Save the current state for potential rollback
+      const currentPosts = [...get().posts];
+      
+      // Optimistically update the UI
+      set(state => ({
+        posts: state.posts.map(p => {
+          if (p._id === postId) {
+            return {
+              ...p,
+              likes: p.likes.filter(like => like._id !== userId)
+            };
+          }
+          return p;
+        })
+      }));
+      
+      // Make API call
       await axiosInstance.delete(`/posts/${postId}/like`);
     } catch (error) {
       // If the request fails, revert the optimistic update
-      set({ error: "Failed to unlike post" });
+      const authStore = useAuthStore.getState();
+      const userId = authStore.authUser?._id;
+      
+      // Restore the previous state
+      const previousPosts = get().posts.map(post => {
+        if (post._id === postId && userId) {
+          // Check if the user's like needs to be restored
+          const hasUserLike = post.likes.some(like => like._id === userId);
+          
+          if (!hasUserLike) {
+            return {
+              ...post,
+              likes: [
+                ...post.likes,
+                {
+                  _id: userId,
+                  fullName: authStore.authUser?.fullName || "",
+                  profilePic: authStore.authUser?.profilePic || ""
+                }
+              ]
+            };
+          }
+        }
+        return post;
+      });
+      
+      set({ 
+        posts: previousPosts,
+        error: "Failed to unlike post" 
+      });
+      
       throw error;
     }
   },
@@ -364,42 +407,64 @@ export const usePostsStore = create<PostsState>((set, get) => ({
       const authStore = useAuthStore.getState();
       const userId = authStore.authUser?._id;
       
-      // Optimistically update the UI
-      set(state => ({
-        posts: state.posts.map(post => {
-          if (post._id === postId) {
-            return {
-              ...post,
-              comments: post.comments.map(comment => {
-                if (comment._id === commentId) {
-                  // Check if already liked
-                  const alreadyLiked = comment.likes.some(like => like._id === userId);
-                  
-                  if (!alreadyLiked && userId) {
-                    return {
-                      ...comment,
-                      likes: [
-                        ...comment.likes, 
-                        { 
-                          _id: userId, 
-                          fullName: authStore.authUser?.fullName || "",
-                          profilePic: authStore.authUser?.profilePic || "" 
-                        }
-                      ],
-                      isLiked: true
-                    };
-                  }
-                }
-                return comment;
-              })
-            };
-          }
-          return post;
-        })
-      }));
+      if (!userId) {
+        set({ error: "User not authenticated" });
+        throw new Error("User not authenticated");
+      }
+
+      // Get current state to check if already liked
+      const currentPost = get().posts.find(post => post._id === postId);
+      const currentComment = currentPost?.comments?.find(comment => comment._id === commentId);
+      const isAlreadyLiked = currentComment?.likes?.some(like => like && like._id === userId);
       
-      await axiosInstance.post(`/posts/${postId}/comments/${commentId}/like`);
+      // Prevent duplicate likes - only proceed if not already liked
+      if (isAlreadyLiked) {
+        return { alreadyLiked: true };
+      }
+
+      // Make the API call first to ensure it succeeds
+      const response = await axiosInstance.post(`/posts/${postId}/comments/${commentId}/like`);
+      
+      // Only update the state if the API call was successful (any 2xx status code)
+      if (response.status >= 200 && response.status < 300) {
+        set(state => ({
+          posts: state.posts.map(post => {
+            if (post?._id === postId) {
+              return {
+                ...post,
+                comments: (post.comments || []).map(comment => {
+                  if (comment?._id === commentId) {
+                    // Check if already liked and if likes array exists
+                    const commentLikes = comment.likes || [];
+                    const alreadyLiked = commentLikes.some(like => like && like._id === userId);
+                    
+                    // If not already liked, add the like
+                    if (!alreadyLiked) {
+                      return {
+                        ...comment,
+                        likes: [
+                          ...commentLikes, 
+                          { 
+                            _id: userId, 
+                            fullName: authStore.authUser?.fullName || "",
+                            profilePic: authStore.authUser?.profilePic || "" 
+                          }
+                        ]
+                      };
+                    }
+                  }
+                  return comment;
+                })
+              };
+            }
+            return post;
+          }).filter(Boolean)
+        }));
+      }
+      
+      return response.data;
     } catch (error) {
+      console.error("Failed to like comment:", error);
       set({ error: "Failed to like comment" });
       throw error;
     }
@@ -411,31 +476,174 @@ export const usePostsStore = create<PostsState>((set, get) => ({
       const authStore = useAuthStore.getState();
       const userId = authStore.authUser?._id;
       
-      // Optimistically update the UI
-      set(state => ({
-        posts: state.posts.map(post => {
-          if (post._id === postId) {
-            return {
-              ...post,
-              comments: post.comments.map(comment => {
-                if (comment._id === commentId) {
-                  return {
-                    ...comment,
-                    likes: comment.likes.filter(like => like._id !== userId),
-                    isLiked: false
-                  };
-                }
-                return comment;
-              })
-            };
-          }
-          return post;
-        })
-      }));
+      if (!userId) {
+        set({ error: "User not authenticated" });
+        throw new Error("User not authenticated");
+      }
       
-      await axiosInstance.delete(`/posts/${postId}/comments/${commentId}/like`);
+      // Make the API call first to ensure it succeeds
+      const response = await axiosInstance.delete(`/posts/${postId}/comments/${commentId}/like`);
+      
+      // Only update the state if the API call was successful (any 2xx status code)
+      if (response.status >= 200 && response.status < 300) {
+        set(state => ({
+          posts: state.posts.map(post => {
+            if (post?._id === postId) {
+              return {
+                ...post,
+                comments: (post.comments || []).map(comment => {
+                  if (comment?._id === commentId) {
+                    // Remove the user's like
+                    return {
+                      ...comment,
+                      likes: (comment.likes || []).filter(like => like && like._id !== userId)
+                    };
+                  }
+                  return comment;
+                })
+              };
+            }
+            return post;
+          }).filter(Boolean)
+        }));
+      }
+      
+      return response.data;
     } catch (error) {
+      console.error("Failed to unlike comment:", error);
       set({ error: "Failed to unlike comment" });
+      throw error;
+    }
+  },
+
+  // Like a reply
+  likeReply: async (postId: string, commentId: string, replyId: string) => {
+    try {
+      const authStore = useAuthStore.getState();
+      const userId = authStore.authUser?._id;
+      
+      if (!userId) {
+        set({ error: "User not authenticated" });
+        throw new Error("User not authenticated");
+      }
+      
+      // Get current state to check if already liked
+      const currentPost = get().posts.find(post => post._id === postId);
+      const currentComment = currentPost?.comments?.find(comment => comment._id === commentId);
+      const currentReply = currentComment?.replies?.find(reply => reply._id === replyId);
+      const isAlreadyLiked = currentReply?.likes?.some(like => like && like._id === userId);
+      
+      // Prevent duplicate likes - only proceed if not already liked
+      if (isAlreadyLiked) {
+        return { alreadyLiked: true };
+      }
+      
+      // Make the API call first to ensure it succeeds
+      const response = await axiosInstance.post(`/posts/${postId}/comments/${commentId}/replies/${replyId}/like`);
+      
+      // Only update the state if the API call was successful (any 2xx status code)
+      if (response.status >= 200 && response.status < 300) {
+        set(state => ({
+          posts: state.posts.map(post => {
+            if (post?._id === postId) {
+              return {
+                ...post,
+                comments: (post.comments || []).map(comment => {
+                  if (comment?._id === commentId) {
+                    return {
+                      ...comment,
+                      replies: (comment.replies || []).map(reply => {
+                        if (reply?._id === replyId) {
+                          // Check if already liked
+                          const replyLikes = reply.likes || [];
+                          const alreadyLiked = replyLikes.some(like => like && like._id === userId);
+                          
+                          // If not already liked, add the like
+                          if (!alreadyLiked) {
+                            return {
+                              ...reply,
+                              likes: [
+                                ...replyLikes, 
+                                { 
+                                  _id: userId,
+                                  fullName: authStore.authUser?.fullName || "",
+                                  profilePic: authStore.authUser?.profilePic || "" 
+                                }
+                              ]
+                            };
+                          }
+                        }
+                        return reply;
+                      })
+                    };
+                  }
+                  return comment;
+                })
+              };
+            }
+            return post;
+          }).filter(Boolean)
+        }));
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error("Failed to like reply:", error);
+      set({ error: "Failed to like reply" });
+      throw error;
+    }
+  },
+
+  // Unlike a reply
+  unlikeReply: async (postId: string, commentId: string, replyId: string) => {
+    try {
+      const authStore = useAuthStore.getState();
+      const userId = authStore.authUser?._id;
+      
+      if (!userId) {
+        set({ error: "User not authenticated" });
+        throw new Error("User not authenticated");
+      }
+      
+      // Make the API call first to ensure it succeeds
+      const response = await axiosInstance.delete(`/posts/${postId}/comments/${commentId}/replies/${replyId}/like`);
+      
+      // Only update the state if the API call was successful (any 2xx status code)
+      if (response.status >= 200 && response.status < 300) {
+        set(state => ({
+          posts: state.posts.map(post => {
+            if (post?._id === postId) {
+              return {
+                ...post,
+                comments: (post.comments || []).map(comment => {
+                  if (comment?._id === commentId) {
+                    return {
+                      ...comment,
+                      replies: (comment.replies || []).map(reply => {
+                        if (reply?._id === replyId) {
+                          // Remove the user's like
+                          return {
+                            ...reply,
+                            likes: (reply.likes || []).filter(like => like && like._id !== userId)
+                          };
+                        }
+                        return reply;
+                      })
+                    };
+                  }
+                  return comment;
+                })
+              };
+            }
+            return post;
+          }).filter(Boolean)
+        }));
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error("Failed to unlike reply:", error);
+      set({ error: "Failed to unlike reply" });
       throw error;
     }
   },
@@ -554,104 +762,6 @@ export const usePostsStore = create<PostsState>((set, get) => ({
         }),
         error: "Failed to add reply"
       }));
-      throw error;
-    }
-  },
-
-  // Like a reply
-  likeReply: async (postId: string, commentId: string, replyId: string) => {
-    try {
-      const authStore = useAuthStore.getState();
-      const userId = authStore.authUser?._id;
-      
-      // Optimistically update the UI
-      set(state => ({
-        posts: state.posts.map(post => {
-          if (post._id === postId) {
-            return {
-              ...post,
-              comments: post.comments.map(comment => {
-                if (comment._id === commentId) {
-                  return {
-                    ...comment,
-                    replies: comment.replies.map(reply => {
-                      if (reply._id === replyId) {
-                        // Check if already liked
-                        const alreadyLiked = reply.likes.some(like => like._id === userId);
-                        
-                        if (!alreadyLiked && userId) {
-                          return {
-                            ...reply,
-                            likes: [
-                              ...reply.likes, 
-                              { 
-                                _id: userId,
-                                fullName: authStore.authUser?.fullName || "",
-                                profilePic: authStore.authUser?.profilePic || "" 
-                              }
-                            ],
-                            isLiked: true
-                          };
-                        }
-                      }
-                      return reply;
-                    })
-                  };
-                }
-                return comment;
-              })
-            };
-          }
-          return post;
-        })
-      }));
-      
-      await axiosInstance.post(`/posts/${postId}/comments/${commentId}/replies/${replyId}/like`);
-    } catch (error) {
-      set({ error: "Failed to like reply" });
-      throw error;
-    }
-  },
-
-  // Unlike a reply
-  unlikeReply: async (postId: string, commentId: string, replyId: string) => {
-    try {
-      const authStore = useAuthStore.getState();
-      const userId = authStore.authUser?._id;
-      
-      // Optimistically update the UI
-      set(state => ({
-        posts: state.posts.map(post => {
-          if (post._id === postId) {
-            return {
-              ...post,
-              comments: post.comments.map(comment => {
-                if (comment._id === commentId) {
-                  return {
-                    ...comment,
-                    replies: comment.replies.map(reply => {
-                      if (reply._id === replyId) {
-                        return {
-                          ...reply,
-                          likes: reply.likes.filter(like => like._id !== userId),
-                          isLiked: false
-                        };
-                      }
-                      return reply;
-                    })
-                  };
-                }
-                return comment;
-              })
-            };
-          }
-          return post;
-        })
-      }));
-      
-      await axiosInstance.delete(`/posts/${postId}/comments/${commentId}/replies/${replyId}/like`);
-    } catch (error) {
-      set({ error: "Failed to unlike reply" });
       throw error;
     }
   },
