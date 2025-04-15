@@ -52,7 +52,11 @@ const UserItem = ({
       className={`
         w-full p-1 lg:p-2 border-b border-gray-200 dark:border-gray-800 flex items-center gap-1
         hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
-        ${isSelected ? "bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500" : ""}
+        ${
+          isSelected
+            ? "bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500"
+            : ""
+        }
       `}
     >
       <div className="relative lg:mx-0">
@@ -91,7 +95,7 @@ const ToggleSwitch = ({
   onChange: (checked: boolean) => void;
   label: string;
 }) => (
-  <label className="cursor-pointer flex items-center gap-2">
+  <label className="cursor-pointer flex items-center gap-2 dark:text-gray-400">
     <div className="relative flex items-center">
       <input
         type="checkbox"
@@ -100,14 +104,14 @@ const ToggleSwitch = ({
         className="sr-only peer"
       />
       <div
-        className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer 
-                     peer-checked:after:translate-x-full peer-checked:after:border-white 
+        className="w-10 h-5 bg-gray-900 peer-focus:outline-none rounded-full peer 
+                     peer-checked:after:translate-x-full peer-checked:after:border-gray-900 
                      after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
-                     after:bg-white after:border-gray-300 after:border after:rounded-full 
-                     after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"
+                     after:bg-gray-950 after:border-gray-800 after:border after:rounded-full 
+                     after:h-4 after:w-4 after:transition-all peer-checked:bg-gray-900"
       ></div>
     </div>
-    <span className="text-sm text-gray-700">{label}</span>
+    <span className="text-sm text-gray-700 dark:text-gray-500">{label}</span>
   </label>
 );
 
@@ -238,12 +242,12 @@ const Sidebar = () => {
   if (isUsersLoading) return <SidebarSkeleton />;
 
   return (
-    <aside className="h-full border-r border-b border-t border-l rounded-tl-lg rounded-bl-lg border-gray-200 flex  max-w-72 min-w-40 flex-col transition-all duration-200">
+    <aside className="h-full px-3 border-r border-b border-t border-l rounded-tl-lg rounded-bl-lg border-gray-200 dark:border-gray-900 flex  max-w-72 min-w-40 flex-col transition-all duration-200">
       {/* Header Section */}
-      <div className="border-b border-gray-200 w-full p-3">
+      <div className="w-full p-3">
         <div className="flex items-center gap-2">
           <Users className="w-6 h-6 text-gray-700" />
-          <span className="font-medium text-gray-800">
+          <span className="font-medium text-gray-800 dark:text-gray-400">
             Contacts
           </span>
           <span className="text-xs text-gray-500">
@@ -274,7 +278,7 @@ const Sidebar = () => {
             />
           ))
         ) : (
-          <div className="text-center text-gray-500 ">
+          <div className="text-center text-gray-500 dark:text-gray-400">
             {showOnlineOnly ? "No online users" : "No contacts available"}
           </div>
         )}

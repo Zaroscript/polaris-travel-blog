@@ -30,7 +30,7 @@ import { useNotificationStore } from "@/store/useNotificationStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useThemeStore } from "@/store/useThemeStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatRelativeTime } from "@/utils/date";
+import { formatDistanceToNow } from "date-fns";
 import toast from "react-hot-toast";
 import { PopulatedNotification } from "@/types";
 import MobileNav from "../navbar/MobileNav";
@@ -126,8 +126,8 @@ const Header = () => {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled
-          ? "bg-white/80 dark:bg-background/80 backdrop-blur-md shadow-sm border-b border-border/40"
-          : "bg-white dark:bg-background border-b border-border/20"
+          ? "bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md shadow-sm border-b border-border/40"
+          : "bg-white dark:bg-zinc-950 border-b border-border/20"
       )}
     >
       <div className="container mx-auto px-4">
@@ -135,7 +135,7 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group">
             <img
-              src={theme !== "light" ? "/logoDark.svg" : "/logo.svg"}
+              src="/logo.svg"
               alt="Polaris"
               className="w-10 h-10 transition-transform group-hover:scale-105"
             />
@@ -244,7 +244,10 @@ const Header = () => {
                               </p>
                             </div>
                             <span className="text-xs text-muted-foreground">
-                              {formatRelativeTime(notification.createdAt)}
+                              {formatDistanceToNow(
+                                new Date(notification.createdAt),
+                                { addSuffix: true }
+                              )}
                             </span>
                           </div>
                         </motion.div>
@@ -257,11 +260,49 @@ const Header = () => {
                         size="sm"
                         asChild
                       >
-                        <Link to="/coming-soon">View all notifications</Link>
+                        <Link to="/notifications">View all notifications</Link>
                       </Button>
                     </div>
                   </PopoverContent>
                 </Popover>
+
+                {/* Theme Toggle */}
+                {/* <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hover:bg-muted/50"
+                    >
+                      <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                      <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                      <span className="sr-only">Toggle theme</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem
+                      onClick={() => setTheme("light")}
+                      className="cursor-pointer"
+                    >
+                      <Sun className="mr-2 h-4 w-4" />
+                      Light
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setTheme("dark")}
+                      className="cursor-pointer"
+                    >
+                      <Moon className="mr-2 h-4 w-4" />
+                      Dark
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setTheme("system")}
+                      className="cursor-pointer"
+                    >
+                      <Laptop className="mr-2 h-4 w-4" />
+                      System
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu> */}
 
                 <ThemeToggle />
 

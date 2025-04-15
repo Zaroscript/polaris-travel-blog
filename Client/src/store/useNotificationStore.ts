@@ -17,18 +17,22 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       return [];
     }
     set({ isLoading: true, error: null });
-    
+
     try {
-      const res = await axiosInstance.get<PopulatedNotification[]>("/notifications");
+      const res = await axiosInstance.get<PopulatedNotification[]>(
+        "/notifications"
+      );
       set({
         notifications: res.data,
         unreadCount: res.data.filter((n) => !n.read).length,
       });
       return res.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to fetch notifications";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "Failed to fetch notifications";
       set({ error: errorMessage });
       toast.error(errorMessage);
       return [];
@@ -40,8 +44,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   markAsRead: async (id: string) => {
     set({ error: null });
     try {
-      const res = await axiosInstance.patch<PopulatedNotification>(`/notifications/${id}/read`);
-      
+      const res = await axiosInstance.patch<PopulatedNotification>(
+        `/notifications/${id}/read`
+      );
+
       set((state) => {
         const updatedNotifications = state.notifications.map((n) =>
           n._id === id ? { ...n, read: true } : n
@@ -52,12 +58,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           unreadCount: updatedNotifications.filter((n) => !n.read).length,
         };
       });
-      
+
       return res.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to mark notification as read";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "Failed to mark notification as read";
       set({ error: errorMessage });
       toast.error(errorMessage);
       throw error;
@@ -74,9 +82,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         unreadCount: 0,
       }));
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to mark all notifications as read";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "Failed to mark all notifications as read";
       set({ error: errorMessage });
       toast.error(errorMessage);
       throw error;
@@ -89,10 +99,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       unreadCount: state.unreadCount + 1,
     }));
   },
-  
+
   clearError: () => {
     set({ error: null });
-  }
+  },
 }));
 
 // Add socket event listener in a separate function to avoid circular dependencies
@@ -100,14 +110,18 @@ export const initNotificationListeners = () => {
   const socket = useAuthStore.getState().socket;
   if (!socket) return;
 
-  socket.on("newNotification", (data: { notification: PopulatedNotification }) => {
-    useNotificationStore.getState().addNotification(data.notification);
-    const senderName = typeof data.notification.sender === "object" 
-      ? data.notification.sender.fullName 
-      : "someone";
-      
-    toast.success(`New message from ${senderName}`);
-  });
+  socket.on(
+    "newNotification",
+    (data: { notification: PopulatedNotification }) => {
+      useNotificationStore.getState().addNotification(data.notification);
+      const senderName =
+        typeof data.notification.sender === "object"
+          ? data.notification.sender.fullName
+          : "someone";
+
+      toast.success(`New message from ${senderName}`);
+    }
+  );
 
   return () => {
     socket.off("newNotification");
