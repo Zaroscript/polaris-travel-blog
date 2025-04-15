@@ -26,7 +26,7 @@ const AuthInput: React.FC<InputProps> = ({
 }) => {
   return (
     <div className="mb-4">
-      <label className="block text-gray-700 font-medium mb-2">
+      <label className="block text-gray-700 dark:text-gray-400 font-medium mb-2">
         {label}
       </label>
       <div className="relative">
@@ -37,10 +37,12 @@ const AuthInput: React.FC<InputProps> = ({
         )}
         <input
           type={type}
-          className={`w-full py-2 px-8 ${Icon ? 'pl-10' : ''} border ${
-            error ? 'border-red-500' : 'border-gray-300'
+          className={`w-full py-2 px-8 dark:bg-gray-950 ${
+            Icon ? "pl-10" : ""
+          } border ${
+            error ? "border-red-500" : "border-gray-300 dark:border-gray-700"
           } rounded-md focus:outline-none focus:ring-2 ${
-            error ? 'focus:ring-red-500' : 'focus:ring-blue-500'
+            error ? "focus:ring-red-500" : "focus:ring-blue-500"
           } focus:border-transparent placeholder-gray-400 dark:text-primary-foreground`}
           placeholder={placeholder}
           value={value}
@@ -56,9 +58,7 @@ const AuthInput: React.FC<InputProps> = ({
           </button>
         )}
       </div>
-      {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );
 };

@@ -21,7 +21,7 @@ const ChatContainer = () => {
 
   const { authUser } = useAuthStore();
   const { notifications, markAsRead } = useNotificationStore();
-  const messageEndRef = useRef<HTMLDivElement>(null);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
 
   // Fetch messages when selected user changes
   useEffect(() => {
@@ -35,8 +35,9 @@ const ChatContainer = () => {
 
   // Scroll to bottom when messages update
   useEffect(() => {
-    if (messageEndRef.current && messages.length > 0) {
-      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (messageContainerRef.current && messages.length > 0) {
+      const container = messageContainerRef.current;
+      container.scrollTop = container.scrollHeight;
     }
   }, [messages]);
 
@@ -76,7 +77,10 @@ const ChatContainer = () => {
     <div className="flex flex-1 flex-col overflow-auto border-r border-b border-t border-border rounded-tr-lg rounded-br-lg bg-background">
       <ChatHeader />
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div
+        ref={messageContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+      >
         {messages.map((message: Message, index: number) => {
           const isOwnMessage = message.senderId === authUser._id;
           return (
@@ -85,7 +89,6 @@ const ChatContainer = () => {
               className={`flex ${
                 isOwnMessage ? "justify-end" : "justify-start"
               }`}
-              ref={index === messages.length - 1 ? messageEndRef : null}
             >
               <div
                 className={`flex max-w-[80%] ${
