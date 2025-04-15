@@ -24,6 +24,7 @@ import Settings from "./pages/Settings";
 import Contact from "./pages/Contact";
 import { TravelLoader } from "./components/ui/travel-loader";
 import ComingSoon from "./pages/ComingSoon";
+import FloatingChatIcon from "./components/chat/FloatingChatIcon";
 
 
 const App = () => {
@@ -44,6 +45,8 @@ const App = () => {
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
+
+      {window.location.pathname !== "/messages" && <FloatingChatIcon />}
 
       {authUser && <NotificationListener />}
 

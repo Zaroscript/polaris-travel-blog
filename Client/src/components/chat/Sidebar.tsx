@@ -3,11 +3,12 @@ import { useChatStore } from "../../store/useChatStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 import { Users } from "lucide-react";
-import { Message, User } from "../../types";
+import { Message } from "../../types";
 import { axiosInstance } from "../../lib/axios";
+import { Profile } from "@/types/social";
 
 // Interface for user with last message
-interface UserWithLastMessage extends User {
+interface UserWithLastMessage extends Profile {
   lastMessage?: {
     text?: string;
     image?: string;
