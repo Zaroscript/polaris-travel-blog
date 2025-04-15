@@ -9,49 +9,6 @@ import {
 import { axiosInstance } from "../lib/axios";
 import axios from "axios";
 
-// Helper function to derive a traveler type from interests
-const deriveTravelerTypeFromInterests = (interests: string[]): string => {
-  // Convert interests to lowercase for easier matching
-  const lowerInterests = interests.map(i => i.toLowerCase());
-  
-  // Define categories and their related keywords
-  const categories = {
-    'Adventure Traveler': ['hiking', 'trekking', 'climbing', 'adventure', 'outdoor', 'extreme', 'camping'],
-    'Photographer': ['photography', 'camera', 'photo', 'landscape', 'wildlife', 'portrait'],
-    'Food Explorer': ['food', 'cuisine', 'culinary', 'gastronomy', 'cooking', 'restaurant', 'dining'],
-    'Budget Backpacker': ['budget', 'backpacking', 'hostel', 'affordable', 'cheap', 'economic'],
-    'Luxury Traveler': ['luxury', 'resort', 'spa', 'premium', '5-star', 'upscale', 'exclusive'],
-    'Culture Enthusiast': ['culture', 'history', 'museum', 'heritage', 'architecture', 'local', 'tradition'],
-    'Beach Lover': ['beach', 'ocean', 'sea', 'island', 'surf', 'diving', 'snorkel', 'coastal'],
-    'City Explorer': ['city', 'urban', 'metropolitan', 'nightlife', 'shopping', 'cafe']
-  };
-  
-  // Count matches for each category
-  const scores: Record<string, number> = {};
-  
-  for (const [category, keywords] of Object.entries(categories)) {
-    scores[category] = 0;
-    for (const interest of lowerInterests) {
-      if (keywords.some(keyword => interest.includes(keyword))) {
-        scores[category]++;
-      }
-    }
-  }
-  
-  // Find the category with the highest score
-  let bestMatch = 'Travel Enthusiast'; // Default
-  let highestScore = 0;
-  
-  for (const [category, score] of Object.entries(scores)) {
-    if (score > highestScore) {
-      highestScore = score;
-      bestMatch = category;
-    }
-  }
-  
-  return bestMatch;
-};
-
 export const useProfileStore = create<ProfileState>((set, get) => ({
   profile: null,
   posts: [],
@@ -102,6 +59,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
       set({
         profile: currentUser,
+        
         loading: false
       });
 
@@ -109,57 +67,6 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
     } catch (error) {
       set({ error: "Failed to fetch suggested users", loading: false });
-      throw error;
-    }
-  },
-  
-  fetchAllTravelers: async (category?: string, currentUserId?: string) => {
-    set({ loading: true, error: null });
-    try {
-      // Get all users
-      const response = await axiosInstance.get("/users/all");
-      let travelers = response.data.users;
-      
-      // Filter out the current user if an ID is provided
-      if (currentUserId) {
-        travelers = travelers.filter((user: Profile) => user._id !== currentUserId);
-      }
-      
-      // If a category is specified, filter users by interests that match the category
-      if (category && category !== 'all') {
-        travelers = travelers.filter((user: Profile) => {
-          // Map common categories to related interests
-          const categoryToInterests: Record<string, string[]> = {
-            'adventure': ['hiking', 'adventure', 'outdoor', 'mountain', 'trekking', 'climbing'],
-            'photographers': ['photography', 'landscape', 'nature', 'street photography', 'wildlife'],
-            'foodies': ['food', 'cuisine', 'cooking', 'restaurant', 'gastronomy', 'culinary'],
-            'budget': ['backpacking', 'hostel', 'budget travel', 'affordable', 'cheap travel'],
-            'luxury': ['luxury', 'resort', 'fine dining', 'spa', 'premium travel', '5-star']
-          };
-          
-          const relatedInterests = categoryToInterests[category.toLowerCase()] || [];
-          
-          // Check if user has any interests that relate to the category
-          return user.interests?.some(interest => 
-            relatedInterests.some(relatedInterest => 
-              interest.toLowerCase().includes(relatedInterest)
-            )
-          );
-        });
-      }
-      
-      // Add some additional calculated fields for display in the UI
-      travelers = travelers.map((user: Profile) => ({
-        ...user,
-        countriesVisited: user.visitedDestinations?.length || 0,
-        // Derive role from user interests if not specified
-        travelerType: user.role || deriveTravelerTypeFromInterests(user.interests || [])
-      }));
-      
-      set({ loading: false });
-      return travelers;
-    } catch (error) {
-      set({ error: "Failed to fetch travelers", loading: false });
       throw error;
     }
   },
