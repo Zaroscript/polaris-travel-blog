@@ -2,7 +2,7 @@ import { FC, ReactNode } from "react";
 import { motion } from "framer-motion";
 import Header from "./Header";
 import Footer from "./Footer";
-import Intro from "./intro";
+import Intro from "./Intro";
 
 
 interface LayoutProps {
