@@ -22,8 +22,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { getDestinationImageUrl, handleImageError } from "@/lib/imageUtils";
-import ArrowRight from "./dest-assets/arrow-right";
-import Star from "./dest-assets/rating-star";
 
 // World map GeoJSON - higher resolution for better country details
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
@@ -87,17 +85,21 @@ const DestinationMap = ({
   // Initialize map zoom and position
   useEffect(() => {
     let initialZoom = 1;
+    let initialCoordinates = [0, 20];
     
     if (singleView && destinations.length === 1) {
+      initialCoordinates = destinations[0].location.coordinates;
       initialZoom = 4;
     } else if (longitude !== undefined && latitude !== undefined) {
+      initialCoordinates = [longitude, latitude];
       initialZoom = 4;
     } else if (internalSelectedDestination) {
+      initialCoordinates = internalSelectedDestination.location.coordinates;
       initialZoom = 3;
     }
     
     setPosition({
-      coordinates: [0, 20],
+      coordinates: initialCoordinates,
       zoom: initialZoom
     });
   }, [singleView, destinations, longitude, latitude, internalSelectedDestination]);
@@ -540,22 +542,50 @@ const DestinationMap = ({
               Destinations
             </Button>
           )}
-
-          {/* Toggle sidebar button for desktop */}
-          {!singleView && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden md:flex absolute left-3 top-3 z-20 bg-background/90 backdrop-blur-sm hover:bg-background shadow-md"
-              onClick={() => setShowSidebar(!showSidebar)}
-            >
-              {showSidebar ? <X className="h-4 w-4" /> : <List className="h-4 w-4" />}
-              <span className="ml-2">{showSidebar ? "Hide List" : "Show List"}</span>
-            </Button>
-          )}
         </div>
       </div>
     </div>
+  );
+};
+
+// Star component for ratings
+const Star = ({ filled = false, className = "" }: { filled?: boolean, className?: string }) => {
+  return (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      width="16" 
+      height="16" 
+      viewBox="0 0 24 24" 
+      fill={filled ? "#FFD700" : "none"} 
+      stroke={filled ? "#FFD700" : "currentColor"} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+    >
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+};
+
+// Arrow right component for destination list
+const ArrowRight = ({ className = "" }: { className?: string }) => {
+  return (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      width="24" 
+      height="24" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+    >
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+    </svg>
   );
 };
 

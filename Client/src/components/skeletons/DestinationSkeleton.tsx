@@ -13,6 +13,11 @@ export const DestinationSkeleton = () => {
           <Skeleton className="h-6 w-16 rounded-full" />
         </div>
         
+        {/* Price badge placeholder */}
+        <div className="absolute top-3 left-3">
+          <Skeleton className="h-6 w-20 rounded-full" />
+        </div>
+        
         {/* Location badge placeholder */}
         <div className="absolute bottom-3 left-3">
           <Skeleton className="h-6 w-28 rounded-full" />
@@ -43,6 +48,11 @@ export const DestinationSkeleton = () => {
           <Skeleton className="h-5 w-12 rounded-full" />
         </div>
       </CardContent>
+      
+      <CardFooter className="p-4 pt-0 flex justify-between items-center border-t">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-16" />
+      </CardFooter>
     </Card>
   );
 };

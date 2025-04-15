@@ -105,31 +105,18 @@ const EditPost = ({ post, open, onOpenChange }: EditPostProps) => {
     },
   });
 
-  const { formState: { isSubmitting } } = form;
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // Ensure all state values are included in the update
-      const updateData = {
+      await updatePost(post._id, {
         ...values,
-        coverImage: coverImage || values.coverImage,
-        gallery: galleryImages.length > 0 ? galleryImages : values.gallery,
-        travelTips: travelTips.length > 0 ? travelTips : values.travelTips,
-        tags: tags.length > 0 ? tags.map(tag => tag.trim()) : (values.tags ? values.tags.map(tag => tag.trim()) : []),
-      };
-      
-      console.log("Submitting update data:", updateData);
-      
-      const updatedPost = await updatePost(post._id, updateData);
-      console.log("Post successfully updated:", updatedPost);
-      
+        tags: values.tags ? values.tags.map((tag) => tag.trim()) : [],
+      });
       toast({
         title: "Success",
         description: "Post updated successfully",
       });
       onOpenChange(false);
     } catch (error) {
-      console.error("Update error:", error);
       toast({
         title: "Error",
         description: "Failed to update post",
@@ -542,9 +529,7 @@ const EditPost = ({ post, open, onOpenChange }: EditPostProps) => {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Updating..." : "Update Post"}
-                </Button>
+                <Button type="submit">Update Post</Button>
               </div>
             </form>
           </Form>

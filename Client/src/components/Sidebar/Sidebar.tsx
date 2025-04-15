@@ -15,7 +15,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePath }) => {
           variant="ghost"
           className={cn(
             "w-full justify-start gap-2 text-base font-medium",
-            activePath === "/user/settings" && "bg-primary/10 text-primary"
+            activePath === "/settings/" && "bg-primary/10 text-primary"
           )}
         >
           <User className="h-5 w-5" />

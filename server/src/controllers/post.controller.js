@@ -2,7 +2,6 @@ import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import { catchAsync } from "../lib/utils.js";
 import cloudinary from 'cloudinary';
-import { uploadImage, uploadImages } from '../lib/uploadImage.js';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -14,15 +13,17 @@ cloudinary.config({
 /**
  * @route GET /api/posts
  * @example
- * GET http://localhost:5000/api/posts?search=travel&sort=popular&category=adventure
+ * GET http://localhost:5000/api/posts?page=1&limit=10&search=travel&sort=popular&category=adventure
  */
 export const getPosts = catchAsync(async (req, res) => {
   const { 
     search = "", 
+    page = 1, 
+    limit = 10, 
     sort = "recent", 
     category = "",
     destination = "",
-    author = "",
+    author = ""
   } = req.query;
 
   // Base query
@@ -85,9 +86,13 @@ export const getPosts = catchAsync(async (req, res) => {
     }
   }
 
+  // Pagination
+  const skip = (parseInt(page) - 1) * parseInt(limit);
   
   const posts = await Post.find(query)
     .sort(sortOption)
+    .skip(skip)
+    .limit(parseInt(limit))
     .populate("author", "fullName profilePic")
     .populate("likes", "fullName profilePic")
     .populate("comments.author", "fullName profilePic")
@@ -111,6 +116,10 @@ export const getPosts = catchAsync(async (req, res) => {
     posts: enhancedPosts,
     pagination: {
       total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
+      limit: parseInt(limit),
+      hasMore: skip + posts.length < total
     },
   });
 });
@@ -149,7 +158,7 @@ export const getPost = catchAsync(async (req, res) => {
  * }
  */
 export const createPost = catchAsync(async (req, res) => {
-  const { content, images, coverImage } = req.body;
+  const { content, images } = req.body;
   if (!content || content.trim().length === 0) {
     return res.status(400).json({ message: "Post content is required" });
   }
@@ -158,15 +167,15 @@ export const createPost = catchAsync(async (req, res) => {
     return res.status(400).json({ message: "Post content cannot exceed 1000 characters" });
   }
 
-  // Handle image uploads with uploadImage util
+  // Handle image uploads with Cloudinary
   let uploadedImages = [];
-  let uploadedCoverImage = undefined;
   if (images && images.length > 0) {
     try {
-      uploadedImages = await uploadImages(images, { folder: 'polaris-travel/posts' });
-      if (coverImage) {
-        uploadedCoverImage = await uploadImage(coverImage, { folder: 'polaris-travel/posts' });
-      }
+      const uploadPromises = images.map(image => 
+        cloudinary.v2.uploader.upload(image, { folder: 'polaris-travel/posts' })
+      );
+      uploadedImages = await Promise.all(uploadPromises);
+      uploadedImages = uploadedImages.map(file => file.secure_url);
     } catch (error) {
       return res.status(400).json({ message: "Error uploading images" });
     }
@@ -175,8 +184,7 @@ export const createPost = catchAsync(async (req, res) => {
   const post = new Post({
     ...req.body,
     author: req.user.id,
-    images: uploadedImages,
-    ...(uploadedCoverImage && { coverImage: uploadedCoverImage })
+    images: uploadedImages
   });
 
   await post.save();
@@ -219,19 +227,12 @@ export const updatePost = catchAsync(async (req, res) => {
     return res.status(404).json({ message: "Post not found or unauthorized" });
   }
 
-  // Update to handle all expected fields from the client
   const updates = {
     title: req.body.title,
-    subtitle: req.body.subtitle,
     content: req.body.content,
-    coverImage: req.body.coverImage, // Changed from image to coverImage
-    gallery: req.body.gallery,
-    travelTips: req.body.travelTips,
-    tags: req.body.tags,
-    destinationId: req.body.destinationId // Match client field name
+    image: req.body.image,
+    destination: req.body.destination
   };
-
-  console.log("Server received update data:", updates);
 
   Object.keys(updates).forEach((key) => {
     if (updates[key] === undefined || updates[key] === "") {
@@ -775,11 +776,14 @@ export const getSavedPosts = catchAsync(async (req, res) => {
 /**
  * @route GET /api/posts/popular
  * @example
- * GET http://localhost:5000/api/posts/popular
+ * GET http://localhost:5000/api/posts/popular?limit=5
  */
 export const getPopularPosts = catchAsync(async (req, res) => {
+  const { limit = 5 } = req.query;
+  
   const posts = await Post.find({ isDeleted: false, isPublished: true })
     .sort({ views: -1 })
+    .limit(parseInt(limit))
     .populate("author", "fullName profilePic")
     .populate("likes", "fullName profilePic")
     .populate("comments.author", "fullName profilePic")
@@ -805,9 +809,10 @@ export const getPopularPosts = catchAsync(async (req, res) => {
 /**
  * @route GET /api/posts/following
  * @example
- * GET http://localhost:5000/api/posts/following
+ * GET http://localhost:5000/api/posts/following?page=1&limit=10
  */
 export const getFollowingPosts = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
   
   if (!req.user) {
     return res.status(401).json({ message: "Authentication required" });
@@ -820,6 +825,7 @@ export const getFollowingPosts = catchAsync(async (req, res) => {
   
   const followingIds = user.following.map(follow => follow.toString());
   
+  const skip = (parseInt(page) - 1) * parseInt(limit);
   
   const posts = await Post.find({ 
     author: { $in: followingIds },
@@ -827,6 +833,8 @@ export const getFollowingPosts = catchAsync(async (req, res) => {
     isPublished: true 
   })
     .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit))
     .populate("author", "fullName profilePic")
     .populate("likes", "fullName profilePic")
     .populate("comments.author", "fullName profilePic")
@@ -850,6 +858,10 @@ export const getFollowingPosts = catchAsync(async (req, res) => {
     posts: enhancedPosts,
     pagination: {
       total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
+      limit: parseInt(limit),
+      hasMore: skip + posts.length < total
     },
   });
 });
