@@ -29,7 +29,7 @@ export const createDestination = catchAsync(async (req, res) => {
     images: uploadedImages
   });
 
-  await destination.populate("reviews.author", "name profileImage");
+  await destination.populate("reviews.author", "fullName profilePic");
 
   res.status(201).json(destination);
 });
@@ -108,7 +108,7 @@ export const getDestinations = catchAsync(async (req, res) => {
 export const getDestination = catchAsync(async (req, res) => {
   const destination = await Destination.findById(req.params.id).populate(
     "reviews.author",
-    "name profileImage"
+    "fullName profilePic"
   );
 
   if (!destination) {
@@ -136,7 +136,7 @@ export const updateDestination = catchAsync(async (req, res) => {
     { _id: req.params.id },
     { $set: updates },
     { new: true, runValidators: true }
-  ).populate("reviews.author", "name profileImage");
+  ).populate("reviews.author", "fullName profilePic");
 
   if (!destination) {
     return res
@@ -173,7 +173,7 @@ export const addReview = catchAsync(async (req, res) => {
       },
     },
     { new: true }
-  ).populate("reviews.author", "name profileImage");
+  ).populate("reviews.author", "fullName profilePic");
 
   if (!destination) {
     return res.status(404).json({ message: "Destination not found" });
@@ -246,7 +246,7 @@ export const getNearbyDestinations = catchAsync(async (req, res) => {
       },
     },
   })
-    .populate("reviews.author", "name profileImage");
+    .populate("reviews.author", "fullName profilePic");
 
   res.json({
     message: "Nearby destinations retrieved successfully",
