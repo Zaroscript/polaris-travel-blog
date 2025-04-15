@@ -114,10 +114,10 @@ export const getDestinations = catchAsync(async (req, res) => {
 });
 
 export const getDestination = catchAsync(async (req, res) => {
-  const destination = await Destination.findById(req.params.id).populate(
-    "reviews.author",
-    "name profileImage"
-  );
+  const destination = await Destination.findById(req.params.id).populate({
+    path: 'reviews.author',
+    select: 'fullName profilePic'
+  });
 
   if (!destination) {
     return res.status(404).json({ message: "Destination not found" });
@@ -181,7 +181,10 @@ export const addReview = catchAsync(async (req, res) => {
       },
     },
     { new: true }
-  ).populate("reviews.author", "name profileImage");
+  ).populate({
+    path: 'reviews.author',
+    select: 'fullName profilePic'
+  });
 
   if (!destination) {
     return res.status(404).json({ message: "Destination not found" });
