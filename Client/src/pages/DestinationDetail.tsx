@@ -68,6 +68,9 @@ const DestinationDetail = () => {
       toast.success("Review added successfully!");
       form.reset();
       setReviewFormOpen(false);
+      
+      // Fetch the updated destination data to ensure we have the latest state
+      await fetchDestination(destinationId);
     } catch (err) {
       toast.error("Failed to add review");
     }

@@ -1,10 +1,38 @@
 import { Review } from '@/types/destination';
 
+interface RawReviewData {
+  _id?: string;
+  author?: string | {
+    _id?: string;
+    fullName?: string;
+    profilePic?: string;
+    name?: string;
+    avatar?: string;
+  };
+  rating?: number;
+  content?: string;
+  text?: string;
+  createdAt?: string;
+  userId?: string;
+  userName?: string;
+  authorName?: string;
+  authorPic?: string;
+  fullName?: string;
+  profilePic?: string;
+  user?: {
+    _id?: string;
+    fullName?: string;
+    name?: string;
+    profilePic?: string;
+    avatar?: string;
+  };
+}
+
 /**
  * Normalizes review data to ensure it matches the expected Review interface
  * Handles different API response formats for reviews
  */
-export const normalizeReview = (reviewData: any): Review => {
+export const normalizeReview = (reviewData: RawReviewData | null | undefined): Review => {
   // Handle null or undefined case
   if (!reviewData) {
     return {
@@ -47,54 +75,40 @@ export const normalizeReview = (reviewData: any): Review => {
     };
   }
 
-  // Handle case where author field exists but might be just an ID reference
-  if (reviewData._id && reviewData.author) {
-    let authorData: any = {};
-    
-    // If author is just an ID string
-    if (typeof reviewData.author === 'string') {
-      authorData = {
-        _id: reviewData.author,
-        fullName: reviewData.authorName || 'User',
-        profilePic: reviewData.authorPic || '',
-      };
-    } 
-    // If author is an object but missing some fields
-    else if (typeof reviewData.author === 'object') {
-      authorData = {
-        _id: reviewData.author._id || `author-${Date.now()}`,
-        fullName: reviewData.author.fullName || reviewData.author.name || reviewData.authorName || 'User',
-        profilePic: reviewData.author.profilePic || reviewData.author.avatar || reviewData.author.picture || '',
-      };
-    }
-
+  // Handle case where author is just an ID
+  if (reviewData._id && typeof reviewData.author === 'string') {
     return {
       _id: reviewData._id,
-      author: authorData,
+      author: {
+        _id: reviewData.author,
+        fullName: 'User',
+        profilePic: '',
+      },
       rating: reviewData.rating || 0,
       content: reviewData.content || reviewData.text || '',
       createdAt: reviewData.createdAt || new Date().toISOString(),
     };
   }
 
-  // Fallback for unexpected structure - create a properly structured review
+  // Default case
+  const author = typeof reviewData.author === 'object' ? reviewData.author : null;
   return {
     _id: reviewData._id || `temp-${Date.now()}`,
     author: {
-      _id: reviewData.userId || reviewData.authorId || `author-${Date.now()}`,
-      fullName: reviewData.authorName || reviewData.userName || 'User',
-      profilePic: reviewData.authorPic || reviewData.authorAvatar || '',
+      _id: author?._id || (typeof reviewData.author === 'string' ? reviewData.author : `author-${Date.now()}`),
+      fullName: author?.fullName || author?.name || 'User',
+      profilePic: author?.profilePic || author?.avatar || '',
     },
-    rating: reviewData.rating || reviewData.stars || 0,
-    content: reviewData.content || reviewData.text || reviewData.description || '',
-    createdAt: reviewData.createdAt || reviewData.date || new Date().toISOString(),
+    rating: reviewData.rating || 0,
+    content: reviewData.content || reviewData.text || '',
+    createdAt: reviewData.createdAt || new Date().toISOString(),
   };
 };
 
 /**
  * Processes an array of reviews to ensure they all match the expected structure
  */
-export const normalizeReviews = (reviews: any[] = []): Review[] => {
+export const normalizeReviews = (reviews: RawReviewData[] = []): Review[] => {
   // If no reviews, return empty array
   if (!reviews || !Array.isArray(reviews)) return [];
   
