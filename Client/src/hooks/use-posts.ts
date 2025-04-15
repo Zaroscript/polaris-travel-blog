@@ -66,16 +66,18 @@ export function usePosts() {
   }, [toggleSavePost, toast]);
 
   // Get user posts safely with proper error handling
-  const getUserPosts = useCallback((userId: string) => {
-    return createSafeFetcher(fetchUserPosts, {
-      onError: (error) => {
-        toast({
-          title: "Error",
-          description: "Failed to fetch user posts",
-          variant: "destructive",
-        });
-      }
-    })(userId);
+  const getUserPosts = useCallback(async (userId: string) => {
+    try {
+      const result = await fetchUserPosts(userId);
+      return result;
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch user posts",
+        variant: "destructive",
+      });
+      throw error;
+    }
   }, [fetchUserPosts, toast]);
 
   // Create a new post with error handling

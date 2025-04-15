@@ -73,8 +73,15 @@ const formSchema = z.object({
   destinationId: z.string().optional(),
 });
 
-const CreatePost = () => {
-  const [open, setOpen] = useState(false);
+interface CreatePostProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+const CreatePost = ({ open: externalOpen, onOpenChange }: CreatePostProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [coverImage, setCoverImage] = useState<string>("");
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
