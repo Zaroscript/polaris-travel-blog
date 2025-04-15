@@ -35,7 +35,7 @@ export const createDestination = catchAsync(async (req, res) => {
 });
 
 export const getDestinations = catchAsync(async (req, res) => {
-  const { search, address, city, country, category, region, sort, limit = 10, page = 1 } = req.query;
+  const { search, address, city, country, category, region, sort } = req.query;
 
   const query = {};
 
@@ -91,13 +91,8 @@ export const getDestinations = catchAsync(async (req, res) => {
     sortOption = { name: 1 };
   }
 
-  // Pagination
-  const skip = (parseInt(page) - 1) * parseInt(limit);
-
   const destinations = await Destination.find(query)
     .sort(sortOption)
-    .skip(skip)
-    .limit(parseInt(limit))
     .populate("reviews.author", "fullName profilePic");
 
   const total = await Destination.countDocuments(query);
@@ -106,18 +101,15 @@ export const getDestinations = catchAsync(async (req, res) => {
     destinations,
     pagination: {
       total,
-      page: parseInt(page),
-      pages: Math.ceil(total / parseInt(limit)),
-      limit: parseInt(limit)
     },
   });
 });
 
 export const getDestination = catchAsync(async (req, res) => {
-  const destination = await Destination.findById(req.params.id).populate({
-    path: 'reviews.author',
-    select: 'fullName profilePic'
-  });
+  const destination = await Destination.findById(req.params.id).populate(
+    "reviews.author",
+    "name profileImage"
+  );
 
   if (!destination) {
     return res.status(404).json({ message: "Destination not found" });
@@ -181,10 +173,7 @@ export const addReview = catchAsync(async (req, res) => {
       },
     },
     { new: true }
-  ).populate({
-    path: 'reviews.author',
-    select: 'fullName profilePic'
-  });
+  ).populate("reviews.author", "name profileImage");
 
   if (!destination) {
     return res.status(404).json({ message: "Destination not found" });
@@ -257,7 +246,6 @@ export const getNearbyDestinations = catchAsync(async (req, res) => {
       },
     },
   })
-    .limit(10)
     .populate("reviews.author", "name profileImage");
 
   res.json({

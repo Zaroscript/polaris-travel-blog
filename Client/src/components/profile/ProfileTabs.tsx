@@ -3,10 +3,7 @@ import { Button } from "@/components/ui/button";
 import { 
   MessageCircle, 
   Bookmark, 
-  Users, 
-  Map, 
-  Heart, 
-  Images 
+  Users
 } from "lucide-react";
 
 interface ProfileTabsProps {
@@ -40,26 +37,10 @@ export function ProfileTabs({
       icon: <MessageCircle className="h-4 w-4 mr-2" /> 
     },
     { 
-      id: "photos", 
-      label: "Photos", 
-      icon: <Images className="h-4 w-4 mr-2" /> 
-    },
-    { 
-      id: "liked", 
-      label: "Liked", 
-      icon: <Heart className="h-4 w-4 mr-2" />,
-      visibleToOwnerOnly: true 
-    },
-    { 
       id: "saved", 
       label: "Saved", 
       icon: <Bookmark className="h-4 w-4 mr-2" />,
       visibleToOwnerOnly: true 
-    },
-    { 
-      id: "map", 
-      label: "Travel Map", 
-      icon: <Map className="h-4 w-4 mr-2" /> 
     },
     { 
       id: "following", 

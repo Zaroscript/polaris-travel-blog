@@ -20,6 +20,7 @@ import {
   Send
 } from 'lucide-react';
 import { FaGithub, FaInstagram, FaLinkedin, FaTwitter } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const About = () => {
   useEffect(() => {
@@ -36,7 +37,7 @@ const About = () => {
       social: { github: "#", instagram: "#", linkedin: "#", twitter: "#" },
     },
     {
-      name: "Mohamed Samir",
+      name: "Mohamed Samer",
       role: "Frontend Developer",
       bio: "Creative Frontend Developer with a focus on user experience and interactive interfaces that bring travel stories to life.",
       avatar: "https://randomuser.me/api/portraits/lego/2.jpg",
@@ -516,12 +517,16 @@ const About = () => {
             Discover amazing destinations, connect with fellow travelers, and start planning your next adventure today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/destinations">
             <Button className="bg-primary-foreground hover:bg-primary/90 text-primary hover:text-primary-foreground" size="lg">
               Browse Destinations
             </Button>
+            </Link>
+            <Link to="/blogs">
             <Button variant="outline" size="lg">
               View Latest Stories
             </Button>
+            </Link>
           </div>
         </div>
       </section>

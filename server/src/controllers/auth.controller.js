@@ -183,25 +183,7 @@ export const checkAuth = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-export const validateResetToken = async (req, res) => {
-  const { token } = req.params;
 
-  try {
-    const user = await User.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() },
-    });
-
-    if (!user) {
-      return res.status(400).json({ message: "Invalid or expired token" });
-    }
-
-    res.status(200).json({ message: "Token is valid" });
-  } catch (error) {
-    console.error("Error in validateResetToken:", error.message);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
@@ -227,25 +209,9 @@ export const forgotPassword = async (req, res) => {
 };
 
 export const resetPassword = async (req, res) => {
-  const { token } = req.params;
-  const { password, confirmPassword } = req.body;
+  const { token, newPassword } = req.body;
 
   try {
-    // Validation
-    if (!password || !confirmPassword) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    if (password !== confirmPassword) {
-      return res.status(400).json({ message: "Passwords do not match" });
-    }
-
-    if (password.length < 6) {
-      return res
-        .status(400)
-        .json({ message: "Password must be at least 6 characters" });
-    }
-
     const user = await User.findOne({
       resetPasswordToken: token,
       resetPasswordExpires: { $gt: Date.now() },
@@ -255,19 +221,12 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired token" });
     }
 
-    // Manually hash the password - same way as in the signup process
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    user.password = await bcrypt.hash(newPassword, salt);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
 
-    // Update user with findOneAndUpdate to avoid triggering any pre-save hooks
-    await User.findOneAndUpdate(
-      { _id: user._id },
-      {
-        password: hashedPassword,
-        resetPasswordToken: undefined,
-        resetPasswordExpires: undefined,
-      }
-    );
+    await user.save();
 
     res.status(200).json({ message: "Password reset successful" });
   } catch (error) {

@@ -16,6 +16,7 @@ import {
   ProfileFollowers,
   ProfileMap,
 } from "@/components/profile";
+import SavedPosts from "@/components/profile/SavedPosts";
 
 /**
  * Profile - Main profile page component that handles user profiles and content tabs
@@ -30,10 +31,7 @@ const Profile = () => {
     posts: false,
     following: false,
     followers: false,
-    map: false,
-    saved: false,
-    liked: false,
-    photos: false
+    saved: false
   });
 
   // Use custom hooks for profile and posts
@@ -55,7 +53,6 @@ const Profile = () => {
     error: postsError,
     fetchUserPosts,
     fetchSavedPosts,
-    fetchLikedPosts,
     fetchUserPhotos,
   } = usePosts();
 
@@ -63,7 +60,10 @@ const Profile = () => {
   const isOwnProfile = authUser?._id === id;
 
   // Check if the current auth user is following the profile user
-  const isFollowing = profile?.followers?.some(follower => follower._id === authUser?._id) || false;
+  const isFollowing = useCallback(() => {
+    if (!profile || !authUser) return false;
+    return profile.followers?.some(follower => follower._id === authUser._id) || false;
+  }, [profile, authUser]);
 
   // Handle follow user action
   const handleFollow = async () => {
@@ -117,15 +117,19 @@ const Profile = () => {
         await fetchUserPosts(id);
       } else if (tab === "saved" && isOwnProfile) {
         await fetchSavedPosts();
-      } else if (tab === "liked" && isOwnProfile) {
-        await fetchLikedPosts();
-      } else if (tab === "photos") {
-        await fetchUserPhotos(id);
+
       }
+    } catch (error) {
+      console.error(`Error loading ${tab} tab:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to load ${tab} data`,
+        variant: "destructive",
+      });
     } finally {
       setTabsLoading(prev => ({ ...prev, [tab]: false }));
     }
-  }, [id, isOwnProfile, fetchFollowing, fetchFollowers, fetchUserPosts, fetchSavedPosts, fetchLikedPosts, fetchUserPhotos]);
+  }, [id, isOwnProfile, fetchFollowing, fetchFollowers, fetchUserPosts, fetchSavedPosts, toast]);
 
   // Fetch initial profile data
   useEffect(() => {
@@ -147,36 +151,43 @@ const Profile = () => {
   if (profileLoading) {
     return (
       <Layout>
+        <div className="container py-8 h-[calc(100vh-65px)] flex justify-center items-center">
+          <LoadingState variant="profile" text="Loading profile..." size="lg"/>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Display error state if there's an error
+  if (profileError) {
+    return (
+      <Layout>
         <div className="container py-8">
-          <LoadingState 
-            variant="profile" 
-            size="lg"
-            text="Loading traveler profile..."
-            className="py-12"
+          <ErrorState 
+            title="Error Loading Profile" 
+            description={profileError} 
+            retry={() => fetchProfile(id || '')} 
           />
         </div>
       </Layout>
     );
   }
 
-  // If profile error, show error message
-  if (profileError) {
+  // Display error state if there's no profile
+  if (!profile) {
     return (
       <Layout>
-        <div className="container py-8 text-center">
-          <div className="max-w-md mx-auto">
-            <ErrorState
-              title="Error Loading Profile"
-              description="We encountered an error while trying to load this profile. Please try again later."
-              onBack={() => navigate(-1)}
-            />
-          </div>
+        <div className="container py-8">
+          <ErrorState 
+            title="Profile Not Found" 
+            description="The profile you're looking for doesn't exist or has been removed." 
+            retry={() => navigate(-1)} 
+          />
         </div>
       </Layout>
     );
   }
 
-  // Main render
   return (
     <Layout>
       <div className="container py-8">
@@ -190,7 +201,7 @@ const Profile = () => {
           isOwnProfile={isOwnProfile}
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          isFollowing={isFollowing}
+          isFollowing={isFollowing()}
           onFollow={handleFollow}
           onUnfollow={handleUnfollow}
         >
@@ -207,13 +218,24 @@ const Profile = () => {
               <ProfilePosts 
                 userId={id || ''} 
                 isOwnProfile={isOwnProfile}
-                profileName={profile?.fullName}
+                profileName={profile.fullName}
+              />
+            )}
+
+            {activeTab === "following" && (
+              <ProfileFollowers 
+                followers={profile.following || []} 
+                loading={tabsLoading.following}
+                isOwnProfile={isOwnProfile}
+                onFollow={handleFollow}
+                onUnfollow={handleUnfollow}
+                isFollowing={isCurrentUserFollowing}
               />
             )}
 
             {activeTab === "followers" && (
               <ProfileFollowers 
-                followers={profile?.followers || []} 
+                followers={profile.followers || []} 
                 loading={tabsLoading.followers}
                 isOwnProfile={isOwnProfile}
                 onFollow={handleFollow}
@@ -222,15 +244,11 @@ const Profile = () => {
               />
             )}
 
-            {activeTab === "map" && (
-              <ProfileMap 
-                destinations={profile?.visitedDestinations} 
-                loading={tabsLoading.map}
-                isOwnProfile={isOwnProfile}
-              />
+            {activeTab === "saved" && isOwnProfile && (
+              <SavedPosts userId={id || ''} />
             )}
 
-            {/* Other tabs will be implemented similarly */}
+
           </div>
         </ProfileContainer>
       </div>

@@ -158,23 +158,16 @@ export const useDestinationsStore = create<DestinationsState>((set, get) => ({
       // Normalize the new review before adding it to the state
       const normalizedReview = normalizeReviews([response.data])[0];
       
-      set((state) => {
-        if (state.currentDestination?._id === destinationId) {
-          const updatedReviews = [...(state.currentDestination.reviews || []), normalizedReview];
-          const totalRating = updatedReviews.reduce((sum, review) => sum + review.rating, 0);
-          const newRating = totalRating / updatedReviews.length;
-          
-          return {
-            currentDestination: {
-              ...state.currentDestination,
-              reviews: updatedReviews,
-              rating: newRating
-            },
-            loading: false,
-          };
-        }
-        return { loading: false };
-      });
+      set((state) => ({
+        currentDestination:
+          state.currentDestination?._id === destinationId
+            ? {
+                ...state.currentDestination,
+                reviews: [...(state.currentDestination.reviews || []), normalizedReview],
+              }
+            : state.currentDestination,
+        loading: false,
+      }));
     } catch (error) {
       set({ error: "Failed to add review", loading: false });
     }

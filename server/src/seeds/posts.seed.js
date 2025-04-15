@@ -68,8 +68,10 @@ const seedPosts = async () => {
         author: users[0]._id,
         destination: destinations.find(d => d.name === "Paris, France")?._id || destinations[0]._id,
         gallery: [
+          "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f",
           "https://images.unsplash.com/photo-1520939817895-060bdaf4fe1b", 
           "https://images.unsplash.com/photo-1550340499-a6c60fc8287c",
+          "https://images.unsplash.com/photo-1508321942372-daf2e39e3c23",
         ],
         likes: getRandomLikes(users[0]._id, 82),
         comments: [
@@ -200,8 +202,10 @@ const seedPosts = async () => {
         author: users[1]._id,
         destination: destinations.find(d => d.name === "Santorini, Greece")?._id || destinations[0]._id,
         gallery: [
-          "https://media-01.imu.nl/storage/ourplanetinmylens.com/21978/reasons-to-visit-santorini-greece-2560x1100.jpg",
-          "https://vacations.aircanada.com/.imaging/focalarea/wide/2000x/dam/jcr:a0d09386-8ec4-4f00-899a-007261841b89/MCE-26334-DEST-Santorini-Main_Santorini-Greece.jpg",
+          "https://images.unsplash.com/photo-1555688505-a42a848cf8df",
+          "https://images.unsplash.com/photo-1601581987809-a7a9a4b7888f", 
+          "https://images.unsplash.com/photo-1597518536577-4ef9b218b5d9",
+          "https://images.unsplash.com/photo-1536625994371-2ecb9eddccc6",
         ],
         likes: getRandomLikes(users[1]._id, 194),
         comments: [
@@ -249,6 +253,8 @@ const seedPosts = async () => {
         destination: destinations.find(d => d.name === "Bali, Indonesia")?._id || destinations[0]._id,
         gallery: [
           "https://images.unsplash.com/photo-1573790387438-4da905039392",
+          "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2", 
+          "https://images.unsplash.com/photo-1606630714909-81efd196368a",
           "https://images.unsplash.com/photo-1555400038-63f5ba517a47",
         ],
         likes: getRandomLikes(users[3]._id, 143),
@@ -362,12 +368,14 @@ const seedPosts = async () => {
         title: "Hidden Gems of Italy's Amalfi Coast",
         content: 
           "Just returned from two magical weeks exploring Italy's breathtaking Amalfi Coast! While Positano and Amalfi town are stunning (and deservedly famous), I wanted to share some lesser-known spots that captured my heart.\n\nHidden gems I discovered:\n• The village of Praiano - all the views without Positano's crowds\n• Valle dei Mulini (Valley of the Mills) - an abandoned paper mill reclaimed by nature\n• Marina di Praia - a tiny beach wedged between dramatic cliffs\n• Path of the Gods hike starting from Bomerano - the best coastal views imaginable\n• Ravello's Villa Cimbrone gardens - I had them almost to myself in the early morning\n\nCulinary highlights: Fresh seafood pasta at Lo Scoglio in Nerano, lemon granita from roadside stands, and the best pizza of my life at a tiny place in Minori.\n\nTravel tips: Visit in May or October to avoid peak crowds. Buses can be packed in summer, so consider hiring a driver for a day to see multiple towns stress-free.\n\nHave you explored this stunning coastline? Any hidden gems I missed? 🇮🇹 #AmalfiCoast #Italy #HiddenGems #TravelEurope",
-        coverImage: "https://media2.thrillophilia.com/images/photos/000/178/736/original/1573646646_rome.jpg?w=753&h=450&dpr=1.5",
+        coverImage: "https://images.unsplash.com/photo-1533904888670-9023f0855162",
         author: users[5]._id,
         destination: destinations[0]._id, // Using first destination as fallback
         gallery: [
-          "https://blog.atlanticbridge.com.br/wp-content/uploads/2024/06/Principais-cidades-da-Italia-2.webp",
-          "https://imageio.forbes.com/specials-images/imageserve/60da1893f45734702a3ba5a7/Grand-Canal-in-Venice--Italy/0x0.jpg?format=jpg&width=960", 
+          "https://images.unsplash.com/photo-1633321088355-d0f41831d87e",
+          "https://images.unsplash.com/photo-1590059956378-fe6677545d38", 
+          "https://images.unsplash.com/photo-1548053279-374024134191",
+          "https://images.unsplash.com/photo-1612698093408-c84f9f7245c6",
         ],
         likes: getRandomLikes(users[5]._id, 156),
         comments: [
@@ -414,10 +422,10 @@ const seedPosts = async () => {
         author: users[1]._id,
         destination: destinations[2]._id,
         gallery: [
-          "https://res.cloudinary.com/enchanting/q_70,f_auto,c_lfill,g_auto/exodus-web/2021/12/kirkjufellsfoss_iceland.jpg",
-          "https://www.icelandhotelcollectionbyberjaya.com/static/news/shutterstock_527458129-1.jpg", 
-          "https://kgv.ac.uk/user/pages/05.student-life/16.trips-and-visits/10.geography-iceland/iceland-1_.jpg",
-          "https://res.cloudinary.com/icelandtours/g_auto,f_auto,c_auto,w_3840,q_auto:good/flatey_island_summer_e2506cca1c.jpg",
+          "https://images.unsplash.com/photo-1504893524553-b855bce32c67",
+          "https://images.unsplash.com/photo-1551444836-6ce3ca6eda7a", 
+          "https://images.unsplash.com/photo-1516496636080-14fb876e029d",
+          "https://images.unsplash.com/photo-1485424333605-7329bea7e50f",
         ],
         likes: getRandomLikes(users[1]._id, 178),
         comments: [
@@ -510,12 +518,14 @@ const seedPosts = async () => {
         title: "A Culinary Journey Through Vietnam: From North to South",
         content: 
           "I just spent a month traveling the length of Vietnam with one primary mission: to eat EVERYTHING. From steaming bowls of pho on plastic stools in Hanoi to fresh seafood on the beaches of Phu Quoc, this country's cuisine took me on an unforgettable journey.\n\nWhat makes Vietnamese food so special is how it varies dramatically as you travel from north to south. Each region has its own distinct flavors, ingredients, and cooking techniques, telling the story of Vietnam's diverse geography and history.\n\n🍜 Northern Vietnam (Hanoi region)\nCharacteristics: Subtle flavors, less spice, heavy Chinese influence\n• Pho: The original version is clear, simple, and all about the beef and star anise-infused broth\n• Bun Cha: Grilled pork with vermicelli, herbs, and dipping sauce (Obama and Bourdain's famous meal)\n• Cha Ca: Turmeric-marinated fish with dill and rice noodles\n\n🍲 Central Vietnam (Hue, Da Nang, Hoi An)\nCharacteristics: Spicier, complex, imperial influence\n• Bun Bo Hue: Spicy beef noodle soup with lemongrass\n• Mi Quang: Turmeric noodles with a small amount of broth, shrimp, pork, and herbs\n• Banh Xeo: Crispy rice flour crepes with shrimp and bean sprouts\n\n🥗 Southern Vietnam (Ho Chi Minh City, Mekong Delta)\nCharacteristics: Sweeter, tropical ingredients, Thai/Cambodian influences\n• Hu Tieu: Chinese-influenced noodle soup with clear broth and seafood\n• Banh Khot: Mini rice cakes topped with shrimp\n• Com Tam: 'Broken rice' with grilled pork, egg, and pickles\n\nCooking class recommendations:\n• Hanoi: Red Bridge Cooking School\n• Hoi An: Morning Glory Cooking School (my favorite!)\n• Ho Chi Minh City: Saigon Cooking Class\n\nThe secret to Vietnamese cuisine is the balance of five elements: sweet, sour, bitter, spicy, and salty. The liberal use of fresh herbs, minimal dairy, and emphasis on fresh ingredients also makes it one of the healthiest cuisines in the world.\n\nHave you tried Vietnamese food? What's your favorite dish? 🇻🇳 #VietnamFood #Foodie #CulinaryTravel #PhoLove #StreetFood",
-        coverImage: "https://www.northclubhouse.com/wp-content/uploads/2024/09/image-VAHwqno5k7JFTg-Golden_Brid.width-1200.format-webp.webp",
+        coverImage: "https://images.unsplash.com/photo-1583077874234-d7fe24b181dd",
         author: users[3]._id,
         destination: destinations[3]._id,
         gallery: [
-          "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Halong_bay_vietnam.JPG/1200px-Halong_bay_vietnam.JPG",
-          "https://www.creativeassociatesinternational.com/wp-content/uploads/2023/11/iStock-1705694439.jpg",
+          "https://images.unsplash.com/photo-1511689675524-399141d9e1f3",
+          "https://images.unsplash.com/photo-1536184883041-97156273dfe7", 
+          "https://images.unsplash.com/photo-1551632436-cbf8dd35adfa",
+          "https://images.unsplash.com/photo-1523287562758-66c7fc188c6c",
         ],
         likes: getRandomLikes(users[3]._id, 246),
         comments: [
@@ -560,10 +570,12 @@ const seedPosts = async () => {
           "I've just returned from what can only be described as the most awe-inspiring wildlife experience of my life: witnessing the Great Migration in Tanzania's Serengeti National Park.\n\nFor those unfamiliar, the Great Migration is one of nature's most spectacular events, where over 1.5 million wildebeest and hundreds of thousands of zebras and gazelles move in a continuous circuit between Tanzania's Serengeti and Kenya's Maasai Mara in search of fresh grazing and water.\n\nOur journey began in Arusha, where we met our guide Immanuel, whose incredible knowledge and eagle eyes made our safari experience truly exceptional. We then embarked on a 10-day safari circuit including:\n\n🦁 Tarangire National Park - Famous for its elephant populations and baobab trees\n🦏 Ngorongoro Crater - An extinct volcanic caldera teeming with wildlife\n🦓 Central Serengeti - The heart of the park with abundant predators\n🦬 Northern Serengeti/Mara River - Where we witnessed the river crossings\n\nThe highlight was undoubtedly watching thousands of wildebeest gather nervously at the Mara River before suddenly plunging into the crocodile-infested waters. The chaos, courage, and sheer determination of these animals was humbling to witness.\n\nBeyond the migration itself, our wildlife sightings exceeded all expectations:\n• A cheetah teaching her cubs to hunt\n• A pride of 16 lions with cubs lounging on a kopje (rock formation)\n• A leopard dragging an impala up a tree\n• Black rhinos in Ngorongoro Crater (incredibly rare!)\n• A massive python swallowing a Thompson's gazelle\n\nPractical safari tips:\n1. Visit during July-October for migration river crossings in the Northern Serengeti\n2. Splurge on a quality safari operator with experienced guides\n3. Bring a good camera with zoom lens (300mm minimum)\n4. Pack neutral-colored clothing (avoid blue which attracts tsetse flies)\n5. Be patient and prepare for early mornings\n\nWhile not an inexpensive adventure (our mid-range safari cost about $4,500 per person excluding international flights), witnessing the raw circle of life unfold on the African savanna was absolutely priceless.\n\nHave you experienced an African safari? I'd love to hear your stories! 🦁🦓🐘 #Serengeti #GreatMigration #Tanzania #Safari #Wildlife #Africa #BucketList",
         coverImage: "https://images.unsplash.com/photo-1547970810-dc1eac37d174",
         author: users[4]._id,
-        destination: destinations.find(d => d.name === "Dodoma, Tanzania")?._id || destinations[0]._id,
+        destination: destinations[4]._id,
         gallery: [
           "https://images.unsplash.com/photo-1516426122078-c23e76319801",
-          "https://images.unsplash.com/photo-1535941339077-2dd1c7963098",
+          "https://images.unsplash.com/photo-1535941339077-2dd1c7963098", 
+          "https://images.unsplash.com/photo-1549366021-9f761d450615",
+          "https://images.unsplash.com/photo-1504001651284-b92ef90a8988",
         ],
         likes: getRandomLikes(users[4]._id, 312),
         comments: [
@@ -601,344 +613,6 @@ const seedPosts = async () => {
         views: 6347,
         createdAt: daysAgo(15),
         shares: getRandomShares(users[4]._id, 25)
-      },
-      {
-        title: "New Zealand's South Island: An Adventure Lover's Paradise",
-        content: 
-          "Two weeks exploring New Zealand's South Island left me breathless at every turn. From towering mountains to pristine lakes, this is Middle-earth come to life!\n\nMust-do adventures:\n• Heli-hiking on Franz Josef Glacier\n• Milford Sound overnight cruise (waterfalls everywhere!)\n• Bungee jumping in Queenstown (the birthplace of the sport)\n• Hiking the Hooker Valley Track with views of Aoraki/Mt. Cook\n• Stargazing at Lake Tekapo's Dark Sky Reserve\n\nThe scenery constantly changes as you drive - one moment you're in a rainforest, the next in a golden prairie with snow-capped peaks in the distance.\n\nTravel tip: Rent a campervan for ultimate flexibility, but book DOC campsites in advance during peak season. The freedom to wake up lakeside is unbeatable!\n\nWho else has fallen in love with NZ? What was your favorite spot? 🇳🇿 #NewZealand #SouthIsland #AdventureTravel #LordOfTheRings",
-        coverImage: "https://images.unsplash.com/photo-1507699622108-4be3abd695ad",
-        author: users[5]._id,
-        destination: destinations.find(d => d.name === "South Island, New Zealand")?._id || destinations[0]._id,
-        gallery: [
-          "https://images.unsplash.com/photo-1578932750355-5eb30ece487a",
-        ],
-        likes: getRandomLikes(users[5]._id, 187),
-        comments: [
-          {
-            content: "Your glacier photos are incredible! Was the heli-hike worth the cost?",
-            author: users[1]._id,
-            likes: getRandomLikes(users[1]._id, 9),
-            replies: [
-              {
-                content: "100% worth it! The helicopter ride alone with views of the glacier was spectacular, and walking on the ice with crampons was surreal. Our guide even carved an ice cave for us to crawl through!",
-                author: users[5]._id,
-                likes: getRandomLikes(users[5]._id, 12),
-                createdAt: daysAgo(8)
-              }
-            ],
-            createdAt: daysAgo(9)
-          }
-        ],
-        tags: ["newzealand", "adventure", "hiking", "glacier", "roadtrip", "nature"],
-        isPublished: true,
-        views: 2987,
-        createdAt: daysAgo(10),
-        shares: getRandomShares(users[5]._id, 14)
-      },
-      {
-        title: "Morocco: A Sensory Overload in the Best Way",
-        content: 
-          "From the bustling souks of Marrakech to the quiet Sahara dunes, Morocco dazzled all my senses for two incredible weeks.\n\nUnforgettable experiences:\n• Getting lost in the maze-like medina of Fes\n• Camel trekking to a luxury desert camp in Merzouga\n• Hiking through the dramatic Todgha Gorge\n• Bargaining for spices and rugs in Marrakech's souks\n• Staying in breathtaking riads with hidden courtyards\n\nThe food was a highlight - tagines cooked for hours, fresh orange juice for 10 cents, and mint tea poured from dramatic heights.\n\nCultural tip: Learn a few Arabic/French phrases, dress modestly, and be prepared for persistent (but good-natured) sales pitches in the markets.\n\nHas Morocco captured your heart too? Share your stories below! 🇲🇦 #Morocco #Sahara #Marrakech #TravelAfrica",
-        coverImage: "https://media.istockphoto.com/id/1186702515/photo/panoramic-sunset-view-of-marrakech-and-old-medina-morocco.jpg?s=612x612&w=0&k=20&c=-M-1Xff7f9LIu7GOFFgAC6SO-SRG_cVjBIXG0iLYrKU=",
-        author: users[0]._id,
-        destination: destinations.find(d => d.name === "Marrakech, Morocco")?._id || destinations[0]._id,
-        gallery: [
-          "https://cdn.pixabay.com/photo/2022/08/19/09/35/handcraft-7396510_640.jpg",
-          "https://cdn.shortpixel.ai/spai/q_lossless+w_1082+to_webp+ret_img/www.charlotteplansatrip.com/wp-content/uploads/2018/07/marocco-streets-of-marrakesh.jpg"
-        ],
-        likes: getRandomLikes(users[0]._id, 156),
-        comments: [
-          {
-            content: "Which desert camp did you stay at? Looking for recommendations!",
-            author: users[3]._id,
-            likes: getRandomLikes(users[3]._id, 7),
-            replies: [
-              {
-                content: "We stayed at Luxury Desert Camp Merzouga - absolutely stunning with private bathrooms in each tent! The camel ride at sunset and sunrise was magical, and the staff sang traditional music around the fire at night.",
-                author: users[0]._id,
-                likes: getRandomLikes(users[0]._id, 9),
-                createdAt: daysAgo(12)
-              }
-            ],
-            createdAt: daysAgo(13)
-          }
-        ],
-        tags: ["morocco", "desert", "sahara", "culture", "markets", "architecture"],
-        isPublished: true,
-        views: 2678,
-        createdAt: daysAgo(14),
-        shares: getRandomShares(users[0]._id, 11)
-      },
-      {
-        title: "Patagonia: Hiking at the End of the World",
-        content: 
-          "Three weeks trekking through Chilean and Argentine Patagonia tested my limits and rewarded me with some of the most spectacular landscapes on Earth.\n\nHighlights:\n• The W Trek in Torres del Paine (book refugios early!)\n• Perito Moreno Glacier calving in Argentina\n• The otherworldly marble caves of General Carrera Lake\n• Seeing condors soar in Fitz Roy\n• The remote beauty of Tierra del Fuego\n\nThe weather is extreme and unpredictable - we experienced all four seasons in one day on the hikes. But when the clouds part and those granite spires appear, it's pure magic.\n\nPro tip: Pack lightweight but warm layers, waterproof everything, and break in your boots thoroughly before going.\n\nWho else has braved the Patagonian winds? Share your stories below! 🇨🇱🇦🇷 #Patagonia #Hiking #AdventureTravel #TorresDelPaine",
-        coverImage: "https://argentinapura.com/wp-content/uploads/2024/04/El-Chalten-Santa-Cruz-1.webp",
-        author: users[2]._id,
-        destination: destinations.find(d => d.name === "Patagonia, Chile")?._id || destinations[0]._id,
-        gallery: [
-          "https://www.wildernesstravel.com/wp-content/uploads/2023/09/patagonia-argentina-south-america-andes-sunset-THUMB-scaled.jpg",
-          "https://images.squarespace-cdn.com/content/v1/6137f1eafdd46630c1744367/118c6bda-87ce-422c-95eb-1c8085e160f4/DSC00486-2.jpg"
-        ],
-        likes: getRandomLikes(users[2]._id, 201),
-        comments: [
-          {
-            content: "How difficult was the W Trek? I'm considering it but not an expert hiker.",
-            author: users[4]._id,
-            likes: getRandomLikes(users[4]._id, 8),
-            replies: [
-              {
-                content: "It's manageable for moderately fit beginners! The trails are well-marked and the refugios mean you don't need to carry camping gear. Longest day is about 12 miles but relatively flat. Just prepare for changeable weather - we got snow in January (summer)!",
-                author: users[2]._id,
-                likes: getRandomLikes(users[2]._id, 11),
-                createdAt: daysAgo(17)
-              }
-            ],
-            createdAt: daysAgo(18)
-          }
-        ],
-        tags: ["patagonia", "hiking", "mountains", "glacier", "adventure", "nature"],
-        isPublished: true,
-        views: 3124,
-        createdAt: daysAgo(19),
-        shares: getRandomShares(users[2]._id, 16)
-      },
-      {
-        title: "Portugal's Hidden Treasures: Beyond Lisbon and Porto",
-        content: 
-          "While Lisbon's hills and Porto's riverfront are stunning, Portugal's real magic lies in its lesser-known regions. After a month exploring, here are my favorites:\n\n• The fairytale palaces of Sintra (Pena Palace is straight from Disney)\n• The dramatic cliffs and secluded beaches of the Algarve's west coast\n• The medieval walls and university vibe of Coimbra\n• The Douro Valley's terraced vineyards (stay at a wine quinta!)\n• The untouched beauty of the Azores islands\n\nFood highlights: Pastel de nata (custard tarts) fresh from the oven, grilled sardines, francesinha sandwiches in Porto, and the best seafood of my life in Algarve fishing villages.\n\nInsider tip: Rent a car to explore at your own pace - Portugal is small but packed with diversity. The toll roads are excellent but expensive.\n\nWhat's your favorite hidden gem in Portugal? Share below! 🇵🇹 #Portugal #HiddenGems #TravelEurope",
-        coverImage: "https://www.originaltravel.co.uk/img/EN/mag/886.jpg",
-        author: users[1]._id,
-        destination: destinations.find(d => d.name === "Lisbon, Portugal")?._id || destinations[0]._id,
-        gallery: [
-          "https://cdn.kimkim.com/files/a/images/877940395b27e9b0d4cdc0d07f15c28008e49129/big-fa3fdaea9c7c59a8bc94ebae40b4f121.jpg",
-        ],
-        likes: getRandomLikes(users[1]._id, 178),
-        comments: [
-          {
-            content: "How many days would you recommend for the Azores? Trying to decide between islands!",
-            author: users[3]._id,
-            likes: getRandomLikes(users[3]._id, 6),
-            replies: [
-              {
-                content: "I spent 5 days on São Miguel (the main island) which was perfect for hot springs, crater lakes and whale watching. If you have 10+ days, add Pico for hiking and Faial for the blue hydrangeas. The inter-island flights are cheap but weather-dependent!",
-                author: users[1]._id,
-                likes: getRandomLikes(users[1]._id, 8),
-                createdAt: daysAgo(21)
-              }
-            ],
-            createdAt: daysAgo(22)
-          }
-        ],
-        tags: ["portugal", "europe", "beaches", "wine", "architecture", "hidden gems"],
-        isPublished: true,
-        views: 2876,
-        createdAt: daysAgo(23),
-        shares: getRandomShares(users[1]._id, 13)
-      },
-      {
-        title: "Canadian Rockies: A Photographer's Winter Wonderland",
-        content: 
-          "Two weeks photographing the Canadian Rockies in winter was like stepping into a snow globe. The frozen lakes, snow-capped peaks, and occasional wildlife made every sunrise worth braving the -20°C temps.\n\nBest spots:\n• Lake Louise's frozen surface with the Victoria Glacier backdrop\n• Moraine Lake road (accessible via snowshoe in winter)\n• The ice bubbles in Abraham Lake\n• Johnston Canyon's frozen waterfalls\n• The Northern Lights over Banff\n\nGear tip: Keep camera batteries in inner pockets - they drain shockingly fast in the cold. Hand warmers are essential!\n\nWho else has experienced the Rockies in winter? Share your favorite spots below! ❄️🇨🇦 #CanadianRockies #WinterPhotography #Banff #TravelCanada",
-        coverImage: "https://wildlandtrekking.com/content/uploads/2020/03/image1-33.jpg",
-        author: users[4]._id,
-        destination: destinations.find(d => d.name === "Banff, Canada")?._id || destinations[0]._id,
-        gallery: [
-          "https://adventures.com/media/4295/canadian-rockies-peyto-lake-tour.jpg",
-          "https://www.amtrakvacations.com/sites/amtrak/files/styles/hero/public/images/rocky-mountains1.jpg?h=5a5fc591&itok=oq77Yu1w",
-          "https://itinerary.expert/wp-content/uploads/2024/09/canadian-rockies-1.jpg",
-          "https://www.tauck.com/-/media/Tauck/Collection/Hero-Images/Collection_CanadianRockies_banner.jpg",
-        ],
-        likes: getRandomLikes(users[4]._id, 198),
-        comments: [
-          {
-            content: "What month did you visit? Trying to time it for both frozen lakes and auroras!",
-            author: users[2]._id,
-            likes: getRandomLikes(users[2]._id, 7),
-            replies: [
-              {
-                content: "Late January was perfect! Lakes fully frozen but days starting to get longer. Saw auroras 3 nights out of 10. February would work too - just avoid full moon if you want to photograph northern lights.",
-                author: users[4]._id,
-                likes: getRandomLikes(users[4]._id, 10),
-                createdAt: daysAgo(25)
-              }
-            ],
-            createdAt: daysAgo(26)
-          }
-        ],
-        tags: ["canada", "winter", "rockies", "photography", "nature", "snow"],
-        isPublished: true,
-        views: 3245,
-        createdAt: daysAgo(27),
-        shares: getRandomShares(users[4]._id, 15)
-      },
-      {
-        title: "Sri Lanka: Teardrop of the Indian Ocean",
-        content: 
-          "This small island nation packs an incredible punch - ancient cities, tea plantations, wildlife safaris, and pristine beaches all within a few hours of each other.\n\nMy 2-week itinerary highlights:\n• Climbing Sigiriya Rock Fortress at sunrise\n• Safari in Yala National Park (leopards!)\n• Train ride through tea country (sit on the right side!)\n• Exploring the temples of Anuradhapura\n• Beach hopping along the south coast\n\nThe food was a revelation - hoppers (bowl-shaped pancakes), fiery curries, and the best fruit I've ever tasted. Don't miss the cinnamon plantations!\n\nTravel tip: Hire drivers between cities (very affordable) and take the famous trains for shorter scenic routes.\n\nHas Sri Lanka stolen your heart too? Share your experiences below! 🇱🇰 #SriLanka #TravelAsia #TeaCountry #Beaches",
-        coverImage: "https://cdn.getyourguide.com/img/tour/e95e6c309a101d7f7cd77315cc3b14576cb9b97d3330e5df69ac2617322bde47.jpg/146.jpg",
-        author: users[3]._id,
-        destination: destinations.find(d => d.name === "Colombo, Sri Lanka")?._id || destinations[0]._id,
-        gallery: [
-          "https://i.natgeofe.com/n/6433f87f-9bc2-4ef6-861c-674c61d3d027/srilankacover.jpg",
-          "https://a0.muscache.com/im/pictures/INTERNAL/INTERNAL-ImageByPlaceId-ChIJnR5a9jxZ4joRjNPiALSkPeE-large_background/original/e432a186-1516-480d-bbac-e596c8f74eba.jpeg",
-        ],
-        likes: getRandomLikes(users[3]._id, 167),
-        comments: [
-          {
-            content: "How was the weather during your visit? Trying to avoid monsoon season!",
-            author: users[0]._id,
-            likes: getRandomLikes(users[0]._id, 5),
-            replies: [
-              {
-                content: "I went in February - perfect weather on west/south coasts and cultural triangle. East coast was starting to get rainy. Generally December-March is best for west/south, April-September better for east coast!",
-                author: users[3]._id,
-                likes: getRandomLikes(users[3]._id, 7),
-                createdAt: daysAgo(29)
-              }
-            ],
-            createdAt: daysAgo(30)
-          }
-        ],
-        tags: ["srilanka", "asia", "beaches", "wildlife", "culture", "tea"],
-        isPublished: true,
-        views: 2765,
-        createdAt: daysAgo(31),
-        shares: getRandomShares(users[3]._id, 12)
-      },
-      {
-        title: "Antarctica: The White Continent",
-        content: 
-          "My expedition to Antarctica was the adventure of a lifetime. This pristine wilderness of icebergs, penguins, and dramatic landscapes exceeded all expectations.\n\nUnforgettable moments:\n• Kayaking among icebergs that glowed blue\n• Visiting a colony of 100,000 Adélie penguins\n• The Drake Passage crossing (both ways were 'Drake Lake' luckily!)\n• Camping overnight on the ice\n• The complete silence broken only by calving glaciers\n\nWildlife highlights: Humpback whales bubble-net feeding, orcas hunting, and penguins curiously approaching our group.\n\nBooking tip: Look for last-minute deals from Ushuaia if your schedule is flexible - we saved 40% by booking 3 weeks out!\n\nHas Antarctica been on your bucket list? What questions do you have? 🇦🇶 #Antarctica #BucketList #Penguins #ExpeditionCruise",
-        coverImage: "https://www.swoop-antarctica.com/blog/wp-content/uploads/2024/02/Peninsula.jpg",
-        author: users[5]._id,
-        destination: destinations.find(d => d.name === "Antarctica")?._id || destinations[0]._id,
-        gallery: [
-          "https://aex-web.imgix.net/getContentAsset/80d388a4-0e52-4801-b582-20f4dd7d00b4/8e265d97-ee24-47b6-a823-0d8b4ca7c908/Group-of-Kayakers-on-calm-waters-Antarctica-Lina-Stock-@-Divergent-Travelers-scaled.jpg?auto=format&w=3024&w={width}",
-          "https://climate.nasa.gov/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBd2xpQWc9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--458c731902375ac1b127ef1c6c2a749a8187317e/1-antarctic%20calving%20cropped.jpeg"
-        ],
-        likes: getRandomLikes(users[5]._id, 289),
-        comments: [
-          {
-            content: "Which expedition company did you use? There are so many options!",
-            author: users[1]._id,
-            likes: getRandomLikes(users[1]._id, 9),
-            replies: [
-              {
-                content: "We went with Quark Expeditions on the Ocean Diamond - excellent guides and small enough to do more landings. Highly recommend choosing a ship with <200 passengers for maximum time ashore!",
-                author: users[5]._id,
-                likes: getRandomLikes(users[5]._id, 12),
-                createdAt: daysAgo(33)
-              }
-            ],
-            createdAt: daysAgo(34)
-          }
-        ],
-        tags: ["antarctica", "wildlife", "penguins", "expedition", "icebergs", "bucketlist"],
-        isPublished: true,
-        views: 4987,
-        createdAt: daysAgo(35),
-        shares: getRandomShares(users[5]._id, 21)
-      },
-      {
-        title: "Turkey: Where East Meets West",
-        content: 
-          "Two weeks traveling from Istanbul to Cappadocia revealed Turkey's incredible diversity - both culturally and geographically.\n\nHighlights:\n• Hot air ballooning over Cappadocia's fairy chimneys at sunrise\n• Exploring the underground cities carved into soft rock\n• The ancient ruins of Ephesus (library of Celsus took my breath away)\n• Istanbul's Hagia Sophia and Blue Mosque\n• Relaxing in Pamukkale's thermal pools\n\nThe food was incredible - from street simit (sesame bread rings) to elaborate Ottoman feasts. Don't miss a traditional Turkish breakfast spread!\n\nCultural tip: Visit mosques outside prayer times, dress modestly, and carry a headscarf for women.\n\nWhat's your favorite Turkish experience? Share below! 🇹🇷 #Turkey #Cappadocia #Istanbul #Travel",
-        coverImage: "https://media.worldnomads.com/Explore/middle-east/hagia-sophia-church-istanbul-turkey-gettyimages-skaman306.jpg",
-        author: users[0]._id,
-        destination: destinations.find(d => d.name === "Istanbul, Turkey")?._id || destinations[0]._id,
-        gallery: [
-          "https://ptimages.s3.eu-west-2.amazonaws.com/img/media_photos/country_of_turkey-jpg.webp",
-        ],
-        likes: getRandomLikes(users[0]._id, 176),
-        comments: [
-          {
-            content: "How many days would you recommend for Cappadocia? Trying to decide between 2-3!",
-            author: users[2]._id,
-            likes: getRandomLikes(users[2]._id, 6),
-            replies: [
-              {
-                content: "Definitely 3 if possible! One day for balloon flight and Göreme sights, one for underground cities and valleys, and one as buffer for weather (balloons fly about 60% of mornings). The sunset views from Red Valley are not to be missed!",
-                author: users[0]._id,
-                likes: getRandomLikes(users[0]._id, 8),
-                createdAt: daysAgo(37)
-              }
-            ],
-            createdAt: daysAgo(38)
-          }
-        ],
-        tags: ["turkey", "cappadocia", "istanbul", "history", "culture", "hotairballoon"],
-        isPublished: true,
-        views: 2987,
-        createdAt: daysAgo(39),
-        shares: getRandomShares(users[0]._id, 14)
-      },
-      {
-        title: "Peru: More Than Just Machu Picchu",
-        content: 
-          "While Machu Picchu was breathtaking, Peru surprised me with its incredible diversity beyond the famous ruins.\n\nHighlights:\n• Rainbow Mountain's striped colors (hike early to avoid crowds)\n• The Amazon rainforest around Iquitos (pink dolphins!)\n• Colonial architecture and food scene in Lima\n• The mysterious Nazca Lines flight\n• Lake Titicaca's floating Uros Islands\n\nThe food was a revelation - ceviche, lomo saltado, and countless varieties of potatoes. Peruvian chefs are putting this cuisine on the world map!\n\nTravel tip: Acclimate slowly to altitude - I spent 2 days in Cusco before any hiking. Coca tea helps!\n\nWhat's your favorite Peruvian experience? Share below! 🇵🇪 #Peru #MachuPicchu #Amazon #TravelSouthAmerica",
-        coverImage: "https://www.peru.travel/Contenido/AcercaDePeru/Imagen/en/6/0.0/Principal/Machu%20Picchu.jpg",
-        author: users[1]._id,
-        destination: destinations.find(d => d.name === "Cusco, Peru")?._id || destinations[0]._id,
-        gallery: [
-          "https://carter.eu/wp-content/uploads/2024/02/The-Inka-Trail-Peru-najpiekniejsze-miejsca-wycieczki-do-peru-luksusowe-wakacje-w-peru-1024x682.png",
-        ],
-        likes: getRandomLikes(users[1]._id, 203),
-        comments: [
-          {
-            content: "Which Inca Trail route did you take? Trying to decide between options!",
-            author: users[4]._id,
-            likes: getRandomLikes(users[4]._id, 7),
-            replies: [
-              {
-                content: "We did the classic 4-day Inca Trail which was perfect - challenging but doable, with amazing ruins along the way. Book 6+ months in advance! The Salkantay Trek is great alternative if permits are sold out.",
-                author: users[1]._id,
-                likes: getRandomLikes(users[1]._id, 9),
-                createdAt: daysAgo(41)
-              }
-            ],
-            createdAt: daysAgo(42)
-          }
-        ],
-        tags: ["peru", "machupicchu", "incatrail", "amazon", "hiking", "food"],
-        isPublished: true,
-        views: 3456,
-        createdAt: daysAgo(43),
-        shares: getRandomShares(users[1]._id, 17)
-      },
-      {
-        title: "Scotland: Castles, Highlands & Whisky",
-        content: 
-          "Two weeks driving through Scotland revealed misty glens, dramatic castles, and the warmest hospitality. This country exceeded all my expectations!\n\nHighlights:\n• Edinburgh's Royal Mile and Arthur's Seat views\n• Isle of Skye's Fairy Pools and Old Man of Storr\n• Whisky tasting along the Speyside trail\n• The haunting beauty of Glencoe\n• Searching for Nessie at Loch Ness\n\nThe weather lived up to its reputation - we experienced all four seasons in one day! But when the sun breaks through over those green hills, it's pure magic.\n\nRoad trip tip: Single-track roads require patience - use passing places and embrace the slow pace. The scenery deserves your full attention anyway!\n\nWhat's your favorite Scottish memory? Share below! 🏴 #Scotland #Highlands #Whisky #Castles",
-        coverImage: "https://www.visitscotland.com/binaries/content/gallery/visitscotland/cms-images/2024/06/04/dunrobin-castle--gardens-header.jpg",
-        author: users[2]._id,
-        destination: destinations.find(d => d.name === "Edinburgh, Scotland")?._id || destinations[0]._id,
-        gallery: [
-          "https://www.toeuropeandbeyond.com/wp-content/uploads/2017/01/P8173536-1.jpg",
-          "https://www.getours.com/media/c4wnaqfd/country-roads-of-scotland.jpg?width=1280&height=854&v=1da5522613eb700",
-        ],
-        likes: getRandomLikes(users[2]._id, 189),
-        comments: [
-          {
-            content: "How many days would you recommend for Isle of Skye? Trying to plan our itinerary!",
-            author: users[3]._id,
-            likes: getRandomLikes(users[3]._id, 6),
-            replies: [
-              {
-                content: "Minimum 3 days to see properly! One for Fairy Glen/Quiraing, one for Neist Point/Dunvegan Castle, and one for the southern peninsula (Talisker distillery is there too). The light is magical in early morning/late evening when day-trippers are gone!",
-                author: users[2]._id,
-                likes: getRandomLikes(users[2]._id, 8),
-                createdAt: daysAgo(45)
-              }
-            ],
-            createdAt: daysAgo(46)
-          }
-        ],
-        tags: ["scotland", "highlands", "whisky", "castles", "roadtrip", "nature"],
-        isPublished: true,
-        views: 3123,
-        createdAt: daysAgo(47),
-        shares: getRandomShares(users[2]._id, 15)
       }
     ];
 
