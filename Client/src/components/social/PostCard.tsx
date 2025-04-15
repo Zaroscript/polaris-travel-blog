@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { formatRelativeTime } from "@/utils/date";
 import { motion } from "framer-motion";
@@ -7,13 +7,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import {
   Heart,
   MessageCircle,
@@ -65,48 +58,10 @@ const PostCard = ({ post, onLike, onSave, onCopyLink, compact = false }: PostCar
   const [isLiked, setIsLiked] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
-  const { likePost, unlikePost, deletePost, toggleSavePost, sharePost, fetchPost } = usePostsStore();
+  const { likePost, unlikePost, deletePost, toggleSavePost, sharePost } = usePostsStore();
   const { toast } = useToast();
   const { authUser } = useAuthStore();
   const { followUser, unfollowUser, profile } = useProfileStore();
-
-  // Function to refresh comments
-  const refreshComments = async () => {
-    try {
-      // Fetch the latest post data including comments
-      const updatedPost = await fetchPost(post._id);
-      
-      if (updatedPost) {
-        // Create a new post object with updated comments to trigger re-render
-        if (updatedPost.comments) {
-          // Use a state setter to properly update the post object
-          const updatedComments = [...updatedPost.comments];
-          
-          // Create a new post object with the updated comments
-          const newPost = {
-            ...post,
-            comments: updatedComments
-          };
-          
-          // Update the post reference
-          Object.assign(post, newPost);
-          
-          // Force a re-render
-          setExpandedComments(expandedComments);
-          
-          // Log success for debugging
-          console.log("Comments refreshed successfully", updatedComments.length);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to refresh comments:", error);
-      toast({
-        title: "Error",
-        description: "Failed to refresh comments. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   useEffect(() => {
     if (authUser && profile) {
@@ -132,26 +87,33 @@ const PostCard = ({ post, onLike, onSave, onCopyLink, compact = false }: PostCar
       return;
     }
 
+    // Store current state for rollback
+    const currentLikeState = isLiked;
+    const currentLikes = [...post.likes];
+
     try {
-      // Store current state for potential rollback
-      const currentLikeState = isLiked;
-      
-      // Optimistically update UI state
+      // Optimistically update UI
       setIsLiked(!currentLikeState);
-      
-      // Call the appropriate store action
+
+      // Update post likes array
+      if (!currentLikeState) {
+        post.likes = [...post.likes, authUser];
+      } else {
+        post.likes = post.likes.filter((user) => user._id !== authUser._id);
+      }
+
+      // Perform the actual like/unlike action
       if (!currentLikeState) {
         await likePost(post._id);
       } else {
         await unlikePost(post._id);
       }
     } catch (error) {
-      // Revert the optimistic update on failure
-      setIsLiked(isLiked);
-      
       toast({
         title: "Action failed",
-        description: `Failed to ${isLiked ? "unlike" : "like"} the post. Please try again.`,
+        description: `Failed to ${
+          currentLikeState ? "unlike" : "like"
+        } the post. Please try again.`,
         variant: "destructive",
       });
     }
@@ -204,7 +166,7 @@ const PostCard = ({ post, onLike, onSave, onCopyLink, compact = false }: PostCar
       });
     }
   };
-  
+
   const handleFollow = async () => {
     if (!authUser) {
       toast({
@@ -269,7 +231,7 @@ const PostCard = ({ post, onLike, onSave, onCopyLink, compact = false }: PostCar
           {/* Post Header */}
           <div className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link to={`/user/profile/${post.author._id}`}>
+              <Link to={`/profile/${post.author._id}`}>
                 <Avatar className="h-10 w-10 border border-primary/10">
                   <AvatarImage src={post.author.profilePic} />
                   <AvatarFallback>
@@ -280,7 +242,7 @@ const PostCard = ({ post, onLike, onSave, onCopyLink, compact = false }: PostCar
               <div>
                 <div className="flex items-center gap-2">
                   <Link
-                    to={`/user/profile/${post.author._id}`}
+                    to={`/profile/${post.author._id}`}
                     className="font-medium text-sm hover:text-primary transition-colors"
                   >
                     {post.author.fullName}
@@ -332,7 +294,7 @@ const PostCard = ({ post, onLike, onSave, onCopyLink, compact = false }: PostCar
                 authorId={post.author._id}
                 onEdit={() => handleEdit()}
                 onDelete={() => handleDelete()}
-                onCopyLink={() => handleCopyLink()}
+                onCopyLink={() => handleCopyLink && handleCopyLink(post._id)}
                 onSave={() => onSave && onSave(post._id)}
                 isSaved={isSaved}
                 isCopied={isCopied}
@@ -359,72 +321,34 @@ const PostCard = ({ post, onLike, onSave, onCopyLink, compact = false }: PostCar
             </div>
           )}
 
-          {/* Gallery Images with Carousel */}
+          {/* Gallery Images */}
           {post.gallery && post.gallery.length > 0 && (
-            <div className="w-full mb-3 relative">
-              {(() => {
-                const [activeIndex, setActiveIndex] = useState(0);
-                const [carouselApi, setCarouselApi] = useState<any>(null);
-
-                useEffect(() => {
-                  if (!carouselApi) return;
-
-                  const onSelect = () => {
-                    setActiveIndex(carouselApi.selectedScrollSnap());
-                  };
-
-                  carouselApi.on("select", onSelect);
-                  return () => {
-                    carouselApi.off("select", onSelect);
-                  };
-                }, [carouselApi]);
-
-                return (
-                  <>
-                    <Carousel
-                      opts={{
-                        loop: post.gallery.length > 1,
-                        align: "start",
-                      }}
-                      setApi={setCarouselApi}
-                      className="w-full"
-                    >
-                      <CarouselContent>
-                        {post.gallery.map((image, index) => (
-                          <CarouselItem key={index}>
-                            <div className="overflow-hidden aspect-video relative group">
-                              <img
-                                src={image}
-                                alt={`Gallery image ${index + 1}`}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                              <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md">
-                                {index + 1} / {post.gallery.length}
-                              </div>
-                            </div>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      {post.gallery.length > 1 && (
-                        <>
-                          <CarouselPrevious className="left-2 bg-black/50 hover:bg-black/70 border-none text-white" />
-                          <CarouselNext className="right-2 bg-black/50 hover:bg-black/70 border-none text-white" />
-                        </>
-                      )}
-                    </Carousel>
-                    <div className="flex justify-center mt-2 gap-1">
-                      {post.gallery.length > 1 && post.gallery.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => carouselApi?.scrollTo(index)}
-                          className={`h-1.5 rounded-full transition-all duration-300 ${index === activeIndex ? 'w-4 bg-primary' : 'w-1.5 bg-gray-300 hover:bg-gray-400'}`}
-                          aria-label={`Go to slide ${index + 1}`}
-                        />
-                      ))}
+            <div className={`w-full ${post.gallery.length > 1 ? 'grid grid-cols-2 gap-0.5' : ''} mb-3`}>
+              {post.gallery.map((image, index) => (
+                <div 
+                  key={index} 
+                  className={cn(
+                    "overflow-hidden relative group",
+                    post.gallery.length === 1 && "aspect-video",
+                    post.gallery.length > 1 && "aspect-square",
+                    index > 3 && "hidden"
+                  )}
+                >
+                  <img
+                    src={image}
+                    alt={`Gallery image ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  {index === 3 && post.gallery.length > 4 && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-medium">
+                      <div className="flex items-center gap-1">
+                        <Image className="h-5 w-5" />
+                        <span>+{post.gallery.length - 4} more</span>
+                      </div>
                     </div>
-                  </>
-                );
-              })()}
+                  )}
+                </div>
+              ))}
             </div>
           )}
 
@@ -520,11 +444,7 @@ const PostCard = ({ post, onLike, onSave, onCopyLink, compact = false }: PostCar
         {/* Comments Section */}
         {expandedComments && (
           <CardFooter className="p-0 border-t">
-            <CommentSection 
-              postId={post._id} 
-              comments={post.comments || []} 
-              refreshComments={refreshComments}
-            />
+            <CommentSection postId={post._id} comments={post.comments || []} />
           </CardFooter>
         )}
       </Card>

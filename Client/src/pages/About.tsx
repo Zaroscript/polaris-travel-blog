@@ -37,7 +37,7 @@ const About = () => {
       social: { github: "#", instagram: "#", linkedin: "#", twitter: "#" },
     },
     {
-      name: "Mohamed Samer",
+      name: "Mohamed Samir",
       role: "Frontend Developer",
       bio: "Creative Frontend Developer with a focus on user experience and interactive interfaces that bring travel stories to life.",
       avatar: "https://randomuser.me/api/portraits/lego/2.jpg",

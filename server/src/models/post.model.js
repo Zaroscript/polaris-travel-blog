@@ -38,13 +38,6 @@ const postSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        fullName: {
-          type: String,
-        },
-        profilePic: {
-          type: String,
-        },
-
       },
     ],
     comments: [
@@ -68,12 +61,6 @@ const postSchema = new mongoose.Schema(
           {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-            fullName: {
-              type: String, 
-            },
-            profilePic: {
-              type: String,
-            },
           },
         ],
         createdAt: {
@@ -89,13 +76,13 @@ const postSchema = new mongoose.Schema(
             author: {
               type: mongoose.Schema.Types.ObjectId,
               ref: "User",
+              required: true,
               fullName: {
                 type: String,
               },
               profilePic: {
                 type: String,
               },
-              required: true,
             },
             createdAt: {
               type: Date,
@@ -105,13 +92,6 @@ const postSchema = new mongoose.Schema(
               {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "User",
-
-                fullName: {
-                  type: String, 
-                },
-                profilePic: {
-                  type: String, 
-                }
               },
             ],
           },

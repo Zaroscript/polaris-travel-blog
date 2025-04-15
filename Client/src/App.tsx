@@ -24,7 +24,7 @@ import Settings from "./pages/Settings";
 import Contact from "./pages/Contact";
 import { TravelLoader } from "./components/ui/travel-loader";
 import ComingSoon from "./pages/ComingSoon";
-
+import FloatingChatIcon from "./components/chat/FloatingChatIcon";
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -44,6 +44,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
+      {window.location.pathname !== "/chat" && <FloatingChatIcon />}
 
       {authUser && <NotificationListener />}
 
@@ -54,7 +55,10 @@ const App = () => {
         <Route path="/destination/:id" element={<DestinationDetail />} />
         <Route path="/blogs" element={<Blogs />} />
         <Route path="/blog/:id" element={<BlogPost />} />
-        <Route path="/social" element={!authUser ? <Navigate to="/login" /> : <Social />} />
+        <Route
+          path="/social"
+          element={!authUser ? <Navigate to="/login" /> : <Social />}
+        />
         <Route path="/contact" element={<Contact />} />
 
         <Route path="/coming-soon" element={<ComingSoon />} />
@@ -77,8 +81,6 @@ const App = () => {
           element={!authUser ? <Navigate to="/login" /> : <Profile />}
         />
 
-
-       
         <Route path="*" element={<NotFound />} />
 
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

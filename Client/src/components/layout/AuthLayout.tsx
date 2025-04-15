@@ -33,10 +33,10 @@ const AuthLayout = ({
                     className="w-6 h-6 text-blue-600"
                   />
                 </div>
-                <h1 className="text-2xl font-bold mt-2 text-gray-900">
+                <h1 className="text-2xl font-bold mt-2 text-gray-900 dark:text-gray-100">
                   {title}
                 </h1>
-                <p className="text-gray-500">{subtitle}</p>
+                <p className="text-gray-500 dark:text-gray-400">{subtitle}</p>
               </div>
             </div>
           )}
