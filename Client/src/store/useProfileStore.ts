@@ -8,6 +8,50 @@ import {
 } from "../types/social";
 import { axiosInstance } from "../lib/axios";
 import axios from "axios";
+import { useAuthStore } from "./useAuthStore";
+
+// Helper function to derive a traveler type from interests
+const deriveTravelerTypeFromInterests = (interests: string[]): string => {
+  // Convert interests to lowercase for easier matching
+  const lowerInterests = interests.map(i => i.toLowerCase());
+  
+  // Define categories and their related keywords
+  const categories = {
+    'Adventure Traveler': ['hiking', 'trekking', 'climbing', 'adventure', 'outdoor', 'extreme', 'camping'],
+    'Photographer': ['photography', 'camera', 'photo', 'landscape', 'wildlife', 'portrait'],
+    'Food Explorer': ['food', 'cuisine', 'culinary', 'gastronomy', 'cooking', 'restaurant', 'dining'],
+    'Budget Backpacker': ['budget', 'backpacking', 'hostel', 'affordable', 'cheap', 'economic'],
+    'Luxury Traveler': ['luxury', 'resort', 'spa', 'premium', '5-star', 'upscale', 'exclusive'],
+    'Culture Enthusiast': ['culture', 'history', 'museum', 'heritage', 'architecture', 'local', 'tradition'],
+    'Beach Lover': ['beach', 'ocean', 'sea', 'island', 'surf', 'diving', 'snorkel', 'coastal'],
+    'City Explorer': ['city', 'urban', 'metropolitan', 'nightlife', 'shopping', 'cafe']
+  };
+  
+  // Count matches for each category
+  const scores: Record<string, number> = {};
+  
+  for (const [category, keywords] of Object.entries(categories)) {
+    scores[category] = 0;
+    for (const interest of lowerInterests) {
+      if (keywords.some(keyword => interest.includes(keyword))) {
+        scores[category]++;
+      }
+    }
+  }
+  
+  // Find the category with the highest score
+  let bestMatch = 'Travel Enthusiast'; // Default
+  let highestScore = 0;
+  
+  for (const [category, score] of Object.entries(scores)) {
+    if (score > highestScore) {
+      highestScore = score;
+      bestMatch = category;
+    }
+  }
+  
+  return bestMatch;
+};
 
 // Helper function to derive a traveler type from interests
 const deriveTravelerTypeFromInterests = (interests: string[]): string => {
@@ -233,22 +277,44 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const userResponse = await axiosInstance.get(`/users/${userId}`);
       const user = userResponse.data.user;
 
+      // Get the current user's profile
+      const authUser = useAuthStore.getState().authUser;
+      
       const followingUser: MinimalProfile = {
         _id: user._id,
         fullName: user.fullName,
         profilePic: user.profilePic,
       };
+      
+      // Create a minimal profile for the current user
+      const currentUserProfile: MinimalProfile = {
+        _id: authUser._id,
+        fullName: authUser.fullName,
+        profilePic: authUser.profilePic,
+      };
 
-      set((state) => ({
-        profile: state.profile
-          ? {
-              ...state.profile,
-              following: [...state.profile.following, followingUser],
-              followingCount: followingCount,
-            }
-          : null,
-        following: [...state.following, followingUser],
-      }));
+      set((state) => {
+        // Check if we're viewing the profile of the user we just followed
+        const isViewingFollowedUser = state.profile?._id === userId;
+        
+        return {
+          profile: state.profile
+            ? {
+                ...state.profile,
+                following: [...state.profile.following, followingUser],
+                followingCount: followingCount,
+                // Add the current user to the followers array if not already there
+                followers: isViewingFollowedUser 
+                  ? (state.profile.followers.some(f => f._id === authUser._id) 
+                      ? state.profile.followers 
+                      : [...state.profile.followers, currentUserProfile])
+                  : state.profile.followers,
+                followerCount: isViewingFollowedUser ? followerCount : state.profile.followerCount,
+              }
+            : null,
+          following: [...state.following, followingUser],
+        };
+      });
 
       return response.data;
     } catch (error) {
@@ -262,18 +328,33 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const response = await axiosInstance.delete(`/users/${userId}/follow`);
       const { following, followingCount, followerCount } = response.data;
 
-      set((state) => ({
-        profile: state.profile
-          ? {
-              ...state.profile,
-              following: state.profile.following.filter(
-                (f) => f._id !== userId
-              ),
-              followingCount: followingCount,
-            }
-          : null,
-        following: state.following.filter((f) => f._id !== userId),
-      }));
+      // Get the current user's profile
+      const authUser = useAuthStore.getState().authUser;
+
+      set((state) => {
+        // Check if we're viewing the profile of the user we just unfollowed
+        const isViewingUnfollowedUser = state.profile?._id === userId;
+        
+        return {
+          profile: state.profile
+            ? {
+                ...state.profile,
+                following: state.profile.following.filter(
+                  (f) => f._id !== userId
+                ),
+                followingCount: followingCount,
+                // Remove the current user from the followers array
+                followers: isViewingUnfollowedUser
+                  ? state.profile.followers.filter(
+                      (f) => f._id !== authUser._id
+                    )
+                  : state.profile.followers,
+                followerCount: isViewingUnfollowedUser ? followerCount : state.profile.followerCount,
+              }
+            : null,
+          following: state.following.filter((f) => f._id !== userId),
+        };
+      });
 
       return response.data;
     } catch (error) {
