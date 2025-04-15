@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Map, PlusCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Destination } from "@/types/destination";
+import { Destination } from "@/types/social";
 import DestinationMap from "@/components/destination/DestinationMap";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";

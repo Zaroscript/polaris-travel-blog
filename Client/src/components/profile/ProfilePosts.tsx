@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Grid, List, MessageCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -19,21 +19,7 @@ interface ProfilePostsProps {
  */
 export function ProfilePosts({ userId, isOwnProfile, profileName }: ProfilePostsProps) {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const { posts, loading, likePost, savePost, fetchUserPosts } = usePosts();
-
-  useEffect(() => {
-    // Fetch posts for the specific user when component mounts or userId changes
-    const loadUserPosts = async () => {
-      try {
-        await fetchUserPosts(userId);
-      } catch (error) {
-        // Error is already handled by the usePosts hook
-        console.error("Error loading user posts:", error);
-      }
-    };
-    
-    loadUserPosts();
-  }, [userId, fetchUserPosts]);
+  const { posts, loading, likePost, savePost } = usePosts();
 
   // Create post content to display in the empty state
   const getEmptyStateContent = () => {
