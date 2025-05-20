@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./styles/globals.css";
 import "./styles/main.css";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import NotificationListener from "./components/NotificationListener";

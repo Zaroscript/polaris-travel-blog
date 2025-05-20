@@ -1,6 +1,18 @@
+
+# Project Title
+
+A brief description of what this project does and who it's for
+
 # Polaris Travel Blog
 
 A modern, feature-rich travel blog platform built with React, TypeScript, Node.js, and PostgreSQL.
+
+# Project presentation video and preview
+
+- Video: [Presentation video](https://drive.google.com/file/d/1-rdDh86srBd1Jvz6GXP1xW9z_4MeK8wk/view?usp=drive_link)
+- Video: [Presentation Preview](https://prezi.com/p/spufppdllfby/travel-blog/)
+
+
 
 ## Table of Contents
 
@@ -329,5 +341,5 @@ Special thanks to:
 
 For any questions or suggestions, please contact:
 
-- Email: your-email@example.com
-- GitHub: [your-username](https://github.com/your-username)
+- Email: andrewazer18@gmail.com
+- GitHub: [Zaroscript](https://github.com/Zaroscript)
