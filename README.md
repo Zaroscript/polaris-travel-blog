@@ -9,7 +9,7 @@ A modern, feature-rich travel blog platform built with React, TypeScript, Node.j
 
 # Project presentation video and preview
 
-- Video: [(./Client/public/presentation.png)](https://drive.google.com/file/d/1-rdDh86srBd1Jvz6GXP1xW9z_4MeK8wk/view?usp=drive_link)
+- Video: [![presentation video](Client/public/presentation.png)](https://drive.google.com/file/d/1-rdDh86srBd1Jvz6GXP1xW9z_4MeK8wk/view?usp=drive_link)
 - Video: [Presentation Preview](https://prezi.com/p/spufppdllfby/travel-blog/)
 
 
